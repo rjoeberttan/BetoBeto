@@ -109,7 +109,7 @@ app.post("/register", (req, res) => {
             if (err){
               console.log("Error during User_Register proc_id:03 username:" + username + '. ' + err)
               res.status(400).send("Error during Register. Please raise to supprort")
-            } else if (toInsert){
+            } else{
               sqlQuery = "INSERT INTO accounts (USERNAME,EMAIL,PHONE,PASSWORD,ACCOUNT_TYPE,REFERRER_ID,WRITER) VALUES (?,?,?,?,?,?,CURRENT_USER)"
               db.query(sqlQuery, [username, email, phone, hash, new_user_account_type,referralID], (err, result) => {
                 if (err) {

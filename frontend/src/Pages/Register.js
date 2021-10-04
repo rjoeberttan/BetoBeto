@@ -7,7 +7,7 @@ import axios from "axios";
 
 function Register() {
   let { referralID } = useParams();
-
+  
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -37,7 +37,7 @@ function Register() {
           toast.success(response.data);
         })
         .catch((error) => {
-          console.log(error.response.data);
+          console.log(error);
           toast.error(error.response.data);
         });
     }

@@ -7,7 +7,7 @@ function App() {
         
         <Router>
             <Switch>
-                <Route path="/register/:referralID" exact component={Register} />
+                <Route path="/register/referralID=:referralID" exact component={Register} />
             </Switch>
         </Router>
     )
