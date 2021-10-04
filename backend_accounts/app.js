@@ -66,7 +66,6 @@ app.post("/register", (req, res) => {
   console.log("Initiated Register for username: "+ username);
   
   // Check if ReferralID is Valid: Proc code: 01
-  // If ReferralID is valid we then set the account type for the new user
   var sqlQuery = "SELECT ACCOUNT_TYPE from accounts where ID = ?"
 
   db.query(sqlQuery, [referralID], (err, result) => {
@@ -79,13 +78,13 @@ app.post("/register", (req, res) => {
       res.status(400).send("Error during Register. Please recheck referral ID")
     } 
     else {
+      // IF REFERRER ACCOUNT IS OKAY, WE WILL CREATE THE NEW ACCOUNT_TYPE FOR THE NEW USER
+      // IF CURRENT REFERRER IS PLAYER, WE WILL NOT ALLOW
       referrer_code = result[0].ACCOUNT_TYPE;
-      console.log(referrer_code)
-      
+
       if (referrer_code === 3){
         console.log("Error during User_Register proc_id:01 username:" + username + '. ' + "Please get registration link from authorized agents")
-        res.status(400).send("Error during Register. Please get registration link from authorized agents")      
-        
+        res.status(400).send("Error during Register. Please get registration link from authorized agents")          
       } 
       else {
         new_user_account_type = referrer_code + 1;
@@ -103,6 +102,8 @@ app.post("/register", (req, res) => {
                 
         } 
         else {
+
+          // IF USERNAME OR EMAIL IS NOT USED INSERT TO DATABASE.
           // Hash Password and add to database if successful. Proc code: 03
           bcrypt.hash(password, saltRounds, (err, hash)=>{
             if (err){
