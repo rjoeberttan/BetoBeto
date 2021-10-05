@@ -26,11 +26,9 @@ function Home() {
             setUserID(response.data.userID)
 
         }).catch((err) => {
-            if (err.response.data.message === "Token is Expired"){
-                toast.error("Token is Expired")
-                history.push("/")
+               history.push("/")
             }
-        })
+        )
     }
 
     useEffect(() => {

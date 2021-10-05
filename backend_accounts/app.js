@@ -61,7 +61,7 @@ app.get('/isUserAuth', (req,res)=> {
   } else { 
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
       if (err){
-        res.status(401).json({auth: false, message: "Token is Expired"})
+        res.status(401).json({auth: false, message: err.name}) 
       } else {
         console.log("Decoded:", decoded)
         res.status(200).json({auth: true, userID: decoded.userID, username: decoded.username, accountType: decoded.accountType})
@@ -96,7 +96,7 @@ app.post("/login", (req,res) => {
           const userID = result[0].ID;
           const accountType = result[0].ACCOUNT_TYPE
 
-          const token = jwt.sign({userID, username, accountType}, process.env.JWT_SECRET, {expiresIn: 60})
+          const token = jwt.sign({userID, username, accountType}, process.env.JWT_SECRET, {expiresIn: 5})
           req.session.user = result;
           res.status(200).json({auth:true, token: token, result: result})
           console.log("Successful User_Login username:" + username + '.' )

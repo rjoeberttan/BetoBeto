@@ -1,5 +1,5 @@
 //jshint esversion:6
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useHistory} from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -11,9 +11,27 @@ function Login() {
 
   const history = useHistory();
 
+  function checkAuth() {
+    axios.get("http://localhost:4003/isUserAuth", {
+        headers: {
+            "x-access-token": localStorage.getItem("token")
+        }
+    }).then((response) => {
+        console.log(response.data)
+    }).catch((err) => {
+        if (err.response.data.message === "TokenExpiredError"){
+            localStorage.removeItem("token")
+            toast.error("Session Expired. Please Login")
+        }
+    })
+}
+
+useEffect(() => {
+    checkAuth()
+}, []);
+
 
   function submitLogin(){
-
     axios.post("http://localhost:4003/login", {
         username: username,
         password: password
