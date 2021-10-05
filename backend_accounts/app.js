@@ -52,6 +52,69 @@ app.get("/register", (req, res) => {
   res.send("OK")
 })
 
+// Check Authentication
+app.get('/isUserAuth', (req,res)=> {
+  const token = req.headers["x-access-token"]
+
+  if (!token){
+    res.status(401).json({auth: false, message: "Token not Found "})
+  } else { 
+    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+      if (err){
+        res.status(401).json({auth: false, message: "Token is Expired"})
+      } else {
+        console.log("Decoded:", decoded)
+        res.status(200).json({auth: true, userID: decoded.userID, username: decoded.username, accountType: decoded.accountType})
+      }
+    })
+  }
+})
+
+
+// LOGIN
+app.post("/login", (req,res) => {
+  const username = req.body.username
+  const password = req.body.password
+  
+  // Check entry in database. proc_id: 01
+  var sqlQuery = "SELECT * FROM accounts WHERE username = ?"
+  db.query(sqlQuery, [username], (err, result) => {
+    if (err) {
+      console.log("Error during User_Login proc_id:01 username:" + username + '. ' + err)
+      res.status(400).send("Error during Login. Please raise to support") 
+    }
+    if (result.length > 0 ){
+      // Encrypted Password Comparison. proc_id: 02
+      bcrypt.compare(password, result[0].PASSWORD, (err, response) => {
+        if (err){
+          console.log("Error during User_Login username proc_id:02:" + username + '. ' + err)
+          res.status(400).send("Error during Login. Please raise to support") 
+        } else if (response) {
+          
+          // The following should be stored in the token
+          const username = result[0].USERNAME;
+          const userID = result[0].ID;
+          const accountType = result[0].ACCOUNT_TYPE
+
+          const token = jwt.sign({userID, username, accountType}, process.env.JWT_SECRET, {expiresIn: 60})
+          req.session.user = result;
+          res.status(200).json({auth:true, token: token, result: result})
+          console.log("Successful User_Login username:" + username + '.' )
+          // res.status(200).send("Login Successful") 
+        } else {
+          // Meaning Password is wrong
+          console.log("Password did not match during Login for username:" + username + '. ')
+          res.status(400).send("Wrong Password. Please try again")
+        }
+      })
+    } else {
+      //Meaning nothing matched the username
+      console.log("No match in database during Login for username:" + username + '. ')
+      res.status(400).send("Username not found. Please try again") 
+    }
+  });
+})
+
 // REGISTER
 app.post("/register", (req, res) => {
   // We should expect the following from the frontend
