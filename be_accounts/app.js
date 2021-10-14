@@ -66,7 +66,12 @@ app.post("/register", (req, res) => {
     const agentId = req.body.agentId
     const apiKey = req.body.apiKey
 
-    logger.info("Received REGISTER request from username:"+username)
+    // Check if body is complete
+    if  (!username || !email || !phone || !agentId || !password){
+        logger.warn("REGISTER request has missing body parameters")
+        res.status(400).json({message: "Missing body parameters"})
+        return;
+    }
 
     // Check if apiKey is correct
     if (!apiKey || apiKey !== process.env.API_KEY){
@@ -74,13 +79,7 @@ app.post("/register", (req, res) => {
         res.status(401).json({message: "Unauthorized Request"})
         return;
     }
-    
-    // Check if body is complete
-    if  (!username || !email || !phone || !agentId || !password){
-        logger.warn("REGISTER request has missing body parameters, from username:"+username)
-        res.status(400).json({message: "Missing body parameters"})
-        return;
-    }
+       
 
     // Process 1: 
     // Check if agent ID is valid,
@@ -164,6 +163,14 @@ app.post("/login", (req, res) => {
     const password = req.body.password
     const apiKey = req.body.apiKey
 
+    // Check if body is complete
+    if  (!username || !password){
+        logger.warn("REGISTER request has missing body parameters")
+        res.status(400).json({message: "Missing body parameters"})
+        return;
+    }
+
+
     // Check if apiKey is correct
     if (!apiKey || apiKey !== process.env.API_KEY){
         logger.warn("REGISTER request has missing/wrong API_KEY, from username:"+username)
@@ -171,13 +178,7 @@ app.post("/login", (req, res) => {
         return;
     }
     
-    // Check if body is complete
-    if  (!username || !password){
-        logger.warn("REGISTER request has missing body parameters, from username:"+username)
-        res.status(400).json({message: "Missing body parameters"})
-        return;
-    }
-
+    
     // Process 1
     // Check account found using username
     sqlQuery = "SELECT * FROM accounts WHERE username = ?"
@@ -210,6 +211,16 @@ app.post("/login", (req, res) => {
                     const token = jwt.sign({accountId, username, accountType}, process.env.JWT_SECRET, {expiresIn: '2h'})
                     logger.info("LOGIN successful for username:"+ username)
                     res.status(200).json({message: "Login Successful", token: token})
+
+                    // Process 4
+                    // Update LastLoginDate in Database
+                    sqlQuery = "UPDATE accounts SET lastlogin_date = NOW() WHERE account_id = ?"
+                    db.query(sqlQuery, [accountId], (err, result) => {
+                        if (err) {
+                            logger.error("Process 4: Error in LOGIN request for username:"+username + " \n" + err)
+                        }
+                    })
+                    
 
                 }
             })
@@ -259,6 +270,57 @@ app.get('/isUserAuth', (req, res) => {
         })
     }
 })
+
+// GET getUserDetails - to be used only for single users
+// Requires: accountId, apiKey
+// Responses:
+//        500 - General Error
+//        401 - Unauthorized Request
+//        400 - Missing parameters
+//        409 - Account not found
+//        200 - Success
+app.get('/getUserDetails', (req, res) => {
+    // Get body
+    const accountId = req.body.accountId
+    const apiKey = req.body.apiKey
+
+    // Check if body is complete
+    if  (!accountId){
+        logger.warn("getUserDetails request has missing body parameters")
+        res.status(400).json({message: "Missing body parameters"})
+        return;
+    }
+
+    // Check if apiKey is correct
+    if (!apiKey || apiKey !== process.env.API_KEY){
+        logger.warn("getUserDetails request has missing/wrong API_KEY, from accountId:"+accountId)
+        res.status(401).json({message: "Unauthorized Request"})
+        return;
+    }
+
+    // Process 1
+    // Get all necessary details
+    sqlQuery = "SELECT username, account_type, commission, agent_id, email, phone_num FROM accounts where account_id = ?"
+    db.query(sqlQuery, [accountId], (err, result) => {
+        if (err){
+            logger.error("Process 1: Error in getUserDetails request. Error:" + "\n" + err)
+            res.status(500).json({message: "Server error"})
+        } else if (result.length <= 0) {
+            logger.warn("Warn in getUserDetails, account not found, for accountId:" + accountId)
+            res.status(409).json({message: "Account not found"})
+        } else {
+            logger.info("Successful getUserDetails request for accountId:"+accountId)
+            res.status(200).json({message: "Request successful", data: result[0]})
+        }
+    });
+    
+
+
+})
+
+
+
+
 
 
 
