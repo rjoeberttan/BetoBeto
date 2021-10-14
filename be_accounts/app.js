@@ -404,7 +404,6 @@ app.post('/updatePhoneDetail', (req,res) => {
                 logger.info("Successful updatePhoneDetail request for accountId:" + accountId)
                 res.status(200).json({message: "Phone Number updated Successfully"})
             }
-
         })
 })
 
@@ -459,10 +458,7 @@ app.post('/updatePassword', (req, res) => {
                     logger.info("Successful updatePassword request for accountId:" + accountId)
                     res.status(200).json({message: "Password updated Successfully"})
                 }
-
             })
-           
-
         }
     })
 })
@@ -514,9 +510,6 @@ app.post('/changeAccountStatus', (req, res) => {
         }
     })
 })
-
-
-
 
 app.listen(4003, () => {
     console.log("Server listentning at port 4003");
