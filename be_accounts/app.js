@@ -218,6 +218,47 @@ app.post("/login", (req, res) => {
 })
 
 
+// GET isUserAuth
+// Process to check if user is still logged IN
+// Responses:
+//    401: Missing API Key
+//    401: Missing token
+//    401: Expired token
+//    500: Server error
+//    200: Success
+app.get('/isUserAuth', (req, res) => {
+    const token = req.headers["x-access-token"]
+    const apiKey = req.body.apiKey
+
+    // Check if apiKey is correct
+    if (!apiKey || apiKey !== process.env.API_KEY){
+        logger.warn("ISUSERAUTH request has missing/wrong API_KEY")
+        res.status(401).json({message: "Unauthorized Request"})
+        return;
+    } 
+    // Check if token submitted exists
+    else if (!token){
+        logger.warn("ISUSERAUTH request has no token")
+        res.status(401).json({message: "Token not found"})
+        return;
+    } 
+    else {
+        jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+            if (err){
+                if (err.message === "TokenExpiredError"){
+                    logger.warn("ISUSERAUTH request has expired token")
+                    res.status(401).json({message: "Token Expired"})
+                } else {
+                    logger.error("Process 1: Error in ISUSERAUTH request. Error:" + "\n" + err)
+                    res.status(500).json({message: "Server error"})
+                }              
+            } else {
+                logger.info("Successful ISUSERAUTH request for username:" + decoded.username)
+                res.send(200).json({message:"User is authenticated. Token still valid", accountId: decoded.accountId, username: decoded.username, accountType: decoded.accountType})
+            }
+        })
+    }
+})
 
 
 
