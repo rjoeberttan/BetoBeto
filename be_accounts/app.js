@@ -468,7 +468,52 @@ app.post('/updatePassword', (req, res) => {
 })
 
 
+// POST updatePhoneDetail
+// Requires: accountId, status (as string), editorUsername, apiKey
+// Response:
+//      500 - General Error
+//      400 - Missing body parameters
+//      401 - Unauthorized wrong api key
+//      409 - Account ID not found, update not successful
+//      200 - Successful
+app.post('/changeAccountStatus', (req, res) => {
+    // Get body
+    const accountId = req.body.accountId
+    const currentStatus = req.body.status
+    const editorUsername = req.body.editorUsername
+    const apiKey = req.body.apiKey
 
+    // Check if body is complete
+    if  (!accountId || !currentStatus || !editorUsername ){
+        logger.warn("updatePhoneDetail request has missing body parameters")
+        res.status(400).json({message: "Missing body parameters"})
+        return;
+    }
+
+    // Check if apiKey is correct
+    if (!apiKey || apiKey !== process.env.API_KEY){
+        logger.warn("updatePhoneDetail request has missing/wrong API_KEY, from accountId:"+accountId)
+        res.status(401).json({message: "Unauthorized Request"})
+        return;
+    }
+
+    // Process 1
+    // Update Status
+    const newStatus = (currentStatus === '1') ? 0 : 1
+    sqlQuery = "UPDATE accounts SET account_status = ?, lastedit_date = NOW(), edited_by = ? WHERE account_id = ?"
+    db.query(sqlQuery, [newStatus, editorUsername, accountId], (err, result) => {
+        if (err){
+            logger.error("Process 1: Error in changeAccountStatus request.accountId:" + accountId + "\n" + err)
+            res.status(500).json({message: "Server error"})
+        } else if (result.affectedRows === 0) {
+            logger.warn("Requested changeAccountStatus, but nothing changed, accountId:" + accountId)
+            res.status(409).json({message: "Account ID not found. Update unsuccessful"})
+        } else {
+            logger.info("Successful changeAccountStatus request for to status:" + newStatus + " for accountId:" + accountId)
+            res.status(200).json({message: "Account Status updated Successfully", accountId: accountId, accountStatus: newStatus})
+        }
+    })
+})
 
 
 
