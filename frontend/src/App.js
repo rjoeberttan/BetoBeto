@@ -11,7 +11,7 @@ function App() {
         
         <Router>
             <Switch>
-                <Route path="/register/referralID=:referralID" exact component={Register} />
+                <Route path="/register/agent=:agent" exact component={Register} />
                 <Route path="/" exact component={Login} />
                 <Route path="/home" exact component={Home} />
                 <Route path="*" exact component={PageNotFound} />

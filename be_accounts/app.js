@@ -313,12 +313,159 @@ app.get('/getUserDetails', (req, res) => {
             res.status(200).json({message: "Request successful", data: result[0]})
         }
     });
-    
-
-
 })
 
 
+
+// GET getUserDetails - to be used only for single users
+// Requires: accountId, apiKey
+// Responses:
+//        500 - General Error
+//        401 - Unauthorized Request
+//        400 - Missing parameters
+//        409 - Account not found
+//        200 - Success
+app.get('/getWalletBalance', (req, res) => {
+        // Get body
+        const accountId = req.body.accountId
+        const apiKey = req.body.apiKey
+    
+        // Check if body is complete
+        if  (!accountId){
+            logger.warn("getWalletBalance request has missing body parameters")
+            res.status(400).json({message: "Missing body parameters"})
+            return;
+        }
+    
+        // Check if apiKey is correct
+        if (!apiKey || apiKey !== process.env.API_KEY){
+            logger.warn("getWalletBalance request has missing/wrong API_KEY, from accountId:"+accountId)
+            res.status(401).json({message: "Unauthorized Request"})
+            return;
+        }
+    
+        // Process 1
+        // Get all necessary details
+        sqlQuery = "SELECT wallet FROM accounts where account_id = ?"
+        db.query(sqlQuery, [accountId], (err, result) => {
+            if (err){
+                logger.error("Process 1: Error in getWalletBalance request. Error:" + "\n" + err)
+                res.status(500).json({message: "Server error"})
+            } else if (result.length <= 0) {
+                logger.warn("Warn in getWalletBalance, account not found, for accountId:" + accountId)
+                res.status(409).json({message: "Account not found"})
+            } else {
+                logger.info("Successful getWalletBalance request for accountId:"+accountId)
+                res.status(200).json({message: "Request successful", accountId: accountId, wallet: result[0].wallet})
+            }
+        });
+})
+
+// POST updatePhoneDetail
+// Requires: accountId, phone, editorUsername, apiKey
+// Response:
+//      500 - General Error
+//      400 - Missing body parameters
+//      401 - Unauthorized wrong api key
+//      409 - Account ID not found, update not successful
+//      200 - Successful
+app.post('/updatePhoneDetail', (req,res) => {
+        // Get body
+        const accountId = req.body.accountId
+        const phone = req.body.phone
+        const editorUsername = req.body.editorUsername
+        const apiKey = req.body.apiKey
+
+        // Check if body is complete
+        if  (!accountId || !phone || !editorUsername ){
+            logger.warn("updatePhoneDetail request has missing body parameters")
+            res.status(400).json({message: "Missing body parameters"})
+            return;
+        }
+
+        // Check if apiKey is correct
+        if (!apiKey || apiKey !== process.env.API_KEY){
+            logger.warn("updatePhoneDetail request has missing/wrong API_KEY, from accountId:" + accountId)
+            res.status(401).json({message: "Unauthorized Request"})
+            return;
+        }
+
+        // Process 1
+        // Update the entry
+        sqlQuery = "UPDATE accounts SET phone_num = ?, lastedit_date = NOW(), edited_by = ? WHERE account_id = ?"
+        db.query(sqlQuery, [phone, editorUsername, accountId], (err, result) => {
+            if (err){
+                logger.error("Process 1: Error in updatePhoneDetail request.accountId:" + accountId + "\n" + err)
+                res.status(500).json({message: "Server error"})
+            } else if (result.affectedRows === 0) {
+                logger.warn("Requested updatePhoneDetail, but nothing changed, accountId:" + accountId)
+                res.status(409).json({message: "Account ID not found. Update unsuccessful"})
+            } else {
+                logger.info("Successful updatePhoneDetail request for accountId:" + accountId)
+                res.status(200).json({message: "Phone Number updated Successfully"})
+            }
+
+        })
+})
+
+// POST updatePhoneDetail
+// Requires: accountId, phone, editorUsername, apiKey
+// Response:
+//      500 - General Error
+//      400 - Missing body parameters
+//      401 - Unauthorized wrong api key
+//      409 - Account ID not found, update not successful
+//      200 - Successful
+app.post('/updatePassword', (req, res) => {
+    // Get body
+    const accountId = req.body.accountId
+    const password = req.body.password
+    const editorUsername = req.body.editorUsername
+    const apiKey = req.body.apiKey
+
+    // Check if body is complete
+    if  (!accountId || !phone || !editorUsername ){
+        logger.warn("updatePhoneDetail request has missing body parameters")
+        res.status(400).json({message: "Missing body parameters"})
+        return;
+    }
+
+    // Check if apiKey is correct
+    if (!apiKey || apiKey !== process.env.API_KEY){
+        logger.warn("updatePhoneDetail request has missing/wrong API_KEY, from accountId:"+accountId)
+        res.status(401).json({message: "Unauthorized Request"})
+        return;
+    }
+
+    // Process 1
+    // Encrypt the password
+    bcrypt.hash(password, saltRounds, (err, hash) => {
+        if (err){
+            logger.error("Process 1: Error in updatePassword request for accountId:"+ accountId + " \n" + err)
+            res.status(500).json({message: "Server error"})
+        } else {
+
+            // Process 2:
+            // Update user in database
+            sqlQuery = "UPDATE accounts SET password = ?, lastedit_date = NOW(), edited_by = ? WHERE account_id = ?"
+            db.query(sqlQuery, [hash, editorUsername, accountId], (err, result) => {
+                if (err){
+                    logger.error("Process 2: Error in updatePassword request.accountId:" + accountId + "\n" + err)
+                    res.status(500).json({message: "Server error"})
+                } else if (result.affectedRows === 0) {
+                    logger.warn("Requested updatePassword, but nothing changed, accountId:" + accountId)
+                    res.status(409).json({message: "Account ID not found. Update unsuccessful"})
+                } else {
+                    logger.info("Successful updatePassword request for accountId:" + accountId)
+                    res.status(200).json({message: "Password updated Successfully"})
+                }
+
+            })
+           
+
+        }
+    })
+})
 
 
 

@@ -34,14 +34,10 @@ useEffect(() => {
   function submitLogin(){
     axios.post("http://localhost:4003/login", {
         username: username,
-        password: password
+        password: password,
+        apiKey: "uKRd;$SuXd8b$MFX"
     }).then((response) => {
-        if (response.data.auth) {
-            console.log("Login Successful")
-            toast.success("Login successful")
-            localStorage.setItem("token", response.data.token)
-            history.push("/home");
-        }
+        console.log(response)
     }).catch((error) => {
         console.log(error.response);
         toast.error(error.response.data);

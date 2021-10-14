@@ -6,7 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 
 function Register() {
-  let { referralID } = useParams();
+  let { agent } = useParams();
   
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -31,7 +31,8 @@ function Register() {
           email: email,
           phone: phone,
           password: password,
-          referralID: referralID,
+          agentId: agent,
+          apiKey: "uKRd;$SuXd8b$MFXs"
         })
         .then((response) => {
           toast.success(response.data);
