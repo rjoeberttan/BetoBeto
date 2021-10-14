@@ -145,11 +145,81 @@ app.post("/register", (req, res) => {
                 }
             })
         }
-    })    
-
-    
-    
+    })      
 })
+
+// POST LOGIN
+// Requires: api-key, email, username, cell_no, password, agent_id
+// Responses:
+//    401: Missing API Key
+//    500: Server General Error
+//    400: Missing Data in Body
+//    409: Username not found
+//    409: Wrong Password
+//    200: Success
+app.post("/login", (req, res) => {
+
+    // Get body
+    const username = req.body.username
+    const password = req.body.password
+    const apiKey = req.body.apiKey
+
+    // Check if apiKey is correct
+    if (!apiKey || apiKey !== process.env.API_KEY){
+        logger.warn("REGISTER request has missing/wrong API_KEY, from username:"+username)
+        res.status(401).json({message: "Unauthorized Request"})
+        return;
+    }
+    
+    // Check if body is complete
+    if  (!username || !password){
+        logger.warn("REGISTER request has missing body parameters, from username:"+username)
+        res.status(400).json({message: "Missing body parameters"})
+        return;
+    }
+
+    // Process 1
+    // Check account found using username
+    sqlQuery = "SELECT * FROM accounts WHERE username = ?"
+    db.query(sqlQuery, [username], (err, result) => {
+        if (err) {
+            logger.error("Process 1: Error in LOGIN request for username:"+username + " \n" + err)
+            res.status(500).json({message: "Server error"})
+        } else if (result.length <= 0) {
+            logger.warn("Warn in LOGIN, username not found, for username:" + username)
+            res.status(409).json({message: "Username not found"})
+        } else {
+
+            // Process 2
+            // Compare password encrypted
+            bcrypt.compare(password, result[0].password, (err, response) => {
+                if (err) {
+                    logger.error("Process 2: Error in LOGIN request for username:"+username + " \n" + err)
+                    res.status(500).json({message: "Server error"})
+                } else if (!response) {
+                    logger.warn("Warn in LOGIN, password enteres is wrong, for username:" + username)
+                    res.status(409).json({message: "Wrong Password"})
+                } else {
+
+                    // Process 3
+                    // Generate JWT Token
+                    const username = result[0].username;
+                    const accountId = result[0].account_id;
+                    const accountType = result[0].account_type;
+
+                    const token = jwt.sign({accountId, username, accountType}, process.env.JWT_SECRET, {expiresIn: '2h'})
+                    logger.info("LOGIN successful for username:"+ username)
+                    res.status(200).json({message: "Login Successful", token: token})
+
+                }
+            })
+        }
+    })
+})
+
+
+
+
 
 
 
