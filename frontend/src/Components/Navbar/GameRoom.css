@@ -1,0 +1,9 @@
+.container-game-room {
+  margin-top: 10px;
+}
+
+.game-img {
+  height: 200px;
+  overflow: hidden;
+  position: relative;
+}
