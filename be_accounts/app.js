@@ -210,7 +210,7 @@ app.post("/login", (req, res) => {
 
                     const token = jwt.sign({accountId, username, accountType}, process.env.JWT_SECRET, {expiresIn: '2h'})
                     logger.info("LOGIN successful for username:"+ username)
-                    res.status(200).json({message: "Login Successful", token: token})
+                    res.status(200).json({message: "Login Successful", accountId: accountId, username: username, accountType: accountType, token: token})
 
                     // Process 4
                     // Update LastLoginDate in Database
@@ -317,7 +317,7 @@ app.get('/getUserDetails', (req, res) => {
 
 
 
-// GET getUserDetails - to be used only for single users
+// GET getWalletBalance - to be used only for single users
 // Requires: accountId, apiKey
 // Responses:
 //        500 - General Error
@@ -423,7 +423,7 @@ app.post('/updatePassword', (req, res) => {
     const apiKey = req.body.apiKey
 
     // Check if body is complete
-    if  (!accountId || !phone || !editorUsername ){
+    if  (!accountId || !password || !editorUsername ){
         logger.warn("updatePhoneDetail request has missing body parameters")
         res.status(400).json({message: "Missing body parameters"})
         return;
@@ -509,6 +509,109 @@ app.post('/changeAccountStatus', (req, res) => {
             res.status(200).json({message: "Account Status updated Successfully", accountId: accountId, accountStatus: newStatus})
         }
     })
+})
+
+
+// POST updateCommission
+// Requires: accountId, commission, editorUsername, apiKey
+// Response:
+//      500 - General Error
+//      400 - Missing body parameters
+//      401 - Unauthorized wrong api key
+//      409 - Account ID not found, update not successful
+//      200 - Successful
+app.post('/updateCommission', (req,res) => {
+    // Get body
+    const accountId = req.body.accountId
+    const commission = req.body.commission
+    const editorUsername = req.body.editorUsername
+    const apiKey = req.body.apiKey
+
+    // Check if body is complete
+    if  (!accountId || !commission || !editorUsername ){
+        logger.warn("updateCommission request has missing body parameters")
+        res.status(400).json({message: "Missing body parameters"})
+        return;
+    }
+
+    // Check if apiKey is correct
+    if (!apiKey || apiKey !== process.env.API_KEY){
+        logger.warn("updateCommission request has missing/wrong API_KEY, from accountId:" + accountId)
+        res.status(401).json({message: "Unauthorized Request"})
+        return;
+    }
+
+    // Process 1
+    // Update the entry
+    sqlQuery = "UPDATE accounts SET commission = ?, lastedit_date = NOW(), edited_by = ? WHERE account_id = ?"
+    db.query(sqlQuery, [commission, editorUsername, accountId], (err, result) => {
+        if (err){
+            logger.error("Process 1: Error in updatePhupdateCommissiononeDetail request.accountId:" + accountId + "\n" + err)
+            res.status(500).json({message: "Server error"})
+        } else if (result.affectedRows === 0) {
+            logger.warn("Requested updateCommission, but nothing changed, accountId:" + accountId)
+            res.status(409).json({message: "Account ID not found. Update unsuccessful"})
+        } else {
+            logger.info("Successful updateCommission request for accountId:" + accountId)
+            res.status(200).json({message: "Commission updated Successfully", data:{ accountId: accountId, commission: commission}})
+        }
+    })
+})
+
+
+
+app.get("/getAccountList", (req, res) => {
+    // Get body
+    const accountId = req.body.accountId
+    const accountType = req.body.accountType
+    const apiKey = req.body.apiKey
+    const filterType = req.body.filterType
+
+    // Check if body is complete
+    if  (!accountId || !accountType ){
+        logger.warn("getAccountList request has missing body parameters")
+        res.status(400).json({message: "Missing body parameters"})
+        return;
+    }
+
+    // Check if apiKey is correct
+    if (!apiKey || apiKey !== process.env.API_KEY){
+        logger.warn("getAccountList request has missing/wrong API_KEY, from accountId:" + accountId)
+        res.status(401).json({message: "Unauthorized Request"})
+        return;
+    }
+
+    sqlQuery = ''
+    // Create SQL query depending on the accountType
+    if (accountType === '0'){
+        // Administrator
+        sqlQuery = "SELECT * FROM accounts;"
+        sqlQuery = db.format(sqlQuery, )
+        console.log(sqlQuery)
+    } else if (accountType === '1'){
+        // Master Agent
+        sqlQuery = "select * from betobeto.accounts where agent_id = ? OR agent_id in (select account_id from betobeto.accounts where agent_id = ?);"
+        sqlQuery = db.format(sqlQuery, [accountId, accountId])
+        console.log(sqlQuery)
+    } else if (accountType === '2') {
+         // Agent Agent
+         sqlQuery = "SELECT * FROM betobeto.accounts WHERE agent_id = ?"
+         sqlQuery = db.format(sqlQuery, [accountId])
+         console.log(sqlQuery)
+    }
+
+    if (sqlQuery !== ''){
+        db.query(sqlQuery, (err, result) => {
+            if (err) {
+                logger.error(" Process 1: Error in getAccountList request from accountId:" + accountId);
+            } else {
+                res.status(200).json({message: "Request Successful", data: result})
+            }
+        })
+
+    } else {
+        res.status(401).json({message: "User type is not authorized to ask this request"})
+    }
 })
 
 app.listen(4003, () => {

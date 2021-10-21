@@ -694,7 +694,6 @@ app.post("/manipulateBetTotals", (req, res) => {
           res.status(200).json({message: "Successful manipulateBetTotals request", data: {bb_manip_values: bb_manip}})
         }
       })
-
     }
   })
 })
@@ -734,6 +733,121 @@ app.get("/getManipulateValues", (req,res) => {
       res.status(200).json({message: "Request successful", data: {market: result}})
     }
   })
+})
+
+
+app.get("/getColorGameBetTotals", (req, res) => {
+  const apiKey = req.body.apiKey;
+  const gameId = req.body.gameId;
+  const marketId = req.body.marketId;
+  
+  // Check if body is complete
+  if (!gameId || !marketId ) {
+      logger.warn("resultMarket request has missing body parameters");
+      res.status(400).json({ message: "Missing body parameters" });
+      return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+      logger.warn("resultMarket request has missing/wrong API_KEY");
+      res.status(401).json({ message: "Unauthorized Request" });
+      return;
+  }
+
+  // Process 1
+  // Get the totals for the markets on the bets table
+  sqlQuery = "SELECT REPLACE(description, 'Color Game - ', '') as color, SUM(stake) as total FROM bets where market_id = ? GROUP BY description;"
+  db.query(sqlQuery, [marketId], (err,result) => {
+      if (err) {
+          logger.error("Process 1: Error in getColorGameBetTotals request for marketId:" + marketId + " " +err);
+          res.status(500).json({ message: "Server error" });
+      } else {
+          console.log(result)
+
+          // Process 2
+          // Get Manipulate Values
+          sqlQuery2 = "SELECT bb_manip_blue, bb_manip_yellow, bb_manip_red, bb_manip_white, bb_manip_green, bb_manip_purple FROM markets WHERE game_id = ? AND market_id = ? ORDER BY lastedit_date DESC LIMIT 1"
+          db.query(sqlQuery2, [gameId, marketId], (err, result2) => {
+              if (err) {
+                  logger.error("Process 2: Error in getColorGameBetTotals request for marketId:" + marketId + " " +err);
+                  res.status(500).json({ message: "Server error" });
+              } else if (result.length <= 0){
+                  logger.warn("Warn for getColorGameBetTotals, game not found gameId:" + gameId)
+                  res.status(409).json({message: "Cannot calculate bet totals. Game not found", data: {gameId: gameId}})
+              } else {
+                  
+                  const colorTotal = result
+                  const manipulateValues = result2[0]
+                  // const finalBetTotals = [{color, total}]
+                  colors = ["BLUE", "WHITE", "RED", "GREEN", "YELLOW", "PURPLE"]
+                  finalTotals = []
+                  colors.forEach((colorValue) => {
+                      inserted = false;
+                      colorTotal.forEach((entry) => {
+                          if ((colorValue === entry.color) && (colorValue === "RED")) {
+                              totalAmount = entry.total + manipulateValues.bb_manip_red
+                              finalTotals.push({color: colorValue, total: totalAmount})
+                              inserted = true;
+                          } else if ((colorValue === entry.color) && (colorValue === "GREEN")) {
+                              totalAmount = entry.total + manipulateValues.bb_manip_green
+                              finalTotals.push({color: colorValue, total: totalAmount})
+                              inserted = true;
+                          } else if ((colorValue === entry.color) && (colorValue === "BLUE")) {
+                              totalAmount = entry.total + manipulateValues.bb_manip_blue
+                              finalTotals.push({color: colorValue, total: totalAmount})
+                              inserted = true;
+                          } else if ((colorValue === entry.color) && (colorValue === "WHITE")) {
+                              totalAmount = entry.total + manipulateValues.bb_manip_white
+                              finalTotals.push({color: colorValue, total: totalAmount})
+                              inserted = true;
+                          } else if ((colorValue === entry.color) && (colorValue === "YELLOW")) {
+                              totalAmount = entry.total + manipulateValues.bb_manip_yellow
+                              finalTotals.push({color: colorValue, total: totalAmount})
+                              inserted = true;
+                          } else if ((colorValue === entry.color) && (colorValue === "PURPLE")) {
+                              totalAmount = entry.total + manipulateValues.bb_manip_purple
+                              finalTotals.push({color: colorValue, total: totalAmount})
+                              inserted = true;
+                          } 
+                      })
+
+                      if (!inserted) {
+                          if (colorValue === "RED") {
+                              totalAmount = manipulateValues.bb_manip_red
+                              finalTotals.push({color: colorValue, total: totalAmount})
+                              inserted = true;
+                          } else if (colorValue === "GREEN") {
+                              totalAmount =  manipulateValues.bb_manip_green
+                              finalTotals.push({color: colorValue, total: totalAmount})
+                              inserted = true;
+                          } else if (colorValue === "BLUE") {
+                              totalAmount = manipulateValues.bb_manip_blue
+                              finalTotals.push({color: colorValue, total: totalAmount})
+                              inserted = true;
+                          } else if  (colorValue === "WHITE") {
+                              totalAmount =  manipulateValues.bb_manip_white
+                              finalTotals.push({color: colorValue, total: totalAmount})
+                              inserted = true;
+                          } else if (colorValue === "YELLOW") {
+                              totalAmount =  manipulateValues.bb_manip_yellow
+                              finalTotals.push({color: colorValue, total: totalAmount})
+                              inserted = true;
+                          } else if  (colorValue === "PURPLE") {
+                              totalAmount = manipulateValues.bb_manip_purple
+                              finalTotals.push({color: colorValue, total: totalAmount})
+                              inserted = true;
+                          } 
+                      }
+                  })
+
+                  console.log(finalTotals)
+                  res.status(200).json({message: "Bet Totals request is successful", data: finalTotals})                    
+              }
+          })
+      }
+  })
+
 })
 
 app.listen(4004, () => {
