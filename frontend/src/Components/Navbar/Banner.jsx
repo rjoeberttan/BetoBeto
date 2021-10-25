@@ -1,6 +1,6 @@
 import React from "react";
 
-function Banner() {
+function Banner(props) {
   return (
     <div>
       <nav
@@ -8,10 +8,10 @@ function Banner() {
         style={{ backgroundColor: "#191a19" }}
       >
         <div className="container-fluid">
-          <span className="navbar-brand">Beto Beto Gaming</span>
+          <span className="navbar-brand">Master Gambler</span>
           <form className="d-flex">
             <div className="text-light">
-              <span>Welcome Player!</span>
+              <span>Welcome {props.user}!</span>
               <br />
               <span>Wallet: P2,000</span>
             </div>

@@ -21,6 +21,10 @@
 .bg-green {
   background-color: #1e5128;
 }
+
+.smaller-time {
+  font-size: 15px !important;
+}
 nav {
   padding-left: 200px;
   padding-right: 200px;

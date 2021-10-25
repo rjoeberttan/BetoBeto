@@ -1,5 +1,5 @@
 import React from "react";
-import "./GameRoom.css";
+import "./PlayerGameRoom.css";
 import { Link } from "react-router-dom";
 
 function GameRoom() {

@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import "./Account.css";
+import React, { useState, useRef } from "react";
+import "./AgentAccount.css";
 
-function Account() {
+function AgentAccount() {
   const style = {
     width: "18 rem",
   };
@@ -13,6 +13,10 @@ function Account() {
     setCellNum(value);
   }
 
+  const linkTxt = useRef(null);
+
+  const referralLink = "http://localhost:3000/agent/account";
+
   return (
     <div className="container text-light container-account">
       <div className="heading-text">
@@ -20,6 +24,27 @@ function Account() {
       </div>
       <div className="card text-black card-account" style={{ style }}>
         <div className="card-body">
+          <div className="heading-text">
+            <h1 className="display-6 small-device bold-small">Referral Link</h1>
+            <div className="row">
+              <div className="col-sm-9 spacing">
+                <label className="referral-link" ref={linkTxt}>
+                  {referralLink}
+                </label>
+              </div>
+              <div className="col-sm-3 spacing text-center">
+                <button
+                  className="btn btn-color register-btn text-light "
+                  onClick={() => {
+                    navigator.clipboard.writeText(linkTxt.current.textContent);
+                  }}
+                >
+                  COPY
+                </button>
+              </div>
+            </div>
+          </div>
+          <hr />
           <div className="heading-text">
             <h1 className="display-6 small-device bold-small">
               Account Details
@@ -86,6 +111,4 @@ function Account() {
   );
 }
 
-export default Account;
-
-// style="max-width: 18rem;"
+export default AgentAccount;

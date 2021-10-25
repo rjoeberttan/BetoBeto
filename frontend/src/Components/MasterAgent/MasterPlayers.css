@@ -1,0 +1,34 @@
+.text-spacing {
+  margin-bottom: 5px;
+}
+
+@media (min-width: 320px) and (max-width: 1199px) {
+  .spacing-btn-m {
+    margin-top: 5px;
+  }
+}
+
+@media (min-width: 320px) and (max-width: 991px) {
+  .spacing-btn-m {
+    margin-top: 5px;
+  }
+}
+
+@media (min-width: 320px) and (max-width: 720px) {
+  .spacing-btn-m {
+    margin-top: 5px;
+  }
+}
+
+@media (min-width: 320px) and (max-width: 767px) {
+  .spacing-btn-m {
+    margin-top: 5px;
+  }
+}
+
+/* TEXT ADJUSMENT */
+@media (min-width: 320px) and (max-width: 440px) {
+  .spacing-btn-m {
+    margin-top: 5px;
+  }
+}

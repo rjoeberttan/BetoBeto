@@ -1,0 +1,86 @@
+.container-account {
+  margin-top: 10px;
+}
+
+.card-account {
+  width: 50%;
+  margin: auto;
+}
+
+/* hides input number scroll */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.referral-link {
+  padding-top: 5px;
+  font-size: 19px;
+}
+
+@media (min-width: 320px) and (max-width: 1199px) {
+  .card-account {
+    width: 90%;
+    margin: auto;
+  }
+  .container-account {
+    margin-bottom: 10px;
+  }
+  .referral-link {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 320px) and (max-width: 991px) {
+  .card-account {
+    width: 90%;
+    margin: auto;
+  }
+  .container-account {
+    margin-bottom: 10px;
+  }
+  .referral-link {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 320px) and (max-width: 720px) {
+  .card-account {
+    width: 90%;
+    margin: auto;
+  }
+  .container-account {
+    margin-bottom: 10px;
+  }
+  .referral-link {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 320px) and (max-width: 767px) {
+  .card-account {
+    width: 90%;
+    margin: auto;
+  }
+  .container-account {
+    margin-bottom: 10px;
+  }
+  .referral-link {
+    font-size: 15px;
+  }
+}
+
+/* TEXT ADJUSMENT */
+@media (min-width: 320px) and (max-width: 440px) {
+  .card-account {
+    width: 90%;
+    margin: auto;
+  }
+  .container-account {
+    margin-bottom: 10px;
+  }
+  .referral-link {
+    font-size: 15px;
+  }
+}

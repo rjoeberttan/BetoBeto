@@ -1,5 +1,5 @@
 import React from "react";
-import "./Wallet.css";
+import "./PlayerWallet.css";
 
 function Wallet() {
   return (

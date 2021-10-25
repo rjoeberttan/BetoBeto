@@ -1,7 +1,7 @@
 import React from "react";
-import "./Transactions.css";
+import "./MasterTransactions.css";
 
-function Transactions() {
+function MasterTransactions() {
   return (
     <div className="container text-light container-transactions">
       <div className="heading-text">
@@ -9,24 +9,36 @@ function Transactions() {
       </div>
       <form>
         <div className="row">
-          <h4 className="lead smaller-device">Date Filter</h4>
-          <div className="col-md-2">
+          <div className="col-sm-1">
+            <label className="label-txt">Filter User</label>
+          </div>
+          <div className="col-sm-2 col-10">
             <input
-              className="date-style form-label"
+              type="text"
+              className="form-control"
+              placeholder="Username"
+            />
+          </div>
+          <div className="col-sm-1">
+            <label className="label-txt">Filter Date</label>
+          </div>
+          <div className="col-sm-2 col-5">
+            <input
+              className="form-label form-control"
               type="date"
               name="startDate"
             />
           </div>
           -
-          <div className="col-md-2">
+          <div className="col-sm-2 col-5">
             <input
-              className="date-style form-label"
+              className="form-label form-control"
               type="date"
               name="endDate"
             />
           </div>
-          <div className="col-md-2">
-            <button className="btn btn-color transaction-btn text-light col-xs-12">
+          <div className="col-sm-2 text-center">
+            <button className="btn btn-color transaction-btn btnbtn text-light">
               Search
             </button>
           </div>
@@ -78,4 +90,4 @@ function Transactions() {
   );
 }
 
-export default Transactions;
+export default MasterTransactions;

@@ -2,9 +2,9 @@ import React from "react";
 import { Link } from "react-router-dom";
 import "./NavBar.css";
 
-function NavBar({ isOut }) {
+function NavBar(props) {
   function handleLogOut() {
-    isOut(true);
+    props.isOut(true);
   }
 
   const today = new Date();
@@ -21,9 +21,7 @@ function NavBar({ isOut }) {
   return (
     <nav className="navbar sticky-top navbar-expand-lg navbar-dark bg-green">
       <div className="container-fluid text-center">
-        <span className="navbar-brand" to="/player/GameRoom">
-          {dd}
-        </span>
+        <span className="navbar-brand smaller-time">{dd}</span>
         <button
           className="navbar-toggler"
           type="button"
@@ -38,25 +36,43 @@ function NavBar({ isOut }) {
         <div className="collapse navbar-collapse" id="navbarScroll">
           <ul className="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll">
             <li className="nav-item">
-              <Link
-                className="nav-link active"
-                aria-current="page"
-                to="/player/GameRoom"
-              >
-                Game Room
-              </Link>
+              {props.user === "masteragent" && (
+                <Link className="nav-link active" to={`/${props.user}/agents`}>
+                  Agents
+                </Link>
+              )}
             </li>
             <li className="nav-item">
-              <Link className="nav-link active" to="/player/wallet">
+              {props.user === "player" && (
+                <Link
+                  className="nav-link active"
+                  aria-current="page"
+                  to="/player/gameroom"
+                >
+                  Game Room
+                </Link>
+              )}
+              {(props.user === "agent" || props.user === "masteragent") && (
+                <Link
+                  className="nav-link active"
+                  aria-current="page"
+                  to={`/${[props.user]}/players`}
+                >
+                  Players
+                </Link>
+              )}
+            </li>
+            <li className="nav-item">
+              <Link className="nav-link active" to={`/${props.user}/wallet`}>
                 Wallet
               </Link>
             </li>
             <li className="nav-item">
               <Link
                 className="nav-link active right-border"
-                to="/player/transactions"
+                to={`/${props.user}/transactions`}
               >
-                My Transactions
+                {props.user === "player" ? "My Transactions" : "Transactions"}
               </Link>
             </li>
           </ul>
@@ -76,7 +92,7 @@ function NavBar({ isOut }) {
             >
               <Link
                 className="text-center remove-underline"
-                to="/player/account"
+                to={`/${props.user}/account`}
               >
                 <span className="dropdown-item">My Account</span>
               </Link>
