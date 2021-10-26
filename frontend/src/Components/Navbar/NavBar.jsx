@@ -43,16 +43,45 @@ function NavBar(props) {
               )}
             </li>
             <li className="nav-item">
-              {props.user === "player" && (
+              {(props.user === "player" || props.user === "admin") && (
                 <Link
                   className="nav-link active"
                   aria-current="page"
-                  to="/player/gameroom"
+                  to={`/${props.user}/gameroom`}
                 >
-                  Game Room
+                  {props.user === "admin" ? "Game MGMT" : "Game Room"}
                 </Link>
               )}
               {(props.user === "agent" || props.user === "masteragent") && (
+                <Link
+                  className="nav-link active"
+                  aria-current="page"
+                  to={`/${[props.user]}/players`}
+                >
+                  Players
+                </Link>
+              )}
+            </li>
+            <li className="nav-item">
+              {props.user === "admin" && (
+                <Link
+                  className="nav-link active"
+                  aria-current="page"
+                  to={`/${[props.user]}/masteragents`}
+                >
+                  Master Agents
+                </Link>
+              )}
+            </li>
+            <li className="nav-item">
+              {props.user === "admin" && (
+                <Link className="nav-link active" to={`/${props.user}/agents`}>
+                  Agents
+                </Link>
+              )}
+            </li>
+            <li className="nav-item">
+              {props.user === "admin" && (
                 <Link
                   className="nav-link active"
                   aria-current="page"
@@ -67,14 +96,16 @@ function NavBar(props) {
                 Wallet
               </Link>
             </li>
-            <li className="nav-item">
-              <Link
-                className="nav-link active right-border"
-                to={`/${props.user}/transactions`}
-              >
-                {props.user === "player" ? "My Transactions" : "Transactions"}
-              </Link>
-            </li>
+            {props.user === "admin" ? null : (
+              <li className="nav-item">
+                <Link
+                  className="nav-link active right-border"
+                  to={`/${props.user}/transactions`}
+                >
+                  {props.user === "player" ? "My Transactions" : "Transactions"}
+                </Link>
+              </li>
+            )}
           </ul>
           <div className="nav-item dropdown text-center">
             <span

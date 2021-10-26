@@ -22,12 +22,20 @@ import AgentPlayers from "./Components/Agent/AgentPlayers";
 import AgentTransactions from "./Components/Agent/AgentTransactions";
 import AgentAccount from "./Components/Agent/AgentAccount";
 import AgentWallet from "./Components/Agent/AgentWallet";
-//AGENT IMPORTS
+//MASTERAGENT IMPORTS
 import MasterAgents from "./Components/MasterAgent/MasterAgents";
 import MasterPlayers from "./Components/MasterAgent/MasterPlayers";
 import MasterTransactions from "./Components/MasterAgent/MasterTransactions";
 import MasterAccount from "./Components/MasterAgent/MasterAccount";
 import MasterWallet from "./Components/MasterAgent/MasterWallet";
+//ADMIN IMPORTS
+import AdminGameRoom from "./Components/Admin/AdminGameRoom";
+import AdminGameSettings from "./Components/Admin/AdminGameSettings";
+import AdminMasterAgents from "./Components/Admin/AdminMasterAgents";
+import AdminAgents from "./Components/Admin/AdminAgents";
+import AdminPlayers from "./Components/Admin/AdminPlayers";
+import AdminAccount from "./Components/Admin/AdminAccount";
+import AdminWallet from "./Components/Admin/AdminWallet";
 //CSS IMPORTS
 import "./App.css";
 
@@ -35,7 +43,7 @@ function App() {
   const user = {
     email: "testing",
     password: "123",
-    type: "player",
+    type: "admin",
   };
 
   const [authorize, setAuthorize] = useState(false);
@@ -83,7 +91,9 @@ function App() {
         {authorize && user.type === "masteragent" ? (
           <Redirect to="/masteragent/agents" />
         ) : null}
-
+        {authorize && user.type === "admin" ? (
+          <Redirect to="/admin/gameroom" />
+        ) : null}
         <Switch>
           {/* LOGIN REGISTER ROUTES */}
           <Route path="/" exact>
@@ -127,6 +137,23 @@ function App() {
           />
           <Route path="/masteragent/account" exact component={MasterAccount} />
 
+          {/* ADMIN ROUTES */}
+          <Route path="/admin/gameroom" exact component={AdminGameRoom} />
+          <Route
+            path="/admin/gameroom/settings"
+            exact
+            component={AdminGameSettings}
+          />
+          <Route
+            path="/admin/masteragents"
+            exact
+            component={AdminMasterAgents}
+          />
+          <Route path="/admin/agents" exact component={AdminAgents} />
+          <Route path="/admin/players" exact component={AdminPlayers} />
+          <Route path="/admin/wallet" exact component={AdminWallet} />
+          <Route path="/admin/account" exact component={AdminAccount} />
+
           {/* 404 ROUTES */}
           <Route path="*" exact component={poropor} />
         </Switch>
@@ -136,5 +163,3 @@ function App() {
 }
 
 export default App;
-
-// <Redirect to={{ pathname: "/player", data: { adminUser } }} />
