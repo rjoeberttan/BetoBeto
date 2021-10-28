@@ -5,12 +5,14 @@ const cors = require("cors");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const {createLogger, transports, format} = require("winston");
-const e = require("express");
+const helmet = require("helmet")
+const fs = require('fs');
 require("dotenv").config();
 
 // Configure Express Application
 const app = express();
 app.use(express.json());
+app.use(helmet())
 app.use(
     cors({
         origin: ["http://localhost:3000"],
@@ -39,7 +41,8 @@ const db = mysql.createConnection({
     user: process.env.MYSQL_USERNAME,
     host: process.env.MYSQL_HOST,
     password: process.env.MYSQL_PASSWORD,
-    database: process.env.MYSQL_DATABASE
+    database: process.env.MYSQL_DATABASE,
+    port: process.env.PORT,
 })
 
 // Saltrounds for encryption

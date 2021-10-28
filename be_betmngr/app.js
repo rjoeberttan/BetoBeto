@@ -1,14 +1,22 @@
 //jshint esversion: 6
-const { query } = require("express");
 const express = require("express");
 const mysql = require("mysql");
 const { createLogger, transports, format } = require("winston");
+const io = require("socket.io-client")
+const helmet = require("helmet");
+const fs = require('fs');
+
 require("dotenv").config();
 
 // Configure Express Application
 const app = express();
 app.use(express.json());
+app.use(helmet());
 app.use(express.urlencoded({ extended: true }));
+
+
+// Configure websocket domain
+const socket = io.connect("http://localhost:3010")
 
 // Configure Winston Logging
 // For this environment it sends to console first
@@ -29,13 +37,20 @@ const logger = createLogger({
 
 // Configure Database Connection
 const db = mysql.createConnection({
-  user: process.env.MYSQL_USERNAME,
-  host: process.env.MYSQL_HOST,
-  password: process.env.MYSQL_PASSWORD,
-  database: process.env.MYSQL_DATABASE,
-  multipleStatements: true
-});
+    user: process.env.MYSQL_USERNAME,
+    host: process.env.MYSQL_HOST,
+    password: process.env.MYSQL_PASSWORD,
+    database: process.env.MYSQL_DATABASE,
+    port: process.env.PORT,
+    multipleStatements: true
+})
 
+
+db.connect((err) => {
+    if (err) {
+        console.log(err)
+    }
+})
 
 
 
@@ -49,16 +64,17 @@ app.post("/placeBet", (req, res) => {
     const stake = req.body.stake
     const wallet = req.body.wallet  
 
+
     // Check if body is complete
     if (!marketId || !gameId || !accountId || !gameName || !choice || !stake || !wallet) {
-        logger.warn("getGameDetails request has missing body parameters");
+        logger.warn("placeBet request has missing body parameters");
         res.status(400).json({ message: "Missing body parameters" });
         return;
     }
 
     // Check if apiKey is correct
     if (!apiKey || apiKey !== process.env.API_KEY) {
-        logger.warn("getGamesList request has missing/wrong API_KEY");
+        logger.warn("placeBet request has missing/wrong API_KEY");
         res.status(401).json({ message: "Unauthorized Request" });
         return;
     }
@@ -111,7 +127,9 @@ app.post("/placeBet", (req, res) => {
         
                             logger.info("Bet placed successfully from accountId:" + accountId + " betId:" + betId)
                             res.status(200).json({message: "Bet Placed successfully", data: {betId: betId, description: description, stake: stake, cummulative: cummulative}})
-                        
+                            
+                            socketData = { betId: betId, accountId: accountId, description: description, stake: stake, status: 0, date: new Date()}
+                            socket.emit("bet_placement", socketData)
                         
                             // Adding the commissions to the transactions table for the agent and master_agent
                     
@@ -308,12 +326,84 @@ app.post("/settleColorGameBets", (req, res) => {
 
 
 
+app.post("/sendTip", (req, res) => {
+    const apiKey = req.body.apiKey
+    const accountId = req.body.accountId
+    const amount = req.body.amount
+    const wallet = req.body.wallet
+
+    // Check if body is complete
+    if (!accountId || !amount) {
+        logger.warn("sendTip request has missing body parameters");
+        res.status(400).json({ message: "Missing body parameters" });
+        return;
+    }
+
+    // Check if apiKey is correct
+    if (!apiKey || apiKey !== process.env.API_KEY) {
+        logger.warn("sendTip request has missing/wrong API_KEY");
+        res.status(401).json({ message: "Unauthorized Request" });
+        return;
+    }
+
+    // Process 1
+    // Decrease Player Wallet
+    const cummulative = (wallet - amount).toFixed(2)
+    toDecrease = 0 - amount
+    sqlQuery = "UPDATE accounts SET wallet = wallet+? WHERE account_id = ?"
+    db.query(sqlQuery, [toDecrease, accountId], (err, result1) => {
+        if (err) {
+            logger.error("Process 1: Error in sendTip request, from accountId:" + accountId + " error:" + err);
+            res.status(500).json({ message: "Error during managing player wallet" });
+        } else if (result1.affectedRows <= 0) {
+            logger.warn("Warn in sendTip request from accountId:" + accountId + " accountId not found.");
+            res.status(409).json({ message: "Tip not placed successfully. Please check accountId" });
+        } else {
+
+            // Process 2
+            // Insert the tips of player in transactions table
+            description = "Send Tip - amount: Php " + amount
+            sqlQuery2 = "INSERT INTO transactions (description, account_id, amount, cummulative, status, placement_date, transaction_type) VALUES (?,?,?,?,1,NOW(), 7)"
+            db.query(sqlQuery2, [description, accountId, amount, cummulative], (err, result2) => {
+                if (err) {
+                    logger.error("Process 2: Error in sendTip request, from accountId:" + accountId + " error:" + err);
+                    res.status(500).json({ message: "Error during managing player wallet" });
+                } else if (result2.affectedRows <= 0) {
+                    logger.warn("Process 2 Warn in sendTip request from accountId:" + accountId + " accountId not found");
+                    res.status(409).json({ message: "Tip not placed successfully. Please check accountId" });
+                } else {
+                    transactionId = result2.insertId
+
+
+                    // Process 3
+                    // Insert the received tips of player in transactions table
+                    cummulative2 = 99999
+                    description = "Received Tip - amount: Php " + amount + " from player: " + accountId
+                    sqlQuery2 = "INSERT INTO transactions (description, account_id, amount, cummulative, status, placement_date, transaction_type) VALUES (?,?,?,?,1,NOW(), 8)"
+                    db.query(sqlQuery2, [description, 1, amount, cummulative2], (err, result2) => {
+                        if (err) {
+                            logger.error("Process 2: Error in sendTip request, from accountId:" + accountId + " error:" + err);
+                            res.status(500).json({ message: "Error during managing player wallet" });
+                        } else if (result2.affectedRows <= 0) {
+                            logger.warn("Process 2 Warn in sendTip request from accountId:" + accountId + " accountId not found");
+                            res.status(409).json({ message: "Tip not placed successfully. Please check accountId" });
+                        }
+                    })
+
+                    res.status(200).json({message: "Tip sent successfully. Thank you"})
+                }
+            })
+    }})
+})
+
+
+
+
 app.get("/getBetHistory", (req, res) => {
     const apiKey = req.body.apiKey;
     const accountId = req.body.accountId;
     const dateFrom = req.body.dateFrom
-    const dateTo = req.body.dateTo
-    console.log("asd")
+    const dateTo = req.body.dateTo  
 
     // Check if body is complete
     if (!accountId) {

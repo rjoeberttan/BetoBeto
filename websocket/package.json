@@ -1,5 +1,5 @@
 {
-  "name": "be_gamemngr",
+  "name": "websocket",
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
@@ -9,11 +9,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "dotenv": "^10.0.0",
+    "cors": "^2.8.5",
     "express": "^4.17.1",
-    "helmet": "^4.6.0",
-    "mysql": "^2.18.1",
-    "socket.io-client": "^4.3.2",
-    "winston": "^3.3.3"
+    "socket.io": "^4.3.1"
   }
 }

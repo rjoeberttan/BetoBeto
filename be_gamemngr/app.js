@@ -2,12 +2,16 @@
 const express = require("express");
 const mysql = require("mysql");
 const { createLogger, transports, format } = require("winston");
+const io = require("socket.io-client")
 require("dotenv").config();
 
 // Configure Express Application
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Configure websocket domain
+const socket = io.connect("http://localhost:3010")
 
 // Configure Winston Logging
 // For this environment it sends to console first
@@ -32,7 +36,8 @@ const db = mysql.createConnection({
   host: process.env.MYSQL_HOST,
   password: process.env.MYSQL_PASSWORD,
   database: process.env.MYSQL_DATABASE,
-});
+  port: process.env.PORT,
+})
 
 // GET getGamesList
 // Requires: apiKey
@@ -153,22 +158,25 @@ app.post("/updateLiveStatus", (req, res) => {
   });
 });
 
-app.post("/updateStreamURL", (req, res) => {
+app.post("/updateGameSettings", (req, res) => {
   const apiKey = req.body.apiKey;
   const gameId = req.body.gameId;
   const url = req.body.url; // Current Status
+  const gameTitle = req.body.title;
+  const description = req.body.description
+  const bannerMessage = req.body.bannerMessage
   const editor = req.body.editor;
 
   // Check if body is complete
   if (!gameId || !url || !editor) {
-    logger.warn("updateStreamURL request has missing body parameters");
+    logger.warn("updateGameSettings request has missing body parameters");
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn("updateStreamURL request has missing/wrong API_KEY");
+    logger.warn("updateGameSettings request has missing/wrong API_KEY");
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -176,24 +184,22 @@ app.post("/updateStreamURL", (req, res) => {
   // Process 1
   // Update the url
   sqlQuery =
-    "UPDATE games set youtube_url = ?, lastedit_date = NOW(), edited_by = ? WHERE game_id = ?";
-  db.query(sqlQuery, [url, editor, gameId], (err, result) => {
+    "UPDATE games set youtube_url = ?, name=?, description=?, banner=?, lastedit_date = NOW(), edited_by = ? WHERE game_id = ?";
+  db.query(sqlQuery, [url, gameTitle, description, bannerMessage, editor, gameId], (err, result) => {
     if (err) {
-      logger.error("Process 1: Error in updateStreamURL request." + err);
+      logger.error("Process 1: Error in updateGameSettings request." + err);
       res.status(500).json({ message: "Server error" });
     } else if (result.affectedRows <= 0) {
       logger.warn(
-        "Nothing changed after updateStreamURL request for gameId:" + gameId
+        "Nothing changed after updateGameSettings request for gameId:" + gameId
       );
       res
         .status(409)
         .json({ message: "Nothing was updated, please check gameId" });
     } else {
       logger.info(
-        "Successful updateStreamURL request for gameId:" +
-          gameId +
-          " updated url status to:" +
-          url
+        "Successful updateGameSettings request for gameId:" +
+          gameId 
       );
       res
         .status(200)
@@ -363,6 +369,13 @@ app.post("/createColorGameMarket", (req, res) => {
                     msg: "Successfully Created New Market.",
                     data: { gameID: gameId, marketID: newMarketId, status: 0 },
                   });
+                socketData = {
+                  gameId: gameId,
+                  marketID: newMarketId,
+                  status: 0,
+                  date: new Date()
+                }
+                socket.emit("color_game_market_update", socketData)
               }
             }
           );
@@ -459,6 +472,14 @@ app.post("/closeMarket", (req, res) => {
           } else if (result2.affectedRows > 0){
             logger.info("Successful /closeMarket request for marketId:" + marketId)
             res.status(200).json({message: "Market closed successfully", data: {gameId: gameId, marketId: marketId, status: 1}})
+
+            socketData = {
+              gameId: gameId,
+              marketID: marketId,
+              status: 1,
+              date: new Date()
+            }
+            socket.emit("color_game_market_update", socketData)
           }
         })
       }
@@ -535,7 +556,15 @@ app.post("/openMarket", (req, res) => {
             res.status(500).json({message: "Server Error"})
           } else if (result2.affectedRows > 0){
             logger.info("Successful /openMarket request for marketId:" + marketId)
-            res.status(200).json({message: "Market opened successfully", data: {gameId: gameId, marketId: marketId, status: 1}})
+            res.status(200).json({message: "Market opened successfully", data: {gameId: gameId, marketId: marketId, status: 0}})
+
+            socketData = {
+              gameId: gameId,
+              marketID: marketId,
+              status: 0,
+              date: new Date()
+            }
+            socket.emit("color_game_market_update", socketData)
           }
         })
       }
@@ -599,6 +628,15 @@ app.post("/resultMarket", (req, res) => {
           } else if (result2.affectedRows > 0){
             logger.info("Successful /resultMarket request for marketId:" + marketId)
             res.status(200).json({message: "Market resulted successfully", data: {gameId: gameId, marketId: marketId, status: 2, result: resultText}})
+
+            socketData = {
+              gameId: gameId,
+              marketID: marketId,
+              status: 2,
+              result: resultText,
+              date: new Date()
+            }
+            socket.emit("color_game_market_update", socketData)
           }
         })        
     }

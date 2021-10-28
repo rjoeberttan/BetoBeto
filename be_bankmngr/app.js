@@ -3,11 +3,13 @@ const { application } = require("express");
 const express = require("express");
 const mysql = require("mysql");
 const { createLogger, transports, format } = require("winston");
+const helmet = require("helmet");
 require("dotenv").config();
 
 // Configure Express Application
 const app = express();
 app.use(express.json());
+app.use(helmet());
 app.use(express.urlencoded({ extended: true }));
 
 // Configure Winston Logging
@@ -34,8 +36,9 @@ const db = mysql.createConnection({
     host: process.env.MYSQL_HOST,
     password: process.env.MYSQL_PASSWORD,
     database: process.env.MYSQL_DATABASE,
+    port: process.env.PORT,
     multipleStatements: true
-});
+})
 
 
 app.post("/requestDeposit", (req, res) => {
