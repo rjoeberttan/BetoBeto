@@ -7,6 +7,7 @@ const jwt = require("jsonwebtoken");
 const {createLogger, transports, format} = require("winston");
 const helmet = require("helmet")
 const fs = require('fs');
+const bodyParser = require('body-parser')
 require("dotenv").config();
 
 // Configure Express Application
@@ -20,7 +21,8 @@ app.use(
         credentials: true,
     })
 )
-app.use(express.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
 
 // Configure Winston Logging 
@@ -67,7 +69,8 @@ app.post("/register", (req, res) => {
     const phone = req.body.phone
     const password = req.body.password
     const agentId = req.body.agentId
-    const apiKey = req.body.apiKey
+
+    const apiKey = req.header("Authorization") 
 
     // Check if body is complete
     if  (!username || !email || !phone || !agentId || !password){
@@ -134,7 +137,7 @@ app.post("/register", (req, res) => {
                                     res.status(500).json({message: "Server error"})            
                                 } else if (result3.affectedRows > 0) {
                                     console.log("REGISTER successful for username:" + username)
-                                    res.status(200).send(username + " Registered Successfully ")
+                                    res.status(200).json({message: username + " Registered Successfully "})
                                 } else{
                                     logger.warn("Process 4: Error in REGISTER request, but nothing was inserted, for username:"+username + " \n" + err)
                                     res.status(500).json({message: "Server error"})  
@@ -164,7 +167,8 @@ app.post("/login", (req, res) => {
     // Get body
     const username = req.body.username
     const password = req.body.password
-    const apiKey = req.body.apiKey
+    
+    const apiKey = req.header("Authorization") 
 
     // Check if body is complete
     if  (!username || !password){
@@ -242,7 +246,7 @@ app.post("/login", (req, res) => {
 //    200: Success
 app.get('/isUserAuth', (req, res) => {
     const token = req.headers["x-access-token"]
-    const apiKey = req.body.apiKey
+    const apiKey = req.header("Authorization") 
 
     // Check if apiKey is correct
     if (!apiKey || apiKey !== process.env.API_KEY){
@@ -282,10 +286,10 @@ app.get('/isUserAuth', (req, res) => {
 //        400 - Missing parameters
 //        409 - Account not found
 //        200 - Success
-app.get('/getUserDetails', (req, res) => {
+app.get('/getUserDetails/:accountId', (req, res) => { //http://localhost:4003/getUserDetails/16
     // Get body
-    const accountId = req.body.accountId
-    const apiKey = req.body.apiKey
+    const accountId = req.params.accountId
+    const apiKey = req.header("Authorization") 
 
     // Check if body is complete
     if  (!accountId){
@@ -328,10 +332,10 @@ app.get('/getUserDetails', (req, res) => {
 //        400 - Missing parameters
 //        409 - Account not found
 //        200 - Success
-app.get('/getWalletBalance', (req, res) => {
+app.get('/getWalletBalance/:accountId', (req, res) => {
         // Get body
-        const accountId = req.body.accountId
-        const apiKey = req.body.apiKey
+        const accountId = req.params.accountId
+        const apiKey = req.header("Authorization") 
     
         // Check if body is complete
         if  (!accountId){
@@ -377,7 +381,7 @@ app.post('/updatePhoneDetail', (req,res) => {
         const accountId = req.body.accountId
         const phone = req.body.phone
         const editorUsername = req.body.editorUsername
-        const apiKey = req.body.apiKey
+        const apiKey = req.header("Authorization") 
 
         // Check if body is complete
         if  (!accountId || !phone || !editorUsername ){
@@ -423,7 +427,7 @@ app.post('/updatePassword', (req, res) => {
     const accountId = req.body.accountId
     const password = req.body.password
     const editorUsername = req.body.editorUsername
-    const apiKey = req.body.apiKey
+    const apiKey = req.header("Authorization") 
 
     // Check if body is complete
     if  (!accountId || !password || !editorUsername ){
@@ -480,7 +484,7 @@ app.post('/changeAccountStatus', (req, res) => {
     const accountId = req.body.accountId
     const currentStatus = req.body.status
     const editorUsername = req.body.editorUsername
-    const apiKey = req.body.apiKey
+    const apiKey = req.header("Authorization") 
 
     // Check if body is complete
     if  (!accountId || !currentStatus || !editorUsername ){
@@ -528,7 +532,7 @@ app.post('/updateCommission', (req,res) => {
     const accountId = req.body.accountId
     const commission = req.body.commission
     const editorUsername = req.body.editorUsername
-    const apiKey = req.body.apiKey
+    const apiKey = req.header("Authorization") 
 
     // Check if body is complete
     if  (!accountId || !commission || !editorUsername ){
@@ -563,12 +567,12 @@ app.post('/updateCommission', (req,res) => {
 
 
 
-app.get("/getAccountList", (req, res) => {
+app.get("/getAccountList/:accountId/:accountType", (req, res) => {
     // Get body
-    const accountId = req.body.accountId
-    const accountType = req.body.accountType
-    const apiKey = req.body.apiKey
-    const filterType = req.body.filterType
+    const accountId = req.params.accountId
+    const accountType = req.params.accountType
+    const apiKey = req.header("Authorization") 
+   
 
     // Check if body is complete
     if  (!accountId || !accountType ){
@@ -593,12 +597,12 @@ app.get("/getAccountList", (req, res) => {
         console.log(sqlQuery)
     } else if (accountType === '1'){
         // Master Agent
-        sqlQuery = "select * from betobeto.accounts where agent_id = ? OR agent_id in (select account_id from betobeto.accounts where agent_id = ?);"
+        sqlQuery = "select * from accounts where agent_id = ? OR agent_id in (select account_id from accounts where agent_id = ?);"
         sqlQuery = db.format(sqlQuery, [accountId, accountId])
         console.log(sqlQuery)
     } else if (accountType === '2') {
          // Agent Agent
-         sqlQuery = "SELECT * FROM betobeto.accounts WHERE agent_id = ?"
+         sqlQuery = "SELECT * FROM accounts WHERE agent_id = ?"
          sqlQuery = db.format(sqlQuery, [accountId])
          console.log(sqlQuery)
     }
@@ -606,7 +610,7 @@ app.get("/getAccountList", (req, res) => {
     if (sqlQuery !== ''){
         db.query(sqlQuery, (err, result) => {
             if (err) {
-                logger.error(" Process 1: Error in getAccountList request from accountId:" + accountId);
+                logger.error(" Process 1: Error in getAccountList request from accountId:" + accountId + err);
             } else {
                 res.status(200).json({message: "Request Successful", data: result})
             }
