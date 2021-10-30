@@ -1,9 +1,54 @@
-import React from "react";
+import React, {useState, useContext} from "react";
 import "./Register.css";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import logo from "./loginimg.jpg";
+import { AuthContext } from "../../store/auth-context";
+const axios = require("axios").default;
+
 
 function Register() {
+  const ctx = useContext(AuthContext)
+  const [user, setUser] = useState({
+    email: "",
+    phone: "",
+    username: "",
+    password: ""
+  })
+
+  let { agentid } = useParams();
+  agentid = agentid.replace('agentid=', '');
+
+  function handleChange(e){
+    const {name, value} = e.target;
+    setUser((prev) => {
+      return {
+        ...prev,
+        [name]: value
+      }
+    });
+  } 
+
+  function handleSubmit(e){
+    const headers = { "Authorization": "uKRd;$SuXd8b$MFX" };
+    axios({
+      method: "post",
+      url: `${ctx.hostHeader}/register`,
+      headers: headers,
+      data: {
+        username: user.email,
+        password: user.password,
+        email: user.email,
+        phone: user.phone,
+        agentId: agentid
+      },
+    }).then((res) => {
+      console.log(res);
+    }).catch((err) => {
+      console.log(err);
+    })
+    e.preventDefault();
+  }
+
   return (
     <div className="container center txt-black">
       <div className="card">
@@ -18,32 +63,32 @@ function Register() {
             </h4>
           </div>
 
-          <form>
+          <form onSubmit={handleSubmit}>
             <div className="row">
               <div className="col-sm-6 spacing">
                 <label className="form-label">Email address</label>
-                <input type="email" className="form-control" />
+                <input type="email" className="form-control" name="email" onChange={handleChange}/>
                 <div className="form-text">
                   We'll never share your email with anyone else.
                 </div>
               </div>
               <div className="col-md-6 spacing">
                 <label className="form-label">Cellphone No.</label>
-                <input type="text" className="form-control" />
+                <input type="text" className="form-control" name="phone" onChange={handleChange}/>
               </div>
               <div className="col-sm-12 spacing">
                 <label className="form-label">Username</label>
-                <input type="text" className="form-control" />
+                <input type="text" className="form-control" name="username" onChange={handleChange}/>
               </div>
               <div className="col-md-12 spacing">
                 <label className="form-label">Password</label>
-                <input type="password" className="form-control" />
+                <input type="password" className="form-control" name="password" onChange={handleChange}/>
                 <div className="form-text">Must be 8-20 characters long.</div>
               </div>
-              <div className="col-md-12 spacing">
+              {/* <div className="col-md-12 spacing">
                 <label className="form-label">Confirm Password</label>
-                <input type="password" className="form-control" />
-              </div>
+                <input type="password" className="form-control" onChange={handleChange}/> 
+              </div> */}
               <div className="col-md-12 text-center">
                 <button
                   type="submit"

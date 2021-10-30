@@ -5,3 +5,51 @@
 .card-margin-bottom {
   margin-bottom: 10px;
 }
+
+.red-boxx {
+  background-color: #db2828;
+  height: 100px;
+  border-radius: 10px;
+  margin-right: 10px;
+  margin-bottom: 5px;
+}
+
+.blue-boxx {
+  background-color: #2185d0;
+  height: 100px;
+  border-radius: 10px;
+  margin-right: 10px;
+  margin-bottom: 5px;
+}
+
+.green-boxx {
+  background-color: #21ba45;
+  height: 100px;
+  border-radius: 10px;
+  margin-right: 10px;
+  margin-bottom: 5px;
+}
+
+.yellow-boxx {
+  background-color: #fbbd08;
+  height: 100px;
+  border-radius: 10px;
+  margin-right: 10px;
+  margin-bottom: 5px;
+}
+
+.white-boxx{
+  background-color: aliceblue;
+  height: 100px;
+  border-radius: 10px;
+  margin-right: 10px;
+  margin-bottom: 5px;
+}
+
+.purple-boxx{
+  background-color: #a333c8;
+  height: 100px;
+  border-radius: 10px;
+  margin-right: 10px;
+  margin-bottom: 5px;
+}

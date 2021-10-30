@@ -3,15 +3,26 @@ const express = require("express");
 const mysql = require("mysql");
 const { createLogger, transports, format } = require("winston");
 const io = require("socket.io-client")
+const helmet = require("helmet");
+const cors = require("cors");
 require("dotenv").config();
 
 // Configure Express Application
 const app = express();
 app.use(express.json());
+app.use(helmet());
+app.use(
+  cors({
+      origin: ["http://localhost:3000"],
+      methods: ["GET", "POST"],
+      credentials: true,
+  })
+)
 app.use(express.urlencoded({ extended: true }));
 
+
 // Configure websocket domain
-const socket = io.connect("http://localhost:3010")
+// const socket = io.connect("http://localhost:3010")
 
 // Configure Winston Logging
 // For this environment it sends to console first

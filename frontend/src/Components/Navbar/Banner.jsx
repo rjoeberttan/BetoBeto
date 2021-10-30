@@ -1,6 +1,13 @@
-import React from "react";
+import React, {useContext} from "react";
+import { AuthContext } from "../../store/auth-context";
 
 function Banner(props) {
+  const ctx = useContext(AuthContext)
+  // function handleClick(e){
+  //   ctx.handleWallet("Hello")
+  //   e.preventDefault();
+  // }
+
   return (
     <>
       <nav
@@ -13,7 +20,7 @@ function Banner(props) {
             <div className="text-light">
               <span>Welcome {props.user}!</span>
               <br />
-              <span>Wallet: P2,000</span>
+              <span>Wallet: ₱{ctx.walletBalance}</span>
             </div>
           </form>
         </div>

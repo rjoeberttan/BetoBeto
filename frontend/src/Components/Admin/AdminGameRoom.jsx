@@ -1,8 +1,23 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import AdminGameRoomList from "./AdminGameRoomList";
 import "./AdminGameRoom.css";
-import { Link } from "react-router-dom";
+const axios = require("axios").default;
 
 function AdminGameRoom() {
+  const [gameList, setGameList] = useState([]);
+
+  useEffect(() => {
+    axios({
+      method: "get",
+      url: `http://localhost:4004/getGamesList`,
+      headers: {
+        "Authorization": "Q@k=jLc-3CCK3Fc%"
+      }
+    }).then((res) => {
+      setGameList(res.data.data);
+    })
+  }, [])
+
   const sampleImgUrl =
     "https://psycatgames.com/magazine/party-games/three-man-dice/feature-image_hu9ed284971d2ae71dd1c66e655aa65d6d_1287743_1200x1200_fill_q100_box_smart1.jpg";
   return (
@@ -11,25 +26,7 @@ function AdminGameRoom() {
         <h1 className="display-5 small-device bold-small">Game Room</h1>
       </div>
       <div class="row">
-        <div class="col-md-3 txt-black">
-          <div class="card game-card">
-            <img class="game-img" src={sampleImgUrl} alt="." />
-            <div class="card-body">
-              <h5 class="card-title text-center">Dice Game</h5>
-              <p class="card-text text-center">
-                Min/Max Bet: P 10 - P 5,000.00
-              </p>
-              <div className="text-center">
-                <Link
-                  to="/admin/gameroom/settings"
-                  className="btn btn-color register-btn text-light"
-                >
-                  Enter
-                </Link>
-              </div>
-            </div>
-          </div>
-        </div>
+        {gameList.map(game => <AdminGameRoomList sampleImgUrl={sampleImgUrl} name={game.name} min_bet={game.min_bet} max_bet={game.max_bet} game_id={game.game_id}/>)}
       </div>
     </div>
   );

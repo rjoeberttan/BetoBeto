@@ -1,7 +1,32 @@
-import React from "react";
+import React, { useState } from "react";
+import {  useParams } from "react-router-dom";
 import "./AdminGameSettings.css";
 
 function AdminGameSettings() {
+  let { gameid } = useParams();
+  console.log(gameid);
+
+  const [boxColor, setBoxColor] = useState({
+    boxOne: "red",
+    boxTwo: "red",
+    boxThree: "red"
+  })
+
+  function handleChange(e){
+    const {name, value} = (e.target);
+    setBoxColor((prev) => {
+      return {
+        ...prev,
+        [name]: value
+      }
+    })
+  }
+
+  function handleResultMarket(e){
+    console.log(boxColor);
+    e.preventDefault();
+  }
+
   return (
     <div className="container text-light container-game-room">
       <div className="heading-text">
@@ -34,6 +59,59 @@ function AdminGameSettings() {
                   type="text"
                   placeholder="Welcome to Master Gamblr"
                 ></input>
+                 <div className="row label-margin">
+                 <h6 class="card-subtitle mb-2 label-margin">
+                  Manipulate Total Color Bets:
+                </h6>
+                  <div className="col-md-6 row label-margin">
+                    <div className="col-md-5 label-margin">
+                      Red
+                    </div>
+                    <div className="col-md-6">
+                      <input className="form-control" type="number"></input>
+                    </div>
+                  </div>
+                  <div className="col-md-6 row label-margin">
+                    <div className="col-md-5 label-margin">
+                      Blue
+                    </div>
+                    <div className="col-md-6">
+                      <input className="form-control" type="number"></input>
+                    </div>
+                  </div>
+                  <div className="col-md-6 row label-margin">
+                    <div className="col-md-5 label-margin">
+                      Green
+                    </div>
+                    <div className="col-md-6">
+                      <input className="form-control" type="number"></input>
+                    </div>
+                  </div>
+                  <div className="col-md-6 row label-margin">
+                    <div className="col-md-5 label-margin">
+                      Yellow
+                    </div>
+                    <div className="col-md-6">
+                      <input className="form-control" type="number"></input>
+                    </div>
+                  </div>
+                  <div className="col-md-6 row label-margin">
+                    <div className="col-md-5 label-margin">
+                      White
+                    </div>
+                    <div className="col-md-6">
+                      <input className="form-control" type="number"></input>
+                    </div>
+                  </div>
+                  <div className="col-md-6 row label-margin">
+                    <div className="col-md-5 label-margin">
+                      Purple
+                    </div>
+                    <div className="col-md-6">
+                      <input className="form-control" type="number"></input>
+                    </div>
+                  </div>
+                </div>
                 <div className="text-center">
                   <button
                     className="btn btn-color text-light"
@@ -137,38 +215,35 @@ function AdminGameSettings() {
                 <b>Result Market</b>
               </h6>
               <div className="row" style={{ marginTop: "15px" }}>
-                <label className="col-sm-3 col-5 red-box radio-button">
-                  <input
-                    className="radio-button"
-                    type="radio"
-                    name="colors"
-                    value="red"
-                  />
-                  <label for="huey">Red</label>
-                </label>
-                <label className="col-sm-3 col-5 blue-box radio-button">
-                  <input
-                    className="radio-button"
-                    type="radio"
-                    name="colors"
-                    value="blue"
-                  />
-                  <label for="huey">Blue</label>
-                </label>
-                <label className="col-sm-3 col-5 green-box radio-button">
-                  <input
-                    className="radio-button"
-                    type="radio"
-                    name="colors"
-                    value="green"
-                  />
-                  <label for="huey">Green</label>
-                </label>
+                <select className={`col-sm-3 col-5 ${boxColor.boxOne}-boxx radio-button`} name="boxOne" onChange={handleChange} style={{marginLeft: "25px"}}>
+                    <option value="red">Red</option>
+                    <option value="blue">Blue</option>
+                    <option value="green">Green</option>
+                    <option value="yellow">Yellow</option>
+                    <option value="white">White</option>
+                    <option value="purple">Purple</option>
+                </select>
+                <select className={`col-sm-3 col-5 ${boxColor.boxTwo}-boxx radio-button`}  name="boxTwo" onChange={handleChange}>
+                    <option value="red">Red</option>
+                    <option value="blue">Blue</option>
+                    <option value="green">Green</option>
+                    <option value="yellow">Yellow</option>
+                    <option value="white">White</option>
+                    <option value="purple">Purple</option>
+                </select>
+                <select className={`col-sm-3 col-5 ${boxColor.boxThree}-boxx radio-button`}  name="boxThree" onChange={handleChange}>
+                    <option value="red">Red</option>
+                    <option value="blue">Blue</option>
+                    <option value="green">Green</option>
+                    <option value="yellow">Yellow</option>
+                    <option value="white">White</option>
+                    <option value="purple">Purple</option>
+                </select>
                 <div
                   className="col-md-12 text-center"
                   style={{ marginTop: "15px" }}
                 >
-                  <button className="btn btn-color text-light">
+                  <button className="btn btn-color text-light" onClick={handleResultMarket}>
                     Result Market
                   </button>
                 </div>

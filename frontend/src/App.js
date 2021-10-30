@@ -36,66 +36,59 @@ import AdminAgents from "./Components/Admin/AdminAgents";
 import AdminPlayers from "./Components/Admin/AdminPlayers";
 import AdminAccount from "./Components/Admin/AdminAccount";
 import AdminWallet from "./Components/Admin/AdminWallet";
+//ERROR PAGE
+import ErrorPage from "./Components/ErrorPage";
 //CSS IMPORTS
 import "./App.css";
 import { AuthContext } from "./store/auth-context";
 
 function App() {
-  function poropor() {
-    return <div>ERROR</div>;
-  }
-
   const token = localStorage.getItem("token");
-
   const ctx = useContext(AuthContext);
-
-  const user = {
-    type: "player",
-  };
 
   return (
     <Router>
       <div className="App">
         {/* ONLY AUTHORIZED CAN ACCESS THESE ROUTES/PAGES */}
         {/* {ctx.isLoggedIn ? <Banner user={ctx.user.email} /> : null}
-        {ctx.isLoggedIn ? <NavBar user={ctx.user.type} /> : null} */}
-        {ctx.isLoggedIn ? <Banner user={ctx.user.email} /> : null}
-        {ctx.isLoggedIn ? <NavBar user={user.type} /> : null}
+        {ctx.isLoggedIn ? <NavBar user={ctx.ctx.user.accountType} /> : null} */}
+        {ctx.isLoggedIn ? <Banner user={ctx.user.username} /> : null}
+        {ctx.isLoggedIn ? <NavBar user={ctx.user.accountType} /> : null}
 
         <Switch>
           {/* LOGIN REGISTER ROUTES */}
           <Route path="/" exact>
             {/* REDIRECT TO WHICH PAGE(PLAYER, AGENT, MASTERAGENT, OR ADMIN) */}
-            {/* {token && ctx.user.type === "player" ? (
+            {/* {token && ctx.ctx.user.accountType === "player" ? (
               <Redirect to="/player/gameroom" />
             ) : null}
-            {token && ctx.user.type === "agent" ? (
+            {token && ctx.ctx.user.accountType === "agent" ? (
               <Redirect to="/agent/players" />
             ) : null}
-            {token && ctx.user.type === "masteragent" ? (
+            {token && ctx.ctx.user.accountType === "masteragent" ? (
               <Redirect to="/masteragent/agents" />
             ) : null}
-            {token && ctx.user.type === "admin" ? (
+            {token && ctx.ctx.user.accountType === "admin" ? (
               <Redirect to="/admin/gameroom" />
             ) : null} */}
-            {token && user.type === "player" ? (
+            {token && ctx.user.accountType === "player" ? (
               <Redirect to="/player/gameroom" />
             ) : null}
-            {token && user.type === "agent" ? (
+            {token && ctx.user.accountType === "agent" ? (
               <Redirect to="/agent/players" />
             ) : null}
-            {token && user.type === "masteragent" ? (
+            {token && ctx.user.accountType === "masteragent" ? (
               <Redirect to="/masteragent/agents" />
             ) : null}
-            {token && user.type === "admin" ? (
+            {token && ctx.user.accountType === "admin" ? (
               <Redirect to="/admin/gameroom" />
             ) : null}
             <Login />
           </Route>
-          <Route path="/register/:accid" exact component={Register} />
+          <Route path="/register/:agentid" exact component={Register} />
 
           {/* PLAYER ROUTES */}
-          {token && user.type === "player" ? (
+          {token && ctx.user.accountType === "player" ? (
             <>
               <Route path="/player/wallet" exact component={PlayerWallet} />
               <Route path="/player/gameroom" exact component={PlayerGameRoom} />
@@ -114,7 +107,7 @@ function App() {
           ) : null}
 
           {/* AGENT ROUTES */}
-          {token && user.type === "agent" ? (
+          {token && ctx.user.accountType === "agent" ? (
             <>
               <Route path="/agent/players" exact component={AgentPlayers} />
               <Route path="/agent/wallet" exact component={AgentWallet} />
@@ -128,7 +121,7 @@ function App() {
           ) : null}
 
           {/* MASTERAGENT ROUTES */}
-          {token && user.type === "masteragent" ? (
+          {token && ctx.user.accountType === "masteragent" ? (
             <>
               <Route
                 path="/masteragent/agents"
@@ -159,14 +152,15 @@ function App() {
           ) : null}
 
           {/* ADMIN ROUTES */}
-          {token && user.type === "admin" ? (
+          {token && ctx.user.accountType === "admin" ? (
             <>
               <Route path="/admin/gameroom" exact component={AdminGameRoom} />
-              <Route
+              {/* <Route
                 path="/admin/gameroom/settings"
                 exact
                 component={AdminGameSettings}
-              />
+              /> */}
+              <Route path="/admin/gameroom/settings/:gameid" exact component={AdminGameSettings} />
               <Route
                 path="/admin/masteragents"
                 exact
@@ -180,7 +174,7 @@ function App() {
           ) : null}
 
           {/* 404 ROUTES */}
-          <Route path="*" exact component={poropor} />
+          <Route path="*" exact component={ErrorPage} />
         </Switch>
       </div>
     </Router>
