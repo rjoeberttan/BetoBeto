@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext } from "react";
 import {
   BrowserRouter as Router,
   Route,
@@ -38,121 +38,146 @@ import AdminAccount from "./Components/Admin/AdminAccount";
 import AdminWallet from "./Components/Admin/AdminWallet";
 //CSS IMPORTS
 import "./App.css";
+import { AuthContext } from "./store/auth-context";
 
 function App() {
-  const user = {
-    email: "testing",
-    password: "123",
-    type: "admin",
-  };
-
-  const [authorize, setAuthorize] = useState(false);
-
-  const [message, setMessage] = useState("");
-
-  function checkDetails(details) {
-    console.log(details);
-    if (details.username === user.email && details.password === user.password) {
-      setAuthorize(true);
-      setMessage("Successfully logged in");
-
-      localStorage.setItem("token", "xxx");
-    } else {
-      console.log("Invalid credentials");
-      setMessage("Invalid credentials");
-      setAuthorize(false);
-    }
-  }
-
-  function isOut() {
-    setAuthorize(false);
-  }
-
   function poropor() {
     return <div>ERROR</div>;
   }
+
+  const token = localStorage.getItem("token");
+
+  const ctx = useContext(AuthContext);
+
+  const user = {
+    type: "player",
+  };
 
   return (
     <Router>
       <div className="App">
         {/* ONLY AUTHORIZED CAN ACCESS THESE ROUTES/PAGES */}
-        {authorize ? <Banner user={user.email} /> : null}
-        {authorize ? (
-          <NavBar user={user.type} authorize={authorize} isOut={isOut} />
-        ) : null}
+        {/* {ctx.isLoggedIn ? <Banner user={ctx.user.email} /> : null}
+        {ctx.isLoggedIn ? <NavBar user={ctx.user.type} /> : null} */}
+        {ctx.isLoggedIn ? <Banner user={ctx.user.email} /> : null}
+        {ctx.isLoggedIn ? <NavBar user={user.type} /> : null}
 
-        {/* REDIRECT TO WHICH PAGE(PLAYER, AGENT, MASTERAGENT, OR ADMIN) */}
-        {authorize && user.type === "player" ? (
-          <Redirect to="/player/gameroom" />
-        ) : null}
-        {authorize && user.type === "agent" ? (
-          <Redirect to="/agent/players" />
-        ) : null}
-        {authorize && user.type === "masteragent" ? (
-          <Redirect to="/masteragent/agents" />
-        ) : null}
-        {authorize && user.type === "admin" ? (
-          <Redirect to="/admin/gameroom" />
-        ) : null}
         <Switch>
           {/* LOGIN REGISTER ROUTES */}
           <Route path="/" exact>
-            <Login details={checkDetails} message={message} />
+            {/* REDIRECT TO WHICH PAGE(PLAYER, AGENT, MASTERAGENT, OR ADMIN) */}
+            {/* {token && ctx.user.type === "player" ? (
+              <Redirect to="/player/gameroom" />
+            ) : null}
+            {token && ctx.user.type === "agent" ? (
+              <Redirect to="/agent/players" />
+            ) : null}
+            {token && ctx.user.type === "masteragent" ? (
+              <Redirect to="/masteragent/agents" />
+            ) : null}
+            {token && ctx.user.type === "admin" ? (
+              <Redirect to="/admin/gameroom" />
+            ) : null} */}
+            {token && user.type === "player" ? (
+              <Redirect to="/player/gameroom" />
+            ) : null}
+            {token && user.type === "agent" ? (
+              <Redirect to="/agent/players" />
+            ) : null}
+            {token && user.type === "masteragent" ? (
+              <Redirect to="/masteragent/agents" />
+            ) : null}
+            {token && user.type === "admin" ? (
+              <Redirect to="/admin/gameroom" />
+            ) : null}
+            <Login />
           </Route>
           <Route path="/register/:accid" exact component={Register} />
 
           {/* PLAYER ROUTES */}
-          <Route path="/player/wallet" exact component={PlayerWallet} />
-          <Route path="/player/gameroom" exact component={PlayerGameRoom} />
-          <Route
-            path="/player/transactions"
-            exact
-            component={PlayerTransactions}
-          />
-          <Route path="/player/account" exact component={PlayerAccount} />
-          <Route
-            path="/player/GameRoom/live"
-            exact
-            component={PlayerLiveRoom}
-          />
+          {token && user.type === "player" ? (
+            <>
+              <Route path="/player/wallet" exact component={PlayerWallet} />
+              <Route path="/player/gameroom" exact component={PlayerGameRoom} />
+              <Route
+                path="/player/transactions"
+                exact
+                component={PlayerTransactions}
+              />
+              <Route path="/player/account" exact component={PlayerAccount} />
+              <Route
+                path="/player/gameRoom/live"
+                exact
+                component={PlayerLiveRoom}
+              />
+            </>
+          ) : null}
 
           {/* AGENT ROUTES */}
-          <Route path="/agent/players" exact component={AgentPlayers} />
-          <Route path="/agent/wallet" exact component={AgentWallet} />
-          <Route
-            path="/agent/transactions"
-            exact
-            component={AgentTransactions}
-          />
-          <Route path="/agent/account" exact component={AgentAccount} />
+          {token && user.type === "agent" ? (
+            <>
+              <Route path="/agent/players" exact component={AgentPlayers} />
+              <Route path="/agent/wallet" exact component={AgentWallet} />
+              <Route
+                path="/agent/transactions"
+                exact
+                component={AgentTransactions}
+              />
+              <Route path="/agent/account" exact component={AgentAccount} />
+            </>
+          ) : null}
 
           {/* MASTERAGENT ROUTES */}
-          <Route path="/masteragent/agents" exact component={MasterAgents} />
-          <Route path="/masteragent/players" exact component={MasterPlayers} />
-          <Route path="/masteragent/wallet" exact component={MasterWallet} />
-          <Route
-            path="/masteragent/transactions"
-            exact
-            component={MasterTransactions}
-          />
-          <Route path="/masteragent/account" exact component={MasterAccount} />
+          {token && user.type === "masteragent" ? (
+            <>
+              <Route
+                path="/masteragent/agents"
+                exact
+                component={MasterAgents}
+              />
+              <Route
+                path="/masteragent/players"
+                exact
+                component={MasterPlayers}
+              />
+              <Route
+                path="/masteragent/wallet"
+                exact
+                component={MasterWallet}
+              />
+              <Route
+                path="/masteragent/transactions"
+                exact
+                component={MasterTransactions}
+              />
+              <Route
+                path="/masteragent/account"
+                exact
+                component={MasterAccount}
+              />
+            </>
+          ) : null}
 
           {/* ADMIN ROUTES */}
-          <Route path="/admin/gameroom" exact component={AdminGameRoom} />
-          <Route
-            path="/admin/gameroom/settings"
-            exact
-            component={AdminGameSettings}
-          />
-          <Route
-            path="/admin/masteragents"
-            exact
-            component={AdminMasterAgents}
-          />
-          <Route path="/admin/agents" exact component={AdminAgents} />
-          <Route path="/admin/players" exact component={AdminPlayers} />
-          <Route path="/admin/wallet" exact component={AdminWallet} />
-          <Route path="/admin/account" exact component={AdminAccount} />
+          {token && user.type === "admin" ? (
+            <>
+              <Route path="/admin/gameroom" exact component={AdminGameRoom} />
+              <Route
+                path="/admin/gameroom/settings"
+                exact
+                component={AdminGameSettings}
+              />
+              <Route
+                path="/admin/masteragents"
+                exact
+                component={AdminMasterAgents}
+              />
+              <Route path="/admin/agents" exact component={AdminAgents} />
+              <Route path="/admin/players" exact component={AdminPlayers} />
+              <Route path="/admin/wallet" exact component={AdminWallet} />
+              <Route path="/admin/account" exact component={AdminAccount} />
+            </>
+          ) : null}
 
           {/* 404 ROUTES */}
           <Route path="*" exact component={poropor} />

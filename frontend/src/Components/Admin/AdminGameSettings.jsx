@@ -115,14 +115,19 @@ function AdminGameSettings() {
             <div class="card-body">
               <h5 class="card-title">Market Settings</h5>
               <div className="row">
-                <div className="col-md-6 text-center">
+                <div className="col-md-4 text-center">
                   <button className="btn btn-color text-light">
-                    OPEN BETTING
+                    CREATE MARKET
                   </button>
                 </div>
-                <div className="col-md-6 text-center">
+                <div className="col-md-4 text-center">
                   <button className="btn btn-color text-light">
-                    CLOSE BETTING
+                    OPEN MARKET
+                  </button>
+                </div>
+                <div className="col-md-4 text-center">
+                  <button className="btn btn-color text-light">
+                    CLOSE MARKET
                   </button>
                 </div>
               </div>

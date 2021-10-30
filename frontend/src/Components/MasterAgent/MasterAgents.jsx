@@ -45,6 +45,14 @@ function MasterAgents() {
           lastPwChange="09/26/2019"
           walletBalance="P500"
         />
+        <MasterAgentCard
+          agentNo="Agent_69"
+          noOfPlayers="69"
+          mobile="09152723321"
+          status="SINGLE"
+          lastPwChange="09/26/2019"
+          walletBalance="P500"
+        />
       </div>
     </div>
   );

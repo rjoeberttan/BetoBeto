@@ -9,10 +9,10 @@ function AdminAgents() {
       </div>
       <div className="row">
         <div className="col-sm-1">
-          <label className="label-txt">Filter Player</label>
+          <label className="label-txt">Filter Agent</label>
         </div>
         <div className="col-sm-2 col-12">
-          <input type="text" className="form-control" placeholder="Username" />
+          <input type="text" className="form-control" placeholder="Agent" />
         </div>
         <div className="col-sm-2">
           <label className="label-txt">Filter By Master Agent</label>

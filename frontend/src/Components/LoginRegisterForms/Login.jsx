@@ -1,14 +1,16 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import logo from "./loginimg.jpg";
+import { AuthContext } from "../../store/auth-context";
 
-function Login({ details, message }) {
+function Login() {
+  const ctx = useContext(AuthContext);
   const [user, setUser] = useState({
     username: "",
     password: "",
   });
 
   function handleClick(event) {
-    details(user);
+    ctx.loginHandler(user);
     event.preventDefault();
   }
 
@@ -63,8 +65,8 @@ function Login({ details, message }) {
                   Login
                 </button>
               </div>
-              {message ? (
-                <span className="danger text-center">{message}</span>
+              {ctx.errorMessage ? (
+                <span className="danger text-center">{ctx.errorMessage}</span>
               ) : (
                 ""
               )}

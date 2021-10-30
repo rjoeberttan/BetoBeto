@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import "./AdminAccount.css";
+import styles from "./AdminAccount.module.css";
 
 function AdminAccount() {
   const style = {
@@ -18,17 +18,20 @@ function AdminAccount() {
   const referralLink = "http://localhost:3000/admin/account";
 
   return (
-    <div className="container text-light container-account">
+    <div className={`container text-light ${styles.containerAccount}`}>
       <div className="heading-text">
         <h1 className="display-5 small-device bold-small">My Account</h1>
       </div>
-      <div className="card text-black card-account" style={{ style }}>
+      <div
+        className={`card text-black ${styles.cardAccount}`}
+        style={{ style }}
+      >
         <div className="card-body">
           <div className="heading-text">
             <h1 className="display-6 small-device bold-small">Referral Link</h1>
             <div className="row">
               <div className="col-sm-9 spacing">
-                <label className="referral-link" ref={linkTxt}>
+                <label className={styles.referralLink} ref={linkTxt}>
                   {referralLink}
                 </label>
               </div>

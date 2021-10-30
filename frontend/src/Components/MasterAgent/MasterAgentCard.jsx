@@ -48,7 +48,7 @@ function MasterAgentCard({
             <div className="col-md-12 text-spacing">
               <div className="row">
                 <div className="col-md-4">
-                  <b>Wallet:</b> {}
+                  <b>Wallet:</b> {walletBalance}
                 </div>
                 <div className="col-md-4 col-6">
                   <input

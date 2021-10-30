@@ -1,10 +1,13 @@
-import React from "react";
+import React, { useContext } from "react";
 import { Link } from "react-router-dom";
+import { AuthContext } from "../../store/auth-context";
 import "./NavBar.css";
 
 function NavBar(props) {
+  const ctx = useContext(AuthContext);
+
   function handleLogOut() {
-    props.isOut(true);
+    ctx.handleLogOut(true);
   }
 
   const today = new Date();
@@ -127,9 +130,9 @@ function NavBar(props) {
               >
                 <span className="dropdown-item">My Account</span>
               </Link>
-              <Link>
+              <span>
                 <hr className="dropdown-divider" />
-              </Link>
+              </span>
               <Link
                 to="/"
                 className="text-center remove-underline"

@@ -1,0 +1,86 @@
+.containerAccount {
+  margin-top: 10px;
+}
+
+.cardAccount {
+  width: 50%;
+  margin: auto;
+}
+
+/* hides input number scroll */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.referralLink {
+  padding-top: 5px;
+  font-size: 19px;
+}
+
+@media (min-width: 320px) and (max-width: 1199px) {
+  .cardAccount {
+    width: 90%;
+    margin: auto;
+  }
+  .containerAccount {
+    margin-bottom: 10px;
+  }
+  .referralLink {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 320px) and (max-width: 991px) {
+  .cardAccount {
+    width: 90%;
+    margin: auto;
+  }
+  .containerAccount {
+    margin-bottom: 10px;
+  }
+  .referralLink {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 320px) and (max-width: 720px) {
+  .cardAccount {
+    width: 90%;
+    margin: auto;
+  }
+  .containerAccount {
+    margin-bottom: 10px;
+  }
+  .referralLink {
+    font-size: 15px;
+  }
+}
+
+@media (min-width: 320px) and (max-width: 767px) {
+  .cardAccount {
+    width: 90%;
+    margin: auto;
+  }
+  .containerAccount {
+    margin-bottom: 10px;
+  }
+  .referralLink {
+    font-size: 15px;
+  }
+}
+
+/* TEXT ADJUSMENT */
+@media (min-width: 320px) and (max-width: 440px) {
+  .cardAccount {
+    width: 90%;
+    margin: auto;
+  }
+  .containerAccount {
+    margin-bottom: 10px;
+  }
+  .referralLink {
+    font-size: 15px;
+  }
+}

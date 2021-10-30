@@ -2,7 +2,7 @@ import React from "react";
 
 function Banner(props) {
   return (
-    <div>
+    <>
       <nav
         className="navbar navbar-dark"
         style={{ backgroundColor: "#191a19" }}
@@ -18,7 +18,7 @@ function Banner(props) {
           </form>
         </div>
       </nav>
-    </div>
+    </>
   );
 }
 
