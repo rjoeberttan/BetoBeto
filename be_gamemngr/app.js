@@ -46,7 +46,7 @@ const db = mysql.createConnection({
 //  500 - Server Error
 //  200 - Successful
 app.get("/getGamesList", (req, res) => {
-  const apiKey = req.body.apiKey;
+  const apiKey = req.header("Authorization") 
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
@@ -68,9 +68,9 @@ app.get("/getGamesList", (req, res) => {
   });
 });
 
-app.get("/getGameDetails", (req, res) => {
-  const apiKey = req.body.apiKey;
-  const gameId = req.body.gameId;
+app.get("/getGameDetails/:gameId", (req, res) => {
+  const apiKey = req.header("Authorization") 
+  const gameId = req.params.gameId;
 
   // Check if body is complete
   if (!gameId) {
@@ -106,7 +106,7 @@ app.get("/getGameDetails", (req, res) => {
 });
 
 app.post("/updateLiveStatus", (req, res) => {
-  const apiKey = req.body.apiKey;
+  const apiKey = req.header("Authorization") 
   const gameId = req.body.gameId;
   const status = req.body.status; // Current Status
   const editor = req.body.editor;
@@ -159,7 +159,7 @@ app.post("/updateLiveStatus", (req, res) => {
 });
 
 app.post("/updateGameSettings", (req, res) => {
-  const apiKey = req.body.apiKey;
+  const apiKey = req.header("Authorization") 
   const gameId = req.body.gameId;
   const url = req.body.url; // Current Status
   const gameTitle = req.body.title;
@@ -212,7 +212,7 @@ app.post("/updateGameSettings", (req, res) => {
 });
 
 app.post("/updateColorGameWinMultiplier", (req, res) => {
-  const apiKey = req.body.apiKey;
+  const apiKey = req.header("Authorization") 
   const gameId = req.body.gameId;
   const winMultiplier = req.body.winMultiplier; // Current Status
   const editor = req.body.editor;
@@ -272,7 +272,7 @@ app.post("/updateColorGameWinMultiplier", (req, res) => {
 // MARKET RELATED CALLS
 //****************************************************************
 app.post("/createColorGameMarket", (req, res) => {
-  const apiKey = req.body.apiKey;
+  const apiKey = req.header("Authorization") 
   const gameId = req.body.gameId;
   const description = req.body.description;
   const editor = req.body.editor;
@@ -404,7 +404,7 @@ app.post("/createColorGameMarket", (req, res) => {
 });
 
 app.post("/closeMarket", (req, res) => {
-  const apiKey = req.body.apiKey;
+  const apiKey = req.header("Authorization") 
   const gameId = req.body.gameId;
   const marketId = req.body.marketId;
   const editor = req.body.editor;
@@ -489,7 +489,7 @@ app.post("/closeMarket", (req, res) => {
 
 
 app.post("/openMarket", (req, res) => {
-  const apiKey = req.body.apiKey;
+  const apiKey = req.header("Authorization") 
   const gameId = req.body.gameId;
   const marketId = req.body.marketId;
   const editor = req.body.editor;
@@ -573,7 +573,7 @@ app.post("/openMarket", (req, res) => {
 
 
 app.post("/resultMarket", (req, res) => {
-  const apiKey = req.body.apiKey;
+  const apiKey = req.header("Authorization") 
   const gameId = req.body.gameId;
   const marketId = req.body.marketId;
   const marketResult = req.body.result;
@@ -644,9 +644,9 @@ app.post("/resultMarket", (req, res) => {
 })
 
 
-app.get("/getLatestMarketDetails", (req, res) => {
-  const apiKey = req.body.apiKey;
-  const gameId = req.body.gameId;
+app.get("/getLatestMarketDetails/:gameId", (req, res) => {
+  const apiKey = req.header("Authorization") 
+  const gameId = req.params.gameId;
 
   // Check if body is complete
   if (!gameId) {
@@ -737,10 +737,10 @@ app.post("/manipulateBetTotals", (req, res) => {
 })
 
 
-app.get("/getManipulateValues", (req,res) => {
-  const apiKey = req.body.apiKey;
-  const gameId = req.body.gameId;
-  const marketId = req.body.marketId
+app.get("/getManipulateValues/:gameId/:marketId", (req,res) => {
+  const apiKey = req.header("Authorization") 
+  const gameId = req.params.gameId;
+  const marketId = req.params.marketId
 
   // Check if body is complete
   if (!gameId || !marketId) {
@@ -774,10 +774,10 @@ app.get("/getManipulateValues", (req,res) => {
 })
 
 
-app.get("/getColorGameBetTotals", (req, res) => {
-  const apiKey = req.body.apiKey;
-  const gameId = req.body.gameId;
-  const marketId = req.body.marketId;
+app.get("/getColorGameBetTotals/:gameId/:marketId", (req, res) => {
+  const apiKey = req.header("Authorization") 
+  const gameId = req.params.gameId;
+  const marketId = req.params.marketId;
   
   // Check if body is complete
   if (!gameId || !marketId ) {
