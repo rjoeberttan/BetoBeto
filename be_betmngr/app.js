@@ -55,7 +55,7 @@ db.connect((err) => {
 
 
 app.post("/placeBet", (req, res) => {
-    const apiKey = req.body.apiKey
+    const apiKey = req.header("Authorization") 
     const marketId = req.body.marketId
     const gameId = req.body.gameId
     const accountId = req.body.accountId
@@ -230,7 +230,7 @@ app.post("/placeBet", (req, res) => {
 
 
 app.post("/settleColorGameBets", (req, res) => {
-    const apiKey = req.body.apiKey;
+    const apiKey = req.header("Authorization") 
     const gameId = req.body.gameId;
     const marketId = req.body.marketId;
     const marketResult = req.body.result;
@@ -327,7 +327,7 @@ app.post("/settleColorGameBets", (req, res) => {
 
 
 app.post("/sendTip", (req, res) => {
-    const apiKey = req.body.apiKey
+    const apiKey = req.header("Authorization") 
     const accountId = req.body.accountId
     const amount = req.body.amount
     const wallet = req.body.wallet
@@ -399,11 +399,11 @@ app.post("/sendTip", (req, res) => {
 
 
 
-app.get("/getBetHistory", (req, res) => {
-    const apiKey = req.body.apiKey;
-    const accountId = req.body.accountId;
-    const dateFrom = req.body.dateFrom
-    const dateTo = req.body.dateTo  
+app.get("/getBetHistory/:accountId/:dateFrom-:dateTo", (req, res) => {
+    const apiKey = req.header("Authorization") 
+    const accountId = req.params.accountId;
+    const dateFrom = req.params.dateFrom
+    const dateTo = req.params.dateTo  
 
     // Check if body is complete
     if (!accountId) {
