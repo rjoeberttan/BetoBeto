@@ -42,7 +42,7 @@ const db = mysql.createConnection({
 
 
 app.post("/requestDeposit", (req, res) => {
-    const apiKey = req.body.apiKey;
+    const apiKey = req.header("Authorization") 
     const accountId = req.body.accountId
     const amount = req.body.amount
 
@@ -81,7 +81,7 @@ app.post("/requestDeposit", (req, res) => {
 
 
 app.post("/acceptDeposit", (req, res) => {
-    const apiKey = req.body.apiKey;
+    const apiKey = req.header("Authorization") 
     const transactionId = req.body.transactionId
     const accountId = req.body.accountId
     const amount = req.body.amount
@@ -206,7 +206,7 @@ app.post("/acceptDeposit", (req, res) => {
 
 
 app.post("/requestWithdrawal", (req, res) => {
-    const apiKey = req.body.apiKey;
+    const apiKey = req.header("Authorization") 
     const accountId = req.body.accountId
     const amount = req.body.amount
 
@@ -245,7 +245,7 @@ app.post("/requestWithdrawal", (req, res) => {
 
 
 app.post("/acceptWithdrawal", (req, res) => {
-    const apiKey = req.body.apiKey;
+    const apiKey = req.header("Authorization") 
     const transactionId = req.body.transactionId
     const accountId = req.body.accountId
     const amount = req.body.amount
@@ -368,7 +368,7 @@ app.post("/acceptWithdrawal", (req, res) => {
 })
 
 app.post("/transferFunds", (req, res) => {
-    const apiKey = req.body.apiKey;
+    const apiKey = req.header("Authorization") 
     const fromAccountId = req.body.fromAccountId
     const fromUsername = req.body.fromUsername
     const toAccountId = req.body.toAccountId
@@ -453,11 +453,11 @@ app.post("/transferFunds", (req, res) => {
     })
 })
 
-app.get("/getUnsettledRequest", (req, res) => {
-    const apiKey = req.body.apiKey;
-    const accountId = req.body.accountId;
-    const accountType = req.body.accountType;
-    const transactionType = req.body.transactionType
+app.get("/getUnsettledRequest/:accountId/:accountType/:transactionType", (req, res) => {
+    const apiKey = req.header("Authorization") 
+    const accountId = req.params.accountId;
+    const accountType = req.params.accountType;
+    const transactionType = req.params.transactionType
 
     // Check if body is complete
     if (!accountType || !accountId || !transactionType) {
@@ -507,11 +507,11 @@ app.get("/getUnsettledRequest", (req, res) => {
 })
 
 
-app.get("/getTransactionHistory", (req, res) => {
-    const apiKey = req.body.apiKey;
-    const accountId = req.body.accountId;
-    const dateFrom = req.body.dateFrom
-    const dateTo = req.body.dateTo
+app.get("/getTransactionHistory/:accountId/:dateFrom-:dateTo", (req, res) => {
+    const apiKey = req.header("Authorization") 
+    const accountId = req.params.accountId;
+    const dateFrom = req.params.dateFrom
+    const dateTo = req.params.dateTo
 
     // Check if body is complete
     if (!accountId) {
