@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import YoutubeEmbed from "../Youtube";
+import TextScroller from "../TextScroller";
 import "./LiveRoom.css";
 
 function LiveRoom() {
@@ -34,6 +35,9 @@ function LiveRoom() {
         <h1 className="display-5 small-device bold-small">Live Dice Game</h1>
       </div>
       <div className="row">
+        <div className="col-md-12 banner-message">
+          <TextScroller text="Welcome to Master Gambler!" />
+        </div>
         <div className="col-md-8">
           <YoutubeEmbed embedId="rokGy0huYEA" />
         </div>
@@ -125,6 +129,22 @@ function LiveRoom() {
                   className="btn btn-color game-btn text-light"
                 >
                   Place Bet
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="label-margin">
+        <div className="text-center">
+          <div class="card text-black">
+            <div class="card-body">
+              <h5 class="card-title">Donation Box</h5>
+              <p class="card-text">If you enjoy playing, you can tip me!</p>
+              <div class="input-group mb-2">
+                <input type="text" class="form-control" placeholder="$500" />
+                <button class="btn btn-color text-light" type="button">
+                  Tip
                 </button>
               </div>
             </div>

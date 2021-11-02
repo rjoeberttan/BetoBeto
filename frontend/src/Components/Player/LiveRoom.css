@@ -68,6 +68,10 @@
   padding-right: 40px;
 }
 
+.banner-message {
+  font-size: 50px;
+}
+
 .game-btn {
   width: 50% !important;
   border-radius: 25px !important;
