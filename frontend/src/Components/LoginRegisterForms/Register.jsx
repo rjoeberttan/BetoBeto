@@ -3,6 +3,7 @@ import "./Register.css";
 import { Link, useParams } from "react-router-dom";
 import logo from "./loginimg.jpg";
 import { AuthContext } from "../../store/auth-context";
+import { toast, ToastContainer, Zoom } from "react-toastify";
 const axios = require("axios").default;
 
 
@@ -28,29 +29,47 @@ function Register() {
     });
   } 
 
-  function handleSubmit(e){
-    const headers = { "Authorization": "uKRd;$SuXd8b$MFX" };
-    axios({
-      method: "post",
-      url: `${ctx.hostHeader}/register`,
-      headers: headers,
-      data: {
-        username: user.email,
-        password: user.password,
-        email: user.email,
-        phone: user.phone,
-        agentId: agentid
-      },
-    }).then((res) => {
-      console.log(res);
-    }).catch((err) => {
-      console.log(err);
-    })
+  function handleSubmit(e) {
+    const phone = user.phone
+    if ((phone.substring(0,2) !== "09") || (phone.length !== 11)) {
+      toast.error("Invalid phone number (ex. 09xxxxxxxxx)");
+    }
+    else if ((user.password.length === 0) || (user.password.length < 8) || (user.password.length > 20)) {
+      toast.error("Password must be 8-20 characters long.");
+    }
+    else if ((user.username.length === 0)) {
+      toast.error("Username can't be empty.")
+    }
+    else {
+      const headers = { "Authorization": "uKRd;$SuXd8b$MFX" };
+      axios({
+        method: "post",
+        url: `${ctx.hostHeader}/register`,
+        headers: headers,
+        data: {
+          username: user.username,
+          password: user.password,
+          email: user.email,
+          phone: user.phone,
+          agentId: agentid
+        },
+      }).then((res) => {
+        console.log(res);
+        toast.success(res.data.message);
+      }).catch((err) => {
+        console.log(err);
+        toast.error(<div> Sorry your registration is invalid <br /> Please try again </div>, {
+            draggable: true,
+            position: toast.POSITION.TOP_RIGHT,
+            autoClose: 2500
+          });
+      })}
     e.preventDefault();
   }
 
   return (
     <div className="container center txt-black">
+        <ToastContainer/>
       <div className="card">
         <img src={logo} className="card-img-top" alt="..." />
         <div className="card-body">

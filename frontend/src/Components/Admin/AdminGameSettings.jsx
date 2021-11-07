@@ -2,6 +2,9 @@ import React, { useEffect, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
 import { AuthContext } from "../../store/auth-context";
 import "./AdminGameSettings.css";
+import { ToastContainer, toast, Zoom, Bounce} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import 'react-toastify/dist/ReactToastify.min.css';
 const axios = require("axios").default;
 
 function AdminGameSettings() {
@@ -159,27 +162,37 @@ function AdminGameSettings() {
   }
 
   function handleGameSettingsClick(e) {
-    axios({
-      method: "post",
-      url: `${gameHeader}/updateGameSettings`,
-      headers: {
-        "Authorization": "Q@k=jLc-3CCK3Fc%",
-      },
-      data: {
-        gameId: gameid,
-        url: gameDetails.youtube_url,
-        title: gameDetails.name,
-        description: "",
-        bannerMessage: gameDetails.banner,
-        editor: ctx.user.username,
-      },
-    })
-      .then((res) => {
-        console.log(res);
+    if (gameDetails.name.length === 0) {
+      toast.error("Game title should not be empty");
+    }
+    else if (gameDetails.youtube_url.length === 0) {
+      toast.error("YouTube URL should not be empty");
+    }
+    else {
+      axios({
+        method: "post",
+        url: `${gameHeader}/updateGameSettings`,
+        headers: {
+          "Authorization": "Q@k=jLc-3CCK3Fc%",
+        },
+        data: {
+          gameId: gameid,
+          url: gameDetails.youtube_url,
+          title: gameDetails.name,
+          description: "",
+          bannerMessage: gameDetails.banner,
+          editor: ctx.user.username,
+        },
       })
-      .catch((err) => {
-        console.log(err);
-      });
+        .then((res) => {
+          console.log(res);
+          toast.success("Game settings saved");
+        })
+        .catch((err) => {
+          console.log(err);
+          toast.error(<p>YouTube URL missing<br></br> Please try again</p>);
+        });
+    }
     e.preventDefault();
   }
 
@@ -202,9 +215,11 @@ function AdminGameSettings() {
     })
       .then((res) => {
         console.log(res);
+        toast.success("Win settings saved")
       })
       .catch((err) => {
         console.log(err);
+        toast.error(<p>Incomplete Multipliers <br></br> Please try again</p>)
       });
     e.preventDefault();
   }
@@ -225,9 +240,11 @@ function AdminGameSettings() {
     })
       .then((res) => {
         console.log(res);
+        toast.success("Bet tresholds saved");
       })
       .catch((err) => {
         console.log(err);
+        toast.error(<p>Incomplete bet tresholds <br></br> Please try again</p>);
       });
     e.preventDefault();
   }
@@ -256,9 +273,17 @@ function AdminGameSettings() {
               status: data.status,
             };
           });
+          toast.success("Success Create Market");
         })
         .catch((err) => {
           console.log(err);
+          console.log(marketDetails.status);
+          if(marketDetails.status === 0) {
+            toast.error("Market is still open");
+          }
+          else{
+            toast.error("Market is still closed");
+          }
         });
     } else if (name === "openMarket") {
       axios({
@@ -284,9 +309,17 @@ function AdminGameSettings() {
               status: data.status,
             };
           });
+          toast.success("Success Open Market");
         })
         .catch((err) => {
           console.log(err);
+          console.log(marketDetails.status);
+          if(marketDetails.status === 0) {
+            toast.error("Market is already open");
+          }
+          else{
+            toast.error("Market is in result state");
+          }
         });
     } else if (name === "closeMarket") {
       axios({
@@ -312,9 +345,17 @@ function AdminGameSettings() {
               status: data.status,
             };
           });
+          toast.success("Success Closed Market");
         })
         .catch((err) => {
           console.log(err);
+          console.log(marketDetails.status);
+          if(marketDetails.status === 1){
+            toast.error("Market is already closed");
+          }else {
+            toast.error("Market is still in result state");
+          }
+          
         });
     }
   }
@@ -343,9 +384,17 @@ function AdminGameSettings() {
             status: res.data.data.status,
           };
         });
+        toast.success("Success Result Market");
       })
       .catch((err) => {
         console.log(err);
+        console.log(marketDetails.status);
+        if(marketDetails.status === 2){
+          toast.error("Market is already in Result state");
+        } else {
+          toast.error("Market is still open");
+        }
+        
       });
     e.preventDefault();
   }
@@ -375,11 +424,18 @@ function AdminGameSettings() {
         editor: ctx.user.username,
         bb_manip: Object.values(manipulateColors),
       },
+    }).then((res) => {
+      toast.success("Bets Manipulated Success")
+    }).catch((err) => {
+      toast.error("Incomplete Bet Manipulation")
     });
   }
 
   return (
     <div className="container text-light container-game-room">
+      <>
+        <ToastContainer/>
+      </>
       <div className="heading-text">
         <h1 className="display-6 small-device bold-small">Manage Settings</h1>
       </div>

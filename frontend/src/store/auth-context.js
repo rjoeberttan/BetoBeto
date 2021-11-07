@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { toast } from 'react-toastify';
 const axios = require("axios").default;
 require("dotenv").config();
 
@@ -84,65 +85,72 @@ export default function AuthContextProvider(props) {
   }, []);
 
   function loginHandler(person) {
-    axios({
-      method: "post",
-      url: `${hostHeader}/login`,
-      headers: headers,
-      data: {
-        username: person.username,
-        password: person.password,
-      },
-    })
-      .then((res) => {
-        const accountType = res.data.accountType;
-
-        if (accountType === 0) {
-          setAccount({
-            username: person.username,
-            accountType: "admin",
-          });
-        } else if (accountType === 1) {
-          setAccount({
-            username: person.username,
-            accountType: "masteragent",
-          });
-        } else if (accountType === 2) {
-          setAccount({
-            username: person.username,
-            accountType: "agent",
-          });
-        } else if (accountType === 3) {
-          setAccount({
-            username: person.username,
-            accountType: "player",
-          });
-        }
-        setAccount((prev) => {
-          return {
-            ...prev,
-            accountID: res.data.accountId,
-          };
-        });
-        const token = res.data.token;
-        localStorage.setItem("token", token);
-        //GET WALLET BALANCE
-        axios({
-          method: "get",
-          url: `${hostHeader}/getWalletBalance/16`,
-          headers: headers,
-        })
-          .then((res2) => {
-            const walletBalance = res2.data.wallet;
-            setWalletBalance(walletBalance);
-          })
-          .catch((err) => {
-            console.log(err);
-          });
-        setIsLoggedIn(true);
+    if (person.username === "") {
+      setErrorMessage("Username can't be empty");
+    } else if (person.password === "") {
+      setErrorMessage("Password can't be empty");
+    } else {
+      axios({
+        method: "post",
+        url: `${hostHeader}/login`,
+        headers: headers,
+        data: {
+          username: person.username,
+          password: person.password,
+        },
       })
-      .catch((err) => {
-        setErrorMessage("Invalid credentials");
-      });
+        .then((res) => {
+          const accountType = res.data.accountType;
+  
+          if (accountType === 0) {
+            setAccount({
+              username: person.username,
+              accountType: "admin",
+            });
+          } else if (accountType === 1) {
+            setAccount({
+              username: person.username,
+              accountType: "masteragent",
+            });
+          } else if (accountType === 2) {
+            setAccount({
+              username: person.username,
+              accountType: "agent",
+            });
+          } else if (accountType === 3) {
+            setAccount({
+              username: person.username,
+              accountType: "player",
+            });
+          }
+          setAccount((prev) => {
+            return {
+              ...prev,
+              accountID: res.data.accountId,
+            };
+          });
+          const token = res.data.token;
+          localStorage.setItem("token", token);
+          //GET WALLET BALANCE
+          axios({
+            method: "get",
+            url: `${hostHeader}/getWalletBalance/16`,
+            headers: headers,
+          })
+            .then((res2) => {
+              const walletBalance = res2.data.wallet;
+              setWalletBalance(walletBalance);
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+          setIsLoggedIn(true);
+        })
+        .catch((err) => {
+          toast.error("Invalid credentials");
+        });
+    }
+
   }
 
   function handleLogOut() {

@@ -7,6 +7,7 @@ const jwt = require("jsonwebtoken");
 const { createLogger, transports, format } = require("winston");
 const helmet = require("helmet");
 const fs = require("fs");
+const { toNamespacedPath } = require("path");
 require("dotenv").config();
 
 // Configure Express Application

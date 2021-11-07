@@ -1,5 +1,28 @@
 .radio-button {
+  position: relative;
   cursor: pointer;
+}
+
+.radio-button:hover {
+  box-shadow: 0 3px #666;
+  transform: translateY(1px);
+}
+
+.radio-card {
+  visibility: hidden;
+}
+
+.color-name {
+display:block;
+position: absolute;
+bottom: 0px;
+width: 100%;
+font-size: 100%;
+margin: auto;
+}
+
+.fix-padding-left {
+  padding-left: 0px !important;
 }
 
 .red-box {
@@ -57,6 +80,9 @@
   border-radius: 10px;
   margin-bottom: 10px;
   margin-left: 15px;
+  text-align: center;
+  line-height: 35px;
+  font-weight: bold;
 }
 
 .input-box {
@@ -76,6 +102,12 @@
   width: 50% !important;
   border-radius: 25px !important;
 }
+
+.total-bet-number {
+  margin-left: 14px;
+  margin-top: 10px;
+}
+
 
 @media (min-width: 320px) and (max-width: 1199px) {
   .stake-box {

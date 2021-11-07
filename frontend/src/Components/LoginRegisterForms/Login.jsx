@@ -1,6 +1,9 @@
 import React, { useContext, useState } from "react";
 import logo from "./loginimg.jpg";
 import { AuthContext } from "../../store/auth-context";
+import { ToastContainer, toast, Zoom, Bounce} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import 'react-toastify/dist/ReactToastify.min.css';
 
 function Login() {
   const ctx = useContext(AuthContext);
@@ -10,8 +13,10 @@ function Login() {
   });
 
   function handleClick(event) {
-    ctx.loginHandler(user);
-    event.preventDefault();
+
+      ctx.loginHandler(user);
+      event.preventDefault();
+    
   }
 
   function handleChange(event) {
@@ -30,6 +35,7 @@ function Login() {
 
   return (
     <div className="container center txt-black">
+      <ToastContainer/>
       <div className="card" style={{ style }}>
         <img src={logo} className="card-img-top" alt="..." />
         <div className="card-body">
@@ -37,7 +43,6 @@ function Login() {
             <h1 className="display-2 small-device bold-small">Welcome back!</h1>
             <h4 className="lead smaller-device">Login below to continue</h4>
           </div>
-
           <form onSubmit={handleClick}>
             <div className="row">
               <div className="col-sm-12 spacing">
@@ -77,5 +82,4 @@ function Login() {
     </div>
   );
 }
-
 export default Login;

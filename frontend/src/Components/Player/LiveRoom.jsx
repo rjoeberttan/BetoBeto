@@ -47,70 +47,70 @@ function LiveRoom() {
               <h5 class="card-title">Current Market ID: AB12CD2</h5>
               <p class="card-text">Betting Status: OPEN</p>
               <div className="row text-center">
-                <label className="col-sm-3 col-5 red-box radio-button">
+                <label className="col-sm-3 col-5 red-box radio-button fix-padding-left">
                   <input
-                    className="radio-button"
+                    className="radio-card"
                     type="radio"
                     name="colors"
                     value="red"
                     onChange={handleChange}
                   />
-                  <label for="huey">Red</label>
+                  <label className="color-name">Total: ₱ 120</label>
                 </label>
-                <label className="col-sm-3 col-5 blue-box radio-button">
+                <label className="col-sm-3 col-5 blue-box radio-button fix-padding-left">
                   <input
-                    className="radio-button"
+                    className="radio-card"
                     type="radio"
                     name="colors"
                     value="blue"
                     onChange={handleChange}
                   />
-                  <label for="huey">Blue</label>
+                  <label className="color-name">Total: ₱ 123</label>
                 </label>
-                <label className="col-sm-3 col-5 green-box radio-button">
+                <label className="col-sm-3 col-5 green-box radio-button fix-padding-left">
                   <input
-                    className="radio-button"
+                    className="radio-card"
                     type="radio"
                     name="colors"
                     value="green"
                     onChange={handleChange}
                   />
-                  <label for="huey">Green</label>
+                  <label for="huey" className="color-name">Total: ₱ 69696</label>
                 </label>
-                <label className="col-sm-3 col-5 yellow-box radio-button">
+                <label className="col-sm-3 col-5 yellow-box radio-button fix-padding-left">
                   <input
-                    className="radio-button"
+                    className="radio-card"
                     type="radio"
                     name="colors"
                     value="yellow"
                     onChange={handleChange}
                   />
-                  <label for="huey">Yellow</label>
+                  <label for="huey" className="color-name">Total: ₱ 1234</label>
                 </label>
-                <label className="col-sm-3 col-5 white-box radio-button">
+                <label className="col-sm-3 col-5 white-box radio-button fix-padding-left">
                   <input
-                    className="radio-button"
+                    className="radio-card"
                     type="radio"
                     name="colors"
                     value="white"
                     onChange={handleChange}
                   />
-                  <label for="huey">White</label>
+                  <label for="huey" className="color-name">Total: ₱ 142124</label>
                 </label>
-                <label className="col-sm-3 col-5 purple-box radio-button">
+                <label className="col-sm-3 col-5 purple-box radio-button fix-padding-left">
                   <input
-                    className="radio-button"
+                    className="radio-card"
                     type="radio"
                     name="colors"
                     value="purple"
                     onChange={handleChange}
                   />
-                  <label for="huey">Purple</label>
+                  <label for="huey" className="color-name">Total: ₱ 124124</label>
                 </label>
               </div>
               <div className="row wallet-box">
                 <div className="col-md-4 col-3">
-                  <div className="stake-box text-center" style={style}>
+                  <div className="stake-box" style={style}>
                     Stake
                   </div>
                 </div>

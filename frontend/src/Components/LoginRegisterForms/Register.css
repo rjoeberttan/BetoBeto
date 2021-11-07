@@ -2,6 +2,7 @@
   margin-bottom: 30px;
 }
 
+
 .register-btn {
   width: 50% !important;
   border-radius: 25px !important;
@@ -25,9 +26,17 @@
   background-color: #1e5128 !important;
 }
 
+.custom-toast{
+  background: brown;
+  color: black;
+}
+
+
 img {
   height: 400px;
 }
+
+
 
 @media (min-width: 320px) and (max-width: 1199px) {
   .center {
