@@ -4,6 +4,7 @@ const mysql = require("mysql");
 const { createLogger, transports, format } = require("winston");
 const io = require("socket.io-client")
 const helmet = require("helmet");
+const cors = require("cors");
 const fs = require('fs');
 
 require("dotenv").config();
@@ -13,6 +14,13 @@ const app = express();
 app.use(express.json());
 app.use(helmet());
 app.use(express.urlencoded({ extended: true }));
+app.use(
+    cors({
+        origin: ["http://localhost:3000"],
+        methods: ["GET", "POST"],
+        credentials: true,
+    })
+  )
 
 
 // Configure websocket domain
@@ -331,9 +339,10 @@ app.post("/sendTip", (req, res) => {
     const accountId = req.body.accountId
     const amount = req.body.amount
     const wallet = req.body.wallet
+    
 
     // Check if body is complete
-    if (!accountId || !amount) {
+    if (!accountId || !amount || !wallet) {
         logger.warn("sendTip request has missing body parameters");
         res.status(400).json({ message: "Missing body parameters" });
         return;
@@ -389,7 +398,7 @@ app.post("/sendTip", (req, res) => {
                             res.status(409).json({ message: "Tip not placed successfully. Please check accountId" });
                         }
                     })
-
+                    logger.info("Received tip")
                     res.status(200).json({message: "Tip sent successfully. Thank you"})
                 }
             })

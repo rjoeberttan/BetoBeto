@@ -1,15 +1,26 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {useParams} from "react-router-dom";
 import YoutubeEmbed from "../Youtube";
 import TextScroller from "../TextScroller";
 import "./LiveRoom.css";
 import {socketIOClient, io} from 'socket.io-client';
+import { AuthContext } from "../../store/auth-context";
 import socket from '../Websocket/socket'
+
+import { ToastContainer, toast, Zoom, Bounce} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import 'react-toastify/dist/ReactToastify.min.css';
 const axios = require("axios");
 
 
 function LiveRoom() {
+  //===========================================
+  // Global Variables and useState init
+  //===========================================
+  const ctx = useContext(AuthContext);
   const [color, setColor] = useState("red");
+  const [placeBetDisabled, setPlaceBetDisabled] = useState(false)
+  const [placeTipDisabled, setPlaceTipDisabled] = useState(false)
   const [gameDetails, setGameDetails] = useState({
     banner: "",
     description: "",
@@ -28,9 +39,20 @@ function LiveRoom() {
     status: "",
     result: "",
   });
+  const [betTotals, setBetTotals] = useState({
+    RED: "0.00",
+    BLUE: "0.00",
+    GREEN: "0.00",
+    WHITE: "0.00",
+    PURPLE: "0.00",
+    YELLOW: "0.00",
+  })
+  const [stake, setStake] = useState(0);
+  const [tip, setTip] = useState(0);
   const { gameId } = useParams()
   const accountHeader = "http://localhost:4003";
   const gameHeader = "http://localhost:4004";
+  const betHeader = "http://localhost:4005";
   socket.emit("join_room", "colorGame");
   
   //===========================================
@@ -39,8 +61,11 @@ function LiveRoom() {
   useEffect(() => {
     getLatestGameDetails()
     getLatestMarketDetails() 
-
   }, [])
+
+  useEffect(() => {
+    getColorGameBetTotals()  
+  }, [marketDetails])
 
   function getLatestGameDetails(){
     axios({
@@ -78,14 +103,35 @@ function LiveRoom() {
     }).then((res) => {
       //get game details
       const { market } = res.data.data;
-      console.log(market)
       setMarketDetails({
         description: market.description,
         market_id: market.market_id,
         status: market.status,
         result: market.result,
-      });      
+      });
+      handlePlaceBetButtonStatus(market.status)
     });
+  }
+
+  function getColorGameBetTotals() {
+    console.log(`${gameHeader}/getColorGameBetTotals/${gameId}/${marketDetails.market_id}`)
+    axios({
+      method: "get",
+      url: `${gameHeader}/getColorGameBetTotals/${gameId}/${marketDetails.market_id}`,
+      headers: {
+        "Authorization": "Q@k=jLc-3CCK3Fc%",
+      },
+    }).then((res) => {
+      const values = res.data.data
+      setBetTotals({
+        BLUE: values[0].total,
+        WHITE: values[1].total,
+        RED: values[2].total,
+        GREEN: values[3].total,
+        YELLOW: values[4].total,
+        PURPLE: values[5].total
+      })
+    }).catch((err) => {console.log(err)});
   }
 
 
@@ -94,7 +140,6 @@ function LiveRoom() {
   //===========================================
   useEffect(() => {
     socket.on("received_market_update", (data) => {
-      console.log(data)
       setMarketDetails((prev) => {
         return {
           ...prev,
@@ -102,15 +147,108 @@ function LiveRoom() {
           status: data.status
         }
       })
+      handlePlaceBetButtonStatus(data.status)
     })
   }, [socket]) 
 
+  
+  //===========================================
+  // Handle Change and Button Click Functions
+  //===========================================
+  function placeBet(e){
+    const data = {
+      marketId: marketDetails.market_id,
+      gameId: gameId,
+      accountId: ctx.user.accountID,
+      gameName: gameDetails.name,
+      choice: color.toUpperCase(),
+      stake: stake,
+      wallet: ctx.walletBalance
+    }
+
+    console.log(data)
+
+    axios({
+      method: "post",
+      url: `${betHeader}/placeBet`,
+      headers: {
+        "Authorization": "h75*^*3DWwHFb4$V"
+      }, 
+      data: data
+    })
+    .then((res) => {
+      console.log(res)
+      const newWallet = parseFloat(ctx.walletBalance) - parseFloat(stake)
+      ctx.walletHandler(newWallet)
+      toast.success(`Placed Bet successfully. BetId: ${res.data.data.betId}`)
+    })
+    .catch((err)=>{ console.log(err)})
+  }
+
+  function handleStakeChange(e){
+    const currentStake = parseFloat(e.target.value)
+    const walletBalance = parseFloat(ctx.walletBalance) 
+
+    if (currentStake > walletBalance){
+      console.log("Insufficient Funds")
+      setPlaceBetDisabled(true)
+    } else {
+      setPlaceBetDisabled(false)
+      setStake(currentStake)
+    }
+  }
+
+  function handlePlaceBetButtonStatus(status){
+    if (status !== 0) {
+      setPlaceBetDisabled(true)
+    } else {
+      setPlaceBetDisabled(false)
+    }
+  }
 
 
+  function sendTip() {
+    if (!tip){
+      console.log("Tip Amount cannot be empty")
+    } else {
+      const data = {
+        accountId: ctx.user.accountID,
+        amount: tip,
+        wallet: ctx.walletBalance
+      }
+  
+      console.log(data)
+  
+      axios({
+        method: "post",
+        url: `${betHeader}/sendTip`,
+        headers: {
+          "Authorization": "h75*^*3DWwHFb4$V"
+        }, 
+        data: data
+      })
+      .then((res) => {
+        console.log(res)
+        const newWallet = parseFloat(ctx.walletBalance) - parseFloat(tip)
+        ctx.walletHandler(newWallet)
+        toast.success(`Thanks for the tip! Enjoy the game`)
+      })
+      .catch((err)=>{ console.log(err)})
+    }
 
+  }
 
+  function handleTipChange(e) {
+    const currenttip = parseFloat(e.target.value)
+    const walletBalance = parseFloat(ctx.walletBalance) 
 
-
+    if (currenttip > walletBalance){
+      setPlaceTipDisabled(true)
+    } else {
+      setPlaceTipDisabled(false)
+      setTip(currenttip)
+    }
+  }
 
 
 
@@ -173,7 +311,7 @@ function LiveRoom() {
                     value="red"
                     onChange={handleChange}
                   />
-                  <label className="color-name">Total: ₱ 120</label>
+                  <label className="color-name">Total: ₱ {betTotals.RED}</label>
                 </label>
                 <label className="col-sm-3 col-5 blue-box radio-button fix-padding-left">
                   <input
@@ -183,7 +321,7 @@ function LiveRoom() {
                     value="blue"
                     onChange={handleChange}
                   />
-                  <label className="color-name">Total: ₱ 123</label>
+                  <label className="color-name">Total: ₱ {betTotals.BLUE}</label>
                 </label>
                 <label className="col-sm-3 col-5 green-box radio-button fix-padding-left">
                   <input
@@ -193,7 +331,7 @@ function LiveRoom() {
                     value="green"
                     onChange={handleChange}
                   />
-                  <label for="huey" className="color-name">Total: ₱ 69696</label>
+                  <label for="huey" className="color-name">Total: ₱ {betTotals.GREEN}</label>
                 </label>
                 <label className="col-sm-3 col-5 yellow-box radio-button fix-padding-left">
                   <input
@@ -203,7 +341,7 @@ function LiveRoom() {
                     value="yellow"
                     onChange={handleChange}
                   />
-                  <label for="huey" className="color-name">Total: ₱ 1234</label>
+                  <label for="huey" className="color-name">Total: ₱ {betTotals.YELLOW}</label>
                 </label>
                 <label className="col-sm-3 col-5 white-box radio-button fix-padding-left">
                   <input
@@ -213,7 +351,7 @@ function LiveRoom() {
                     value="white"
                     onChange={handleChange}
                   />
-                  <label for="huey" className="color-name">Total: ₱ 142124</label>
+                  <label for="huey" className="color-name">Total: ₱ {betTotals.WHITE}</label>
                 </label>
                 <label className="col-sm-3 col-5 purple-box radio-button fix-padding-left">
                   <input
@@ -223,7 +361,7 @@ function LiveRoom() {
                     value="purple"
                     onChange={handleChange}
                   />
-                  <label for="huey" className="color-name">Total: ₱ 124124</label>
+                  <label for="huey" className="color-name">Total: ₱ {betTotals.PURPLE}</label>
                 </label>
               </div>
               <div className="row wallet-box">
@@ -238,6 +376,7 @@ function LiveRoom() {
                     className="form-control"
                     onWheel={(e) => e.target.blur()}
                     placeholder="P500"
+                    onChange={handleStakeChange}
                   />
                 </div>
               </div>
@@ -245,6 +384,8 @@ function LiveRoom() {
                 <button
                   type="submit"
                   className="btn btn-color game-btn text-light"
+                  disabled={placeBetDisabled}
+                  onClick={placeBet}
                 >
                   Place Bet
                 </button>
@@ -260,8 +401,8 @@ function LiveRoom() {
               <h5 class="card-title">Donation Box</h5>
               <p class="card-text">If you enjoy playing, you can tip me!</p>
               <div class="input-group mb-2">
-                <input type="text" class="form-control" placeholder="$500" />
-                <button class="btn btn-color text-light" type="button">
+                <input type="text" class="form-control" placeholder="$500" onChange={handleTipChange}/>
+                <button class="btn btn-color text-light" type="button" onClick={sendTip} disabled={placeTipDisabled}>
                   Tip
                 </button>
               </div>

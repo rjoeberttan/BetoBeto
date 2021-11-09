@@ -59,7 +59,7 @@ export default function AuthContextProvider(props) {
           }
           axios({
             method: "get",
-            url: `${hostHeader}/getWalletBalance/16`,
+            url: `${hostHeader}/getWalletBalance/${res.data.accountId}`,
             headers: headers,
           })
             .then((res2) => {
@@ -83,6 +83,12 @@ export default function AuthContextProvider(props) {
         console.log("YOUR TOKEN HAS EXPIRED");
       });
   }, []);
+
+
+  function walletHandler(wallet) {
+    setWalletBalance(wallet)
+  }
+
 
   function loginHandler(person) {
     if (person.username === "") {
@@ -134,7 +140,7 @@ export default function AuthContextProvider(props) {
           //GET WALLET BALANCE
           axios({
             method: "get",
-            url: `${hostHeader}/getWalletBalance/16`,
+            url: `${hostHeader}/getWalletBalance/${res.data.accountId}`,
             headers: headers,
           })
             .then((res2) => {
@@ -169,6 +175,7 @@ export default function AuthContextProvider(props) {
         errorMessage: errorMessage,
         loginHandler: loginHandler,
         handleLogOut: handleLogOut,
+        walletHandler: walletHandler,
         user: account,
         hostHeader: hostHeader,
         walletBalance: walletBalance,
