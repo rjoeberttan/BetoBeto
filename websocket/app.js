@@ -5,36 +5,34 @@ const {Server} = require("socket.io");
 const app = express();
 app.use(cors());
 
-
-
 const server = http.createServer(app);
 
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:3000",
+        origin: ["http://localhost:3000"],
         methods: ["GET", "POST"]
     },
 });
 
 io.on("connection", (socket) => {
-    console.log(socket.id );
-
     // Socket IO Method when a market update on color game is received
+    console.log
     socket.on("color_game_market_update", (data) => {
+        console.log(data)
 
         const status = data.status;
-        const marketId = data.marketID;
-        const gameId = data.gameId
-        const date = data.date
+        const marketId = data.marketId;
+        // const gameId = data.gameId
+        // const date = data.date
         
         if (status === 0) {
-            console.log(`Market has been Created/Opened with marketId:${marketId} gameId:${gameId} at ${date}`)
+            console.log(`Market has been Created/Opened with marketId:${marketId}`)
         } else if (status === 1) {
-            console.log(`Market has been Closed with marketId:${marketId} gameId:${gameId} at ${date}`)
+            console.log(`Market has been Closed with marketId:${marketId} `)
         } else if (status === 2) {
-            console.log(`Market has been Resulted with marketId:${marketId} gameId:${gameId} at ${date} with result ${data.result}`)
+            console.log(`Market has been Resulted with marketId:${marketId} `)
         }
-        socket.emit("received_create_market", data)
+        socket.to("colorGame").emit("received_market_update", data)
     })
 
     // Socket IO Method when a market update on color game is received
@@ -45,8 +43,14 @@ io.on("connection", (socket) => {
     socket.on("disconnect", () => {
         console.log("User Disconnected", socket.id)
     })
+
+
+    socket.on("join_room", (room) => {
+        socket.join(room);
+        console.log(`user ${socket.id} joined ${room}`)
+    })
 })
 
 server.listen(3010, () => {
-    console.log("Server running")
+    console.log("Server running at port 3010")
 })

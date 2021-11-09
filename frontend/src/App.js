@@ -99,7 +99,7 @@ function App() {
               />
               <Route path="/player/account" exact component={PlayerAccount} />
               <Route
-                path="/player/gameRoom/live"
+                path="/player/gameRoom/live/:gameId"
                 exact
                 component={PlayerLiveRoom}
               />

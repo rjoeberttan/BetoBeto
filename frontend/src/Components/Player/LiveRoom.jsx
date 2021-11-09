@@ -1,10 +1,124 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import {useParams} from "react-router-dom";
 import YoutubeEmbed from "../Youtube";
 import TextScroller from "../TextScroller";
 import "./LiveRoom.css";
+import {socketIOClient, io} from 'socket.io-client';
+import socket from '../Websocket/socket'
+const axios = require("axios");
+
 
 function LiveRoom() {
   const [color, setColor] = useState("red");
+  const [gameDetails, setGameDetails] = useState({
+    banner: "",
+    description: "",
+    is_live: "",
+    max_bet: "",
+    min_bet: "",
+    name: "",
+    win_multip1: "",
+    win_multip2: "",
+    win_multip3: "",
+    youtube_url: "",
+  });
+  const [marketDetails, setMarketDetails] = useState({
+    description: "",
+    market_id: "",
+    status: "",
+    result: "",
+  });
+  const { gameId } = useParams()
+  const accountHeader = "http://localhost:4003";
+  const gameHeader = "http://localhost:4004";
+  socket.emit("join_room", "colorGame");
+  
+  //===========================================
+  // UseEffect
+  //===========================================
+  useEffect(() => {
+    getLatestGameDetails()
+    getLatestMarketDetails() 
+
+  }, [])
+
+  function getLatestGameDetails(){
+    axios({
+      method: "get",
+      url: `${gameHeader}/getGameDetails/${gameId}`,
+      headers: {
+        "Authorization": "Q@k=jLc-3CCK3Fc%",
+      },
+    }).then((res) => {
+      //get game details
+      const { data } = res.data;
+      setGameDetails({
+        banner: data.banner,
+        description: data.description,
+        is_live: data.is_live,
+        max_bet: data.max_bet,
+        min_bet: data.min_bet,
+        name: data.name,
+        win_multip1: data.win_multip1,
+        win_multip2: data.win_multip2,
+        win_multip3: data.win_multip3,
+        youtube_url: data.youtube_url,
+      });
+    });
+  }
+
+  function getLatestMarketDetails(){
+    //get market details
+    axios({
+      method: "get",
+      url: `${gameHeader}/getLatestMarketDetails/${gameId}`,
+      headers: {
+        "Authorization": "Q@k=jLc-3CCK3Fc%",
+      },
+    }).then((res) => {
+      //get game details
+      const { market } = res.data.data;
+      console.log(market)
+      setMarketDetails({
+        description: market.description,
+        market_id: market.market_id,
+        status: market.status,
+        result: market.result,
+      });      
+    });
+  }
+
+
+  //===========================================
+  // Websocket Functions
+  //===========================================
+  useEffect(() => {
+    socket.on("received_market_update", (data) => {
+      console.log(data)
+      setMarketDetails((prev) => {
+        return {
+          ...prev,
+          market_id: data.marketId,
+          status: data.status
+        }
+      })
+    })
+  }, [socket]) 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   function handleChange(e) {
     const { value } = e.target;
@@ -32,11 +146,11 @@ function LiveRoom() {
   return (
     <div className="container text-light container-game-room">
       <div className="heading-text">
-        <h1 className="display-5 small-device bold-small">Live Dice Game</h1>
+        <h1 className="display-5 small-device bold-small">Live {gameDetails.name}</h1>
       </div>
       <div className="row">
         <div className="col-md-12 banner-message">
-          <TextScroller text="Welcome to Master Gambler!" />
+          <TextScroller text={gameDetails.banner} />
         </div>
         <div className="col-md-8">
           <YoutubeEmbed embedId="rokGy0huYEA" />
@@ -44,8 +158,12 @@ function LiveRoom() {
         <div className="col-md-4 live-room-colorbox">
           <div class="card txt-black">
             <div class="card-body">
-              <h5 class="card-title">Current Market ID: AB12CD2</h5>
-              <p class="card-text">Betting Status: OPEN</p>
+              <h5 class="card-title">Current Market ID: {marketDetails.market_id}</h5>
+              <p class="card-text">Betting Status: {marketDetails.status === 0
+                  ? " OPEN"
+                  : marketDetails.status === 1
+                  ? " CLOSED"
+                  : " RESULTED"}</p>
               <div className="row text-center">
                 <label className="col-sm-3 col-5 red-box radio-button fix-padding-left">
                   <input

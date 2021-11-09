@@ -5,6 +5,8 @@ import "./AdminGameSettings.css";
 import { ToastContainer, toast, Zoom, Bounce} from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import 'react-toastify/dist/ReactToastify.min.css';
+import {socketIOClient, io} from 'socket.io-client';
+import socket from '../Websocket/socket'
 const axios = require("axios").default;
 
 function AdminGameSettings() {
@@ -43,8 +45,13 @@ function AdminGameSettings() {
 
   const accountHeader = "http://localhost:4003";
   const gameHeader = "http://localhost:4004";
-
+  const socket = io.connect("http://localhost:3010")
+  
+  
+  
   useEffect(() => {
+    socket.emit("join_room", "colorGame");
+
     const token = localStorage.getItem("token");
     //get user auth
     axios({
@@ -273,6 +280,7 @@ function AdminGameSettings() {
               status: data.status,
             };
           });
+          socket.emit("color_game_market_update", {marketId: data.marketID, status: data.status})
           toast.success("Success Create Market");
         })
         .catch((err) => {
@@ -309,6 +317,7 @@ function AdminGameSettings() {
               status: data.status,
             };
           });
+          socket.emit("color_game_market_update", {marketId: data.marketId, status: data.status})
           toast.success("Success Open Market");
         })
         .catch((err) => {
@@ -345,6 +354,7 @@ function AdminGameSettings() {
               status: data.status,
             };
           });
+          socket.emit("color_game_market_update", {marketId: data.marketId, status: data.status})
           toast.success("Success Closed Market");
         })
         .catch((err) => {
@@ -384,6 +394,7 @@ function AdminGameSettings() {
             status: res.data.data.status,
           };
         });
+        socket.emit("color_game_market_update", {marketId: res.data.data.marketId, status: res.data.data.status})
         toast.success("Success Result Market");
       })
       .catch((err) => {
