@@ -906,6 +906,51 @@ app.get("/getCountPlayer/:accountId", (req, res) => {
 });
 
 
+app.get("/getUsername/:accountId", (req, res) => {
+  // Get body
+  const accountId = req.params.accountId;
+  const apiKey = req.header("Authorization");
+
+  // Check if body is complete
+  if (!accountId) {
+    logger.warn("getUsername request has missing body parameters");
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(
+      "getUsername request has missing/wrong API_KEY, from accountId:" +
+        accountId
+    );
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  // Process 1
+  // Get all necessary details
+  sqlQuery = "select username from accounts where account_id = ?;";
+  db.query(sqlQuery, [accountId], (err, result) => {
+    if (err) {
+      logger.error(
+        "Process 1: Error in getUsername request. Error:" + "\n" + err
+      );
+      res.status(500).json({ message: "Server error" });
+    } else {
+      logger.info(
+        "Successful getUsername request for accountId:" + accountId
+      );
+      res.status(200).json({
+        message: "Request successful",
+        accountId: accountId,
+        count: result[0].username,
+      });
+    }
+  });
+});
+
+
 
 app.listen(4003, () => {
   console.log("Server listentning at port 4003");
