@@ -5,27 +5,25 @@ import axios from "axios";
 
 function Account() {
   const ctx = useContext(AuthContext);
-  const [cellNum, setCellNum] = useState("");
+  const [password, setPassword] = useState({
+    password: "",
+    confirmPassword: "",
+  });
   const [userDetails, setUserDetails] = useState({
     email: "",
     username: "",
-    phone: ""
-  })
-  
-
-
+    phone: "",
+  });
 
   const accountHeader = "http://localhost:4003";
-  const gameHeader = "http://localhost:4004";
   //===========================================
   // UseEffect
   //===========================================
   useEffect(() => {
-    getUserDetails(ctx.user.accountID)
+    getUserDetails(ctx.user.accountID);
+  }, []);
 
-  }, [])
-
-  function getUserDetails(accountId){
+  function getUserDetails(accountId) {
     axios({
       method: "get",
       url: `${accountHeader}/getUserDetails/${accountId}`,
@@ -33,35 +31,103 @@ function Account() {
         "Authorization": "uKRd;$SuXd8b$MFX",
       },
     })
-    .then((res) => { 
-      console.log(res)
-      setUserDetails((prev) => {
-        return {
-          ...prev,
-          username: res.data.data.username,
-          email: res.data.data.email,
-          phone: res.data.data.phone_num
-        }
+      .then((res) => {
+        console.log(res);
+        setUserDetails((prev) => {
+          return {
+            ...prev,
+            username: res.data.data.username,
+            email: res.data.data.email,
+            phone: res.data.data.phone_num,
+          };
+        });
       })
-    })
-    .catch((err) => {console.log(err)})
+      .catch((err) => {
+        console.log(err);
+      });
   }
-
-
-
-
-
 
   function handleChange(e) {
     const { value } = e.target;
     setUserDetails((prev) => {
       return {
         ...prev,
-        phone: e.target.value
-      }
-    })
+        phone: value.substring(0, 11),
+      };
+    });
   }
 
+  function submitPhone(e) {
+    if (
+      userDetails.phone.substring(0, 2) !== "09" ||
+      userDetails.phone.length !== 11
+    ) {
+      console.log("wrong 09");
+      //toaster failed changed phone num
+    } else {
+      axios({
+        method: "post",
+        url: `${accountHeader}/updatePhoneDetail`,
+        headers: {
+          "Authorization": "uKRd;$SuXd8b$MFX",
+        },
+        data: {
+          phone: userDetails.phone,
+          accountId: ctx.user.accountID,
+          editorUsername: ctx.user.username,
+        },
+      })
+        .then((res) => {
+          console.log(res);
+          //toaster successfully changed phone num
+        })
+        .catch((err) => {
+          console.log(err);
+          //toaster failed changed phone num
+        });
+    }
+    e.preventDefault();
+  }
+
+  function handleChangePassword(e) {
+    const { value, name } = e.target;
+    setPassword((prev) => {
+      return {
+        ...prev,
+        [name]: value,
+      };
+    });
+  }
+
+  function submitPassword(e) {
+    if (password.password !== password.confirmPassword) {
+      console.log("password do not match");
+      //toaster passwords do not match
+    } else if (password.password.length < 8 || password.password.length > 20) {
+      console.log("password length error");
+      //toaster pssword length error
+    } else {
+      axios({
+        method: "post",
+        url: `${accountHeader}/updatePassword`,
+        headers: {
+          "Authorization": "uKRd;$SuXd8b$MFX",
+        },
+        data: {
+          password: password.password,
+          accountId: ctx.user.accountID,
+          editorUsername: ctx.user.username,
+        },
+      })
+        .then((res) => {
+          console.log(res);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+    e.preventDefault();
+  }
 
   const style = {
     width: "18 rem",
@@ -73,20 +139,22 @@ function Account() {
         <h1 className="display-5 small-device bold-small">My Account</h1>
       </div>
       <div className="card text-black card-account" style={{ style }}>
-        <div className="card-body">value
+        <div className="card-body">
           <form>
             <div className="row">
               <div className="col-sm-12 spacing">
                 <label className="form-label">Email: {userDetails.email}</label>
               </div>
               <div className="col-md-12 spacing">
-                <label className="form-label">Username: {userDetails.username} </label>
+                <label className="form-label">
+                  Username: {userDetails.username}{" "}
+                </label>
               </div>
               <div className="col-md-12 spacing">
                 <label className="form-label">Cellphone No.</label>
                 <input
                   type="number"
-                  placeholder = "0927XXXXXXX"
+                  placeholder="0927XXXXXXX"
                   className="form-control"
                   name="cellNum"
                   value={userDetails.phone}
@@ -95,7 +163,10 @@ function Account() {
                 />
               </div>
               <div className="col-md-12 text-center">
-                <button className="btn btn-color register-btn text-light">
+                <button
+                  className="btn btn-color register-btn text-light"
+                  onClick={submitPhone}
+                >
                   Save
                 </button>
               </div>
@@ -109,21 +180,28 @@ function Account() {
                 <div className="col-sm-6 spacing">
                   <label className="form-label">Password</label>
                   <input
-                    type="password"
+                    type="text"
                     className="form-control"
                     placeholder="Password"
+                    name="password"
+                    onChange={handleChangePassword}
                   />
                 </div>
                 <div className="col-md-6 spacing">
                   <label className="form-label">Confirm Password</label>
                   <input
-                    type="password"
+                    type="text"
                     className="form-control"
                     placeholder="Confirm Password"
+                    name="confirmPassword"
+                    onChange={handleChangePassword}
                   />
                 </div>
                 <div className="col-md-12 text-center">
-                  <button className="btn btn-color register-btn text-light">
+                  <button
+                    className="btn btn-color register-btn text-light"
+                    onClick={submitPassword}
+                  >
                     Save
                   </button>
                 </div>

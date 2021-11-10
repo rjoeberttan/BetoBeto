@@ -1,19 +1,19 @@
 import React from "react";
 
 function AdminMasterCard({
-  masterAgentNo,
+  username,
   noOfAgents,
   noOfPlayers,
   mobile,
   status,
-  lastPwChange,
+  lastEditChange,
   walletBalance,
 }) {
   return (
     <div className="col-sm-4 wallet-card">
       <div className="card">
         <div className="card-body">
-          <h3>{masterAgentNo}</h3>
+          <h3>{username}</h3>
           <div className="row">
             <div className="row text-spacing">
               <div className="col-md-5">
@@ -30,7 +30,7 @@ function AdminMasterCard({
               <b>Status:</b> {status}
             </div>
             <div className="col-md-12 text-spacing">
-              <b>Last password change:</b> {lastPwChange}
+              <b>Last edit change:</b> {lastEditChange}
             </div>
             <div className="col-md-12 text-spacing">
               <div className="row">
@@ -52,7 +52,7 @@ function AdminMasterCard({
             <div className="col-md-12 text-spacing">
               <div className="row">
                 <div className="col-md-4">
-                  <b>Wallet:</b> {walletBalance}
+                  <b>Wallet:</b> ₱{walletBalance}
                 </div>
                 <div className="col-md-4 col-6">
                   <input

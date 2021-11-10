@@ -1,8 +1,36 @@
-import React from "react";
+import React, { useContext, useEffect, useState } from "react";
 import AdminMasterCard from "./AdminMasterCard";
+import { AuthContext } from "../../store/auth-context";
+import axios from "axios";
 import "./AdminPlayers.css";
 
 function AdminMasterAgents() {
+  const ctx = useContext(AuthContext);
+  const accountHeader = "http://localhost:4003";
+  const [masterAgents, setMasterAgents] = useState([]);
+
+  useEffect(() => {
+    getUserList();
+  }, []);
+
+  function getUserList() {
+    axios({
+      method: "get",
+      url: `${accountHeader}/getAccountList/${ctx.user.accountID}/0`,
+      headers: {
+        "Authorization": "uKRd;$SuXd8b$MFX",
+      },
+    })
+      .then((res) => {
+        const data = res.data.data;
+        const masterAgentss = data.filter((x) => x.account_type === 1);
+        console.log(masterAgentss);
+        setMasterAgents(masterAgentss);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
   return (
     <div className="container text-light container-wallet">
       <div className="heading-text">
@@ -28,33 +56,18 @@ function AdminMasterAgents() {
         </div>
       </div>
       <div className="row text-black second-box">
-        <AdminMasterCard
-          masterAgentNo="MasterAgent_01"
-          noOfAgents="10"
-          mobile="09152723321"
-          noOfPlayers="500"
-          status="ACTIVE"
-          lastPwChange="09/26/2019"
-          walletBalance="P500"
-        />
-        <AdminMasterCard
-          masterAgentNo="MasterAgent_02"
-          noOfAgents="10"
-          mobile="09152723321"
-          noOfPlayers="500"
-          status="ACTIVE"
-          lastPwChange="09/26/2019"
-          walletBalance="P500"
-        />
-        <AdminMasterCard
-          masterAgentNo="MasterAgent_03"
-          noOfAgents="10"
-          mobile="09152723321"
-          noOfPlayers="500"
-          status="ACTIVE"
-          lastPwChange="09/26/2019"
-          walletBalance="P500"
-        />
+        {masterAgents.map((x) => (
+          <AdminMasterCard
+            key={x.account_id}
+            username={x.username}
+            noOfAgents="TBS"
+            mobile={x.phone_num}
+            noOfPlayers="TBS"
+            status={x.account_status === 1 ? "ACTIVE" : "LOCKED"}
+            lastEditChange={x.lastedit_date.substring(0, 10)}
+            walletBalance={x.wallet}
+          />
+        ))}
       </div>
     </div>
   );

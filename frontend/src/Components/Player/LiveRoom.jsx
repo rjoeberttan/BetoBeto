@@ -1,17 +1,16 @@
 import React, { useEffect, useState, useContext } from "react";
-import {useParams} from "react-router-dom";
+import { useParams } from "react-router-dom";
 import YoutubeEmbed from "../Youtube";
 import TextScroller from "../TextScroller";
 import "./LiveRoom.css";
-import {socketIOClient, io} from 'socket.io-client';
+import { socketIOClient, io } from "socket.io-client";
 import { AuthContext } from "../../store/auth-context";
-import socket from '../Websocket/socket'
+import socket from "../Websocket/socket";
 
-import { ToastContainer, toast, Zoom, Bounce} from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import 'react-toastify/dist/ReactToastify.min.css';
+import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "react-toastify/dist/ReactToastify.min.css";
 const axios = require("axios");
-
 
 function LiveRoom() {
   //===========================================
@@ -19,8 +18,8 @@ function LiveRoom() {
   //===========================================
   const ctx = useContext(AuthContext);
   const [color, setColor] = useState("red");
-  const [placeBetDisabled, setPlaceBetDisabled] = useState(false)
-  const [placeTipDisabled, setPlaceTipDisabled] = useState(false)
+  const [placeBetDisabled, setPlaceBetDisabled] = useState(false);
+  const [placeTipDisabled, setPlaceTipDisabled] = useState(false);
   const [gameDetails, setGameDetails] = useState({
     banner: "",
     description: "",
@@ -46,28 +45,28 @@ function LiveRoom() {
     WHITE: "0.00",
     PURPLE: "0.00",
     YELLOW: "0.00",
-  })
+  });
   const [stake, setStake] = useState(0);
   const [tip, setTip] = useState(0);
-  const { gameId } = useParams()
+  const { gameId } = useParams();
   const accountHeader = "http://localhost:4003";
   const gameHeader = "http://localhost:4004";
   const betHeader = "http://localhost:4005";
   socket.emit("join_room", "colorGame");
-  
+
   //===========================================
   // UseEffect
   //===========================================
   useEffect(() => {
-    getLatestGameDetails()
-    getLatestMarketDetails() 
-  }, [])
+    getLatestGameDetails();
+    getLatestMarketDetails();
+  }, []);
 
   useEffect(() => {
-    getColorGameBetTotals()  
-  }, [marketDetails])
+    getColorGameBetTotals();
+  }, [marketDetails]);
 
-  function getLatestGameDetails(){
+  function getLatestGameDetails() {
     axios({
       method: "get",
       url: `${gameHeader}/getGameDetails/${gameId}`,
@@ -92,7 +91,7 @@ function LiveRoom() {
     });
   }
 
-  function getLatestMarketDetails(){
+  function getLatestMarketDetails() {
     //get market details
     axios({
       method: "get",
@@ -109,31 +108,36 @@ function LiveRoom() {
         status: market.status,
         result: market.result,
       });
-      handlePlaceBetButtonStatus(market.status)
+      handlePlaceBetButtonStatus(market.status);
     });
   }
 
   function getColorGameBetTotals() {
-    console.log(`${gameHeader}/getColorGameBetTotals/${gameId}/${marketDetails.market_id}`)
+    console.log(
+      `${gameHeader}/getColorGameBetTotals/${gameId}/${marketDetails.market_id}`
+    );
     axios({
       method: "get",
       url: `${gameHeader}/getColorGameBetTotals/${gameId}/${marketDetails.market_id}`,
       headers: {
         "Authorization": "Q@k=jLc-3CCK3Fc%",
       },
-    }).then((res) => {
-      const values = res.data.data
-      setBetTotals({
-        BLUE: values[0].total,
-        WHITE: values[1].total,
-        RED: values[2].total,
-        GREEN: values[3].total,
-        YELLOW: values[4].total,
-        PURPLE: values[5].total
+    })
+      .then((res) => {
+        const values = res.data.data;
+        setBetTotals({
+          BLUE: values[0].total,
+          WHITE: values[1].total,
+          RED: values[2].total,
+          GREEN: values[3].total,
+          YELLOW: values[4].total,
+          PURPLE: values[5].total,
+        });
       })
-    }).catch((err) => {console.log(err)});
+      .catch((err) => {
+        console.log(err);
+      });
   }
-
 
   //===========================================
   // Websocket Functions
@@ -144,18 +148,17 @@ function LiveRoom() {
         return {
           ...prev,
           market_id: data.marketId,
-          status: data.status
-        }
-      })
-      handlePlaceBetButtonStatus(data.status)
-    })
-  }, [socket]) 
+          status: data.status,
+        };
+      });
+      handlePlaceBetButtonStatus(data.status);
+    });
+  }, [socket]);
 
-  
   //===========================================
   // Handle Change and Button Click Functions
   //===========================================
-  function placeBet(e){
+  function placeBet(e) {
     const data = {
       marketId: marketDetails.market_id,
       gameId: gameId,
@@ -163,100 +166,94 @@ function LiveRoom() {
       gameName: gameDetails.name,
       choice: color.toUpperCase(),
       stake: stake,
-      wallet: ctx.walletBalance
-    }
+      wallet: ctx.walletBalance,
+    };
 
-    console.log(data)
+    console.log(data);
 
     axios({
       method: "post",
       url: `${betHeader}/placeBet`,
       headers: {
-        "Authorization": "h75*^*3DWwHFb4$V"
-      }, 
-      data: data
+        "Authorization": "h75*^*3DWwHFb4$V",
+      },
+      data: data,
     })
-    .then((res) => {
-      console.log(res)
-      const newWallet = parseFloat(ctx.walletBalance) - parseFloat(stake)
-      ctx.walletHandler(newWallet)
-      toast.success(`Placed Bet successfully. BetId: ${res.data.data.betId}`)
-    })
-    .catch((err)=>{ console.log(err)})
+      .then((res) => {
+        console.log(res);
+        const newWallet = parseFloat(ctx.walletBalance) - parseFloat(stake);
+        ctx.walletHandler(newWallet);
+        toast.success(`Placed Bet successfully. BetId: ${res.data.data.betId}`);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   }
 
-  function handleStakeChange(e){
-    const currentStake = parseFloat(e.target.value)
-    const walletBalance = parseFloat(ctx.walletBalance) 
+  function handleStakeChange(e) {
+    const currentStake = parseFloat(e.target.value);
+    const walletBalance = parseFloat(ctx.walletBalance);
 
-    if ((currentStake > walletBalance) || (marketDetails.status !== 0)){
-      console.log("Insufficient Funds")
-      setPlaceBetDisabled(true)
+    if (currentStake > walletBalance || marketDetails.status !== 0) {
+      console.log("Insufficient Funds");
+      setPlaceBetDisabled(true);
     } else {
-      setPlaceBetDisabled(false)
-      setStake(currentStake)
+      setPlaceBetDisabled(false);
+      setStake(currentStake);
     }
   }
 
-  function handlePlaceBetButtonStatus(status){
+  function handlePlaceBetButtonStatus(status) {
     if (status !== 0) {
-      setPlaceBetDisabled(true)
+      setPlaceBetDisabled(true);
     } else {
-      setPlaceBetDisabled(false)
+      setPlaceBetDisabled(false);
     }
   }
-
 
   function sendTip() {
-    if (!tip){
-      console.log("Tip Amount cannot be empty")
+    if (!tip) {
+      console.log("Tip Amount cannot be empty");
     } else {
       const data = {
         accountId: ctx.user.accountID,
         amount: tip,
-        wallet: ctx.walletBalance
-      }
-  
-      console.log(data)
-  
+        wallet: ctx.walletBalance,
+      };
+
+      console.log(data);
+
       axios({
         method: "post",
         url: `${betHeader}/sendTip`,
         headers: {
-          "Authorization": "h75*^*3DWwHFb4$V"
-        }, 
-        data: data
+          "Authorization": "h75*^*3DWwHFb4$V",
+        },
+        data: data,
       })
-      .then((res) => {
-        console.log(res)
-        const newWallet = parseFloat(ctx.walletBalance) - parseFloat(tip)
-        ctx.walletHandler(newWallet)
-        toast.success(`Thanks for the tip! Enjoy the game`)
-      })
-      .catch((err)=>{ console.log(err)})
+        .then((res) => {
+          console.log(res);
+          const newWallet = parseFloat(ctx.walletBalance) - parseFloat(tip);
+          ctx.walletHandler(newWallet);
+          toast.success(`Thanks for the tip! Enjoy the game`);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
     }
-
   }
 
   function handleTipChange(e) {
-    const currenttip = parseFloat(e.target.value)
-    const walletBalance = parseFloat(ctx.walletBalance) 
+    const currenttip = parseFloat(e.target.value);
+    const walletBalance = parseFloat(ctx.walletBalance);
 
-    if (currenttip > walletBalance){
-      setPlaceTipDisabled(true)
+    if (currenttip > walletBalance) {
+      setPlaceTipDisabled(true);
     } else {
-      setPlaceTipDisabled(false)
-      setTip(currenttip)
+      setPlaceTipDisabled(false);
+      setTip(currenttip);
     }
   }
-
-
-
-
-
-
-
-
 
   function handleChange(e) {
     const { value } = e.target;
@@ -284,7 +281,9 @@ function LiveRoom() {
   return (
     <div className="container text-light container-game-room">
       <div className="heading-text">
-        <h1 className="display-5 small-device bold-small">Live {gameDetails.name}</h1>
+        <h1 className="display-5 small-device bold-small">
+          Live {gameDetails.name}
+        </h1>
       </div>
       <div className="row">
         <div className="col-md-12 banner-message">
@@ -296,12 +295,17 @@ function LiveRoom() {
         <div className="col-md-4 live-room-colorbox">
           <div class="card txt-black">
             <div class="card-body">
-              <h5 class="card-title">Current Market ID: {marketDetails.market_id}</h5>
-              <p class="card-text">Betting Status: {marketDetails.status === 0
+              <h5 class="card-title">
+                Current Market ID: {marketDetails.market_id}
+              </h5>
+              <p class="card-text">
+                Betting Status:{" "}
+                {marketDetails.status === 0
                   ? " OPEN"
                   : marketDetails.status === 1
                   ? " CLOSED"
-                  : " RESULTED"}</p>
+                  : " RESULTED"}
+              </p>
               <div className="row text-center">
                 <label className="col-sm-3 col-5 red-box radio-button fix-padding-left">
                   <input
@@ -321,7 +325,9 @@ function LiveRoom() {
                     value="blue"
                     onChange={handleChange}
                   />
-                  <label className="color-name">Total: ₱ {betTotals.BLUE}</label>
+                  <label className="color-name">
+                    Total: ₱ {betTotals.BLUE}
+                  </label>
                 </label>
                 <label className="col-sm-3 col-5 green-box radio-button fix-padding-left">
                   <input
@@ -331,7 +337,9 @@ function LiveRoom() {
                     value="green"
                     onChange={handleChange}
                   />
-                  <label for="huey" className="color-name">Total: ₱ {betTotals.GREEN}</label>
+                  <label for="huey" className="color-name">
+                    Total: ₱ {betTotals.GREEN}
+                  </label>
                 </label>
                 <label className="col-sm-3 col-5 yellow-box radio-button fix-padding-left">
                   <input
@@ -341,7 +349,9 @@ function LiveRoom() {
                     value="yellow"
                     onChange={handleChange}
                   />
-                  <label for="huey" className="color-name">Total: ₱ {betTotals.YELLOW}</label>
+                  <label for="huey" className="color-name">
+                    Total: ₱ {betTotals.YELLOW}
+                  </label>
                 </label>
                 <label className="col-sm-3 col-5 white-box radio-button fix-padding-left">
                   <input
@@ -351,7 +361,9 @@ function LiveRoom() {
                     value="white"
                     onChange={handleChange}
                   />
-                  <label for="huey" className="color-name">Total: ₱ {betTotals.WHITE}</label>
+                  <label for="huey" className="color-name">
+                    Total: ₱ {betTotals.WHITE}
+                  </label>
                 </label>
                 <label className="col-sm-3 col-5 purple-box radio-button fix-padding-left">
                   <input
@@ -361,7 +373,9 @@ function LiveRoom() {
                     value="purple"
                     onChange={handleChange}
                   />
-                  <label for="huey" className="color-name">Total: ₱ {betTotals.PURPLE}</label>
+                  <label for="huey" className="color-name">
+                    Total: ₱ {betTotals.PURPLE}
+                  </label>
                 </label>
               </div>
               <div className="row wallet-box">
@@ -401,8 +415,18 @@ function LiveRoom() {
               <h5 class="card-title">Donation Box</h5>
               <p class="card-text">If you enjoy playing, you can tip me!</p>
               <div class="input-group mb-2">
-                <input type="text" class="form-control" placeholder="$500" onChange={handleTipChange}/>
-                <button class="btn btn-color text-light" type="button" onClick={sendTip} disabled={placeTipDisabled}>
+                <input
+                  type="number"
+                  class="form-control"
+                  placeholder="P500"
+                  onChange={handleTipChange}
+                />
+                <button
+                  class="btn btn-color text-light"
+                  type="button"
+                  onClick={sendTip}
+                  disabled={placeTipDisabled}
+                >
                   Tip
                 </button>
               </div>

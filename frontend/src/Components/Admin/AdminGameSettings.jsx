@@ -2,11 +2,11 @@ import React, { useEffect, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
 import { AuthContext } from "../../store/auth-context";
 import "./AdminGameSettings.css";
-import { ToastContainer, toast, Zoom, Bounce} from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import 'react-toastify/dist/ReactToastify.min.css';
-import {socketIOClient, io} from 'socket.io-client';
-import socket from '../Websocket/socket'
+import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "react-toastify/dist/ReactToastify.min.css";
+import { socketIOClient, io } from "socket.io-client";
+import socket from "../Websocket/socket";
 const axios = require("axios").default;
 
 function AdminGameSettings() {
@@ -46,10 +46,8 @@ function AdminGameSettings() {
   const accountHeader = "http://localhost:4003";
   const gameHeader = "http://localhost:4004";
   const betHeader = "http://localhost:4005";
-  const socket = io.connect("http://localhost:3010")
-  
-  
-  
+  const socket = io.connect("http://localhost:3010");
+
   useEffect(() => {
     socket.emit("join_room", "colorGame");
 
@@ -172,11 +170,9 @@ function AdminGameSettings() {
   function handleGameSettingsClick(e) {
     if (gameDetails.name.length === 0) {
       toast.error("Game title should not be empty");
-    }
-    else if (gameDetails.youtube_url.length === 0) {
+    } else if (gameDetails.youtube_url.length === 0) {
       toast.error("YouTube URL should not be empty");
-    }
-    else {
+    } else {
       axios({
         method: "post",
         url: `${gameHeader}/updateGameSettings`,
@@ -198,7 +194,11 @@ function AdminGameSettings() {
         })
         .catch((err) => {
           console.log(err);
-          toast.error(<p>YouTube URL missing<br></br> Please try again</p>);
+          toast.error(
+            <p>
+              YouTube URL missing<br></br> Please try again
+            </p>
+          );
         });
     }
     e.preventDefault();
@@ -223,11 +223,15 @@ function AdminGameSettings() {
     })
       .then((res) => {
         console.log(res);
-        toast.success("Win settings saved")
+        toast.success("Win settings saved");
       })
       .catch((err) => {
         console.log(err);
-        toast.error(<p>Incomplete Multipliers <br></br> Please try again</p>)
+        toast.error(
+          <p>
+            Incomplete Multipliers <br></br> Please try again
+          </p>
+        );
       });
     e.preventDefault();
   }
@@ -252,7 +256,11 @@ function AdminGameSettings() {
       })
       .catch((err) => {
         console.log(err);
-        toast.error(<p>Incomplete bet tresholds <br></br> Please try again</p>);
+        toast.error(
+          <p>
+            Incomplete bet tresholds <br></br> Please try again
+          </p>
+        );
       });
     e.preventDefault();
   }
@@ -273,6 +281,14 @@ function AdminGameSettings() {
         },
       })
         .then((res) => {
+          setManipualteColors({
+            bb_manip_blue: 0,
+            bb_manip_yellow: 0,
+            bb_manip_red: 0,
+            bb_manip_white: 0,
+            bb_manip_green: 0,
+            bb_manip_purple: 0,
+          });
           const { data } = res.data;
           setMarketDetails((prev) => {
             return {
@@ -281,16 +297,18 @@ function AdminGameSettings() {
               status: data.status,
             };
           });
-          socket.emit("color_game_market_update", {marketId: data.marketID, status: data.status})
+          socket.emit("color_game_market_update", {
+            marketId: data.marketID,
+            status: data.status,
+          });
           toast.success("Success Create Market");
         })
         .catch((err) => {
           console.log(err);
           console.log(marketDetails.status);
-          if(marketDetails.status === 0) {
+          if (marketDetails.status === 0) {
             toast.error("Market is still open");
-          }
-          else{
+          } else {
             toast.error("Market is still closed");
           }
         });
@@ -318,16 +336,18 @@ function AdminGameSettings() {
               status: data.status,
             };
           });
-          socket.emit("color_game_market_update", {marketId: data.marketId, status: data.status})
+          socket.emit("color_game_market_update", {
+            marketId: data.marketId,
+            status: data.status,
+          });
           toast.success("Success Open Market");
         })
         .catch((err) => {
           console.log(err);
           console.log(marketDetails.status);
-          if(marketDetails.status === 0) {
+          if (marketDetails.status === 0) {
             toast.error("Market is already open");
-          }
-          else{
+          } else {
             toast.error("Market is in result state");
           }
         });
@@ -355,18 +375,20 @@ function AdminGameSettings() {
               status: data.status,
             };
           });
-          socket.emit("color_game_market_update", {marketId: data.marketId, status: data.status})
+          socket.emit("color_game_market_update", {
+            marketId: data.marketId,
+            status: data.status,
+          });
           toast.success("Success Closed Market");
         })
         .catch((err) => {
           console.log(err);
           console.log(marketDetails.status);
-          if(marketDetails.status === 1){
+          if (marketDetails.status === 1) {
             toast.error("Market is already closed");
-          }else {
+          } else {
             toast.error("Market is still in result state");
           }
-          
         });
     }
   }
@@ -395,36 +417,40 @@ function AdminGameSettings() {
             status: res.data.data.status,
           };
         });
-        socket.emit("color_game_market_update", {marketId: res.data.data.marketId, status: res.data.data.status})
+        socket.emit("color_game_market_update", {
+          marketId: res.data.data.marketId,
+          status: res.data.data.status,
+        });
         toast.success("Success Result Market");
-
 
         // Settle Bets
         axios({
           method: "post",
           url: `${betHeader}/settleColorGameBets`,
           headers: {
-            "Authorization": "h75*^*3DWwHFb4$V"
-          }, 
-          data:{
+            "Authorization": "h75*^*3DWwHFb4$V",
+          },
+          data: {
             gameId: gameid,
             marketId: marketDetails.market_id,
-            result: [boxColor.boxOne, boxColor.boxTwo, boxColor.boxThree]
-          }
+            result: [boxColor.boxOne, boxColor.boxTwo, boxColor.boxThree],
+          },
         })
-        .then((res) => {console.log(res)})
-        .catch((err) => {console.log(err)})
-
+          .then((res) => {
+            console.log(res);
+          })
+          .catch((err) => {
+            console.log(err);
+          });
       })
       .catch((err) => {
         console.log(err);
         console.log(marketDetails.status);
-        if(marketDetails.status === 2){
+        if (marketDetails.status === 2) {
           toast.error("Market is already in Result state");
         } else {
           toast.error("Market is still open");
         }
-        
       });
     e.preventDefault();
   }
@@ -454,17 +480,19 @@ function AdminGameSettings() {
         editor: ctx.user.username,
         bb_manip: Object.values(manipulateColors),
       },
-    }).then((res) => {
-      toast.success("Bets Manipulated Success")
-    }).catch((err) => {
-      toast.error("Incomplete Bet Manipulation")
-    });
+    })
+      .then((res) => {
+        toast.success("Bets Manipulated Success");
+      })
+      .catch((err) => {
+        toast.error("Incomplete Bet Manipulation");
+      });
   }
 
   return (
     <div className="container text-light container-game-room">
       <>
-        <ToastContainer/>
+        <ToastContainer />
       </>
       <div className="heading-text">
         <h1 className="display-6 small-device bold-small">Manage Settings</h1>
