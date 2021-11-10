@@ -45,6 +45,7 @@ function AdminGameSettings() {
 
   const accountHeader = "http://localhost:4003";
   const gameHeader = "http://localhost:4004";
+  const betHeader = "http://localhost:4005";
   const socket = io.connect("http://localhost:3010")
   
   
@@ -396,6 +397,24 @@ function AdminGameSettings() {
         });
         socket.emit("color_game_market_update", {marketId: res.data.data.marketId, status: res.data.data.status})
         toast.success("Success Result Market");
+
+
+        // Settle Bets
+        axios({
+          method: "post",
+          url: `${betHeader}/settleColorGameBets`,
+          headers: {
+            "Authorization": "h75*^*3DWwHFb4$V"
+          }, 
+          data:{
+            gameId: gameid,
+            marketId: marketDetails.market_id,
+            result: [boxColor.boxOne, boxColor.boxTwo, boxColor.boxThree]
+          }
+        })
+        .then((res) => {console.log(res)})
+        .catch((err) => {console.log(err)})
+
       })
       .catch((err) => {
         console.log(err);

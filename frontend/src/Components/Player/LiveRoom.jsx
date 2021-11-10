@@ -189,7 +189,7 @@ function LiveRoom() {
     const currentStake = parseFloat(e.target.value)
     const walletBalance = parseFloat(ctx.walletBalance) 
 
-    if (currentStake > walletBalance){
+    if ((currentStake > walletBalance) || (marketDetails.status !== 0)){
       console.log("Insufficient Funds")
       setPlaceBetDisabled(true)
     } else {

@@ -20,7 +20,7 @@ function Banner(props) {
             <div className="text-light">
               <span>Welcome {props.user}!</span>
               <br />
-              <span>Wallet: ₱{ctx.walletBalance}</span>
+              <span>Wallet: ₱{parseFloat(ctx.walletBalance).toFixed(2)}</span>
             </div>
           </form>
         </div>
