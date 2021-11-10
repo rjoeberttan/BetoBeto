@@ -816,6 +816,97 @@ app.get("/getAccountList/:accountId/:accountType", (req, res) => {
   }
 });
 
+
+app.get("/getCountUnderUser/:accountId", (req, res) => {
+  // Get body
+  const accountId = req.params.accountId;
+  const apiKey = req.header("Authorization");
+
+  // Check if body is complete
+  if (!accountId) {
+    logger.warn("getCountUnderUser request has missing body parameters");
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(
+      "getCountUnderUser request has missing/wrong API_KEY, from accountId:" +
+        accountId
+    );
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  // Process 1
+  // Get all necessary details
+  sqlQuery = "SELECT count(*) as userCount FROM accounts where agent_id = ?";
+  db.query(sqlQuery, [accountId], (err, result) => {
+    if (err) {
+      logger.error(
+        "Process 1: Error in getCountUnderUser request. Error:" + "\n" + err
+      );
+      res.status(500).json({ message: "Server error" });
+    } else {
+      logger.info(
+        "Successful getCountUnderUser request for accountId:" + accountId
+      );
+      res.status(200).json({
+        message: "Request successful",
+        accountId: accountId,
+        count: result[0].userCount,
+      });
+    }
+  });
+});
+
+app.get("/getCountPlayer/:accountId", (req, res) => {
+  // Get body
+  const accountId = req.params.accountId;
+  const apiKey = req.header("Authorization");
+
+  // Check if body is complete
+  if (!accountId) {
+    logger.warn("getCountPlayer request has missing body parameters");
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(
+      "getCountPlayer request has missing/wrong API_KEY, from accountId:" +
+        accountId
+    );
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  // Process 1
+  // Get all necessary details
+  sqlQuery = "select count(*) as userCount from accounts where agent_id in (select account_id from accounts where agent_id = ?);";
+  db.query(sqlQuery, [accountId], (err, result) => {
+    if (err) {
+      logger.error(
+        "Process 1: Error in getCountPlayer request. Error:" + "\n" + err
+      );
+      res.status(500).json({ message: "Server error" });
+    } else {
+      logger.info(
+        "Successful getCountPlayer request for accountId:" + accountId
+      );
+      res.status(200).json({
+        message: "Request successful",
+        accountId: accountId,
+        count: result[0].userCount,
+      });
+    }
+  });
+});
+
+
+
 app.listen(4003, () => {
   console.log("Server listentning at port 4003");
 });

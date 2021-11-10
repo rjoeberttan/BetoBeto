@@ -59,13 +59,17 @@ function AdminMasterAgents() {
         {masterAgents.map((x) => (
           <AdminMasterCard
             key={x.account_id}
+            accountId={x.account_id}
             username={x.username}
             noOfAgents="TBS"
             mobile={x.phone_num}
             noOfPlayers="TBS"
+            commission={x.commission}
             status={x.account_status === 1 ? "ACTIVE" : "LOCKED"}
             lastEditChange={x.lastedit_date.substring(0, 10)}
             walletBalance={x.wallet}
+            editor={ctx.user.username}
+            editorId={ctx.user.accountID}
           />
         ))}
       </div>

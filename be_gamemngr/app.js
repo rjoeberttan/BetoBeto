@@ -960,6 +960,7 @@ app.get("/getColorGameBetTotals/:gameId/:marketId", (req, res) => {
   const gameId = req.params.gameId;
   const marketId = req.params.marketId;
 
+  logger.info("started getColorGameBetTotals")
   // Check if body is complete
   if (!gameId || !marketId) {
     logger.warn("resultMarket request has missing body parameters");

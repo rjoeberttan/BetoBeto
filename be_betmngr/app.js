@@ -142,7 +142,7 @@ app.post("/placeBet", (req, res) => {
                             // Adding the commissions to the transactions table for the agent and master_agent
                     
                             // Process 4 Agent Part
-                            sqlQueryAgent = "SELECT account_id, commission, wallet FROM betobeto.accounts WHERE account_id = (SELECT agent_id FROM betobeto.accounts WHERE account_id = ?)"
+                            sqlQueryAgent = "SELECT account_id, commission, wallet FROM accounts WHERE account_id = (SELECT agent_id FROM accounts WHERE account_id = ?)"
                             db.query(sqlQueryAgent, [accountId], (err, resultAgent) => {
                                 if (err) {
                                     logger.error("Process 4: Error in getting commission details of agent of account_id:" + accountId + " err:" + err) 
@@ -186,7 +186,7 @@ app.post("/placeBet", (req, res) => {
                             })
 
                             // Process 7 Master Agent Part
-                            sqlQueryMasterAgent = "SELECT account_id, commission, wallet FROM betobeto.accounts WHERE account_id = (SELECT agent_id FROM betobeto.accounts WHERE account_id = (SELECT agent_id FROM betobeto.accounts WHERE account_id = ?))"
+                            sqlQueryMasterAgent = "SELECT account_id, commission, wallet FROM accounts WHERE account_id = (SELECT agent_id FROM accounts WHERE account_id = (SELECT agent_id FROM accounts WHERE account_id = ?))"
                             db.query(sqlQueryMasterAgent, [accountId], (err, resultMasterAgent) => {
                                 if (err) {
                                     logger.error("Process 4: Error in getting commission details of master agent of account_id:"+accountId + " err:" + err) 

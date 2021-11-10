@@ -4,12 +4,21 @@ const express = require("express");
 const mysql = require("mysql");
 const { createLogger, transports, format } = require("winston");
 const helmet = require("helmet");
+const cors = require("cors");
 require("dotenv").config();
+
 
 // Configure Express Application
 const app = express();
 app.use(express.json());
 app.use(helmet());
+app.use(
+    cors({
+        origin: ["http://localhost:3000"],
+        methods: ["GET", "POST"],
+        credentials: true,
+    })
+)
 app.use(express.urlencoded({ extended: true }));
 
 // Configure Winston Logging
@@ -45,6 +54,7 @@ app.post("/requestDeposit", (req, res) => {
     const apiKey = req.header("Authorization") 
     const accountId = req.body.accountId
     const amount = req.body.amount
+    console.log(accountId, amount)
 
     // Check if body is complete
     if (!accountId || !amount) {
