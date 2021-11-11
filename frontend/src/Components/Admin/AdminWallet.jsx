@@ -9,9 +9,34 @@ function AdminWallet() {
       </div>
       <form>
         <div className="row txt-black">
-          <div className="col-sm-4 wallet-card">
+          <div className="col-sm-6 wallet-card">
             <div className="card">
               <div className="card-body">
+                <div className="row">
+                  <div className="admin-wallet-font">
+                    <b>Date Filter:</b>
+                  </div>
+                  <div className="col-md-4">
+                    <input
+                      className="date-style form-label"
+                      type="date"
+                      name="startDate"
+                    />
+                  </div>
+                  -
+                  <div className="col-md-4">
+                    <input
+                      className="date-style form-label"
+                      type="date"
+                      name="endDate"
+                    />
+                  </div>
+                  <div className="col-md-2">
+                    <button className="btn btn-color transaction-btn text-light col-xs-12">
+                      Search
+                    </button>
+                  </div>
+                </div>
                 <div className="row">
                   <div className="col-md-7 col-6 admin-wallet-font">
                     <b>Wallet Balance:</b>
@@ -60,7 +85,7 @@ function AdminWallet() {
             </div>
           </div>
 
-          <div className="col-sm-4 wallet-card">
+          <div className="col-sm-6 wallet-card">
             <div className="card">
               <div className="card-body">
                 <h5 className="card-title">Increase Wallet</h5>
@@ -138,7 +163,7 @@ function AdminWallet() {
               </div>
             </div>
           </div>
-          <div className="col-sm-4 wallet-card">
+          {/* <div className="col-sm-4 wallet-card">
             <div className="card">
               <div className="card-body">
                 <div className="wallet-spacing">
@@ -151,7 +176,7 @@ function AdminWallet() {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
         </div>
       </form>
       <div className="row second-box">
