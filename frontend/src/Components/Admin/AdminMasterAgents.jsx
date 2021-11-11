@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useState } from "react";
-import AdminMasterCard from "./AdminMasterCard";
+import UserCard from "../Usercard/UserCard";
 import { AuthContext } from "../../store/auth-context";
 import axios from "axios";
 import "./AdminPlayers.css";
@@ -57,7 +57,7 @@ function AdminMasterAgents() {
       </div>
       <div className="row text-black second-box">
         {masterAgents.map((x) => (
-          <AdminMasterCard
+          <UserCard
             key={x.account_id}
             accountId={x.account_id}
             username={x.username}
@@ -70,6 +70,7 @@ function AdminMasterAgents() {
             walletBalance={x.wallet}
             editor={ctx.user.username}
             editorId={ctx.user.accountID}
+            accountType="1"
           />
         ))}
       </div>

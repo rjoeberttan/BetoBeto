@@ -2,9 +2,10 @@ import React, { useEffect, props, useState, createContext, useContext } from "re
 import { AuthContext } from "../../store/auth-context";
 import axios from "axios";
 
-function AdminMasterCard({
+function UserCard({
   key,
   accountId,
+  accountType,
   username,
   noOfAgents,
   noOfPlayers,
@@ -28,6 +29,9 @@ function AdminMasterCard({
   const [commissionNew, setCommission] = useState(0);
   const [topUpAmount, setTopUpAmount] = useState(0);
   const [currentWallet, setCurrentWallet] = useState(walletBalance)
+  const [currentStatus, setCurrentStatus] = useState(status)
+  const [agentName, setAgentName] = useState("");
+  const [lockStatusText, setLockStatusText] = useState("LOCK ACCOUNT");
   const [password, setPassword] = useState({
     password: "",
     confirmPassword: "",
@@ -39,6 +43,11 @@ function AdminMasterCard({
   useEffect(() => {
     getNumberOfAgents()
     getNumberOfPlayers()
+    getAgentName()
+    
+    if(status === "LOCKED"){
+      setLockStatusText("UNLOCK ACCOUNT")
+    } 
   }, [])
 
   function getNumberOfAgents(){
@@ -75,10 +84,27 @@ function AdminMasterCard({
       });
   }
 
+  function getAgentName(){
+    axios({
+      method: "get",
+      url: `${accountHeader}/getAgentName/${accountId}`,
+      headers: {
+        "Authorization": "uKRd;$SuXd8b$MFX",
+      },
+    })
+      .then((res) => {
+        console.log(res.data.agentName)
+        setAgentName(res.data.agentName)
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+  }
+
   //=============================================
   // Event Handler Functions
   //=============================================
-
   function handleChangePassword(e) {
     const { value, name } = e.target;
     setPassword((prev) => {
@@ -176,47 +202,129 @@ function AdminMasterCard({
   }
 
 
+  function changeAccountStatus(e){   
+    const currentStatusDigit = currentStatus === "ACTIVE" ? "1": "0"
+
+    axios({
+      method: "post",
+      url: `${accountHeader}/changeAccountStatus`,
+      headers: {
+        "Authorization": "uKRd;$SuXd8b$MFX",
+      },
+      data: {
+        status: currentStatusDigit,
+        accountId: accountId,
+        editorUsername: editor,
+      },
+    })
+      .then((res) => {
+        const newStatusDigit = res.data.accountStatus
+        const newStatus = newStatusDigit === 1 ? "ACTIVE" : "LOCKED"
+        setCurrentStatus(newStatus)
+        
+        if(newStatus === "LOCKED"){
+          setLockStatusText("UNLOCK ACCOUNT")
+        } else {
+          setLockStatusText("LOCK ACCOUNT")
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+    e.preventDefault();
+  }
+
+
+
+
+
+  //============================================
+  // Conditional Rendering Stuff
+  //============================================
+  function renderNoOfAgents(accountType){
+    if (accountType === "1"){ 
+      return (
+        <div className="col-md-12 text-spacing">
+                <b>No. of Agents:</b> {numAgents}
+            </div>
+      )
+    } else{
+      return;
+    }
+  }
+
+  function renderNoOfPlayers(accountType){
+    if ((accountType === "1" )|| (accountType === "2")){ 
+      return (
+        <div className="col-md-12  text-spacing">
+          <b>No. of Players:</b> {numPlayers}
+        </div>
+      )
+    } else{
+      return;
+    }
+  }
+
+  function renderCommission(accountType){
+    if ((accountType === "1" )|| (accountType === "2")){ 
+      return (
+        <div className="col-md-12 text-spacing">
+          <div className="row">
+            <div className="col-md-4 col-4">
+              <b>Commission %</b>
+            </div>
+            <div className="col-md-4 col-4">
+              <input
+                type="number"
+                className="form-control"
+                placeholder={parseFloat(commission).toFixed(2)}
+                onChange={(e) => setCommission(e.target.value)}
+              />
+            </div>
+            <div className="col-md-4 col-4">
+              <button className="btn btn-color text-light" onClick={submitCommission}>Save</button>
+            </div>
+          </div>
+        </div>
+      )
+    } else{
+      return;
+    }
+  }
+
+
+  function renderAgentName(accountType){
+    if ((accountType === "2" )|| (accountType === "3")){ 
+      return (
+        <div className="col-md-12  text-spacing">
+          <b>Agent Name:</b> {agentName}
+        </div>
+      )
+    } else{
+      return;
+    }
+  }
+
+
   return (
     <div className="col-sm-4 wallet-card">
       <div className="card">
         <div className="card-body">
           <h3>{username}</h3>
           <div className="row">
-            <div className="row text-spacing">
-              <div className="col-md-5">
-                <b>No. of Agents:</b> {numAgents}
-              </div>
-              <div className="col-md-7">
-                <b>Mobile No:</b> {mobile}
-              </div>
-            </div>
-            <div className="col-md-7  text-spacing">
-              <b>No. of Players:</b> {numPlayers}
+            {renderAgentName(accountType)}
+            {renderNoOfAgents(accountType)}
+            {renderNoOfPlayers(accountType)}
+            <div className="col-md-12 text-spacing">
+                <b>Phone No:</b> {mobile}
             </div>
             <div className="col-md-7 text-spacing">
-              <b>Status:</b> {status}
+              <b>Status:</b> {currentStatus}
             </div>
             <div className="col-md-12 text-spacing">
-              <b>Last edit change:</b> {lastEditChange}
+              <b>Last Edit Date:</b> {lastEditChange}
             </div>
-            <div className="col-md-12 text-spacing">
-              <div className="row">
-                <div className="col-md-4 col-4">
-                  <b>Commission %</b>
-                </div>
-                <div className="col-md-4 col-4">
-                  <input
-                    type="number"
-                    className="form-control"
-                    placeholder={parseFloat(commission).toFixed(2)}
-                    onChange={(e) => setCommission(e.target.value)}
-                  />
-                </div>
-                <div className="col-md-4 col-4">
-                  <button className="btn btn-color text-light" onClick={submitCommission}>Save</button>
-                </div>
-              </div>
-            </div>
+            {renderCommission(accountType)}
             <div className="col-md-12 text-spacing">
               <div className="row">
                 <div className="col-md-4">
@@ -264,8 +372,8 @@ function AdminMasterCard({
               </div>
             </div>
             <div className="col-md-12 text-center">
-              <button className="btn btn-color register-btn text-light">
-                Lock Account
+              <button className="btn btn-color register-btn text-light" onClick={changeAccountStatus}>
+                {lockStatusText}
               </button>
             </div>
           </div>
@@ -275,4 +383,4 @@ function AdminMasterCard({
   );
 }
 
-export default AdminMasterCard;
+export default UserCard;

@@ -1,7 +1,35 @@
-import React from "react";
-import AdminAgentCard from "./AdminAgentCard";
+import {React, useContext, useEffect, useState} from "react";
+import { AuthContext } from "../../store/auth-context";
+import axios from "axios";
+import UserCard from "../Usercard/UserCard";
 
 function AdminAgents() {
+  const ctx = useContext(AuthContext);
+  const accountHeader = "http://localhost:4003";
+  const [agents, setAgents] = useState([]);
+
+  useEffect(() => {
+    getUserList();
+  }, []);
+
+  function getUserList() {
+    axios({
+      method: "get",
+      url: `${accountHeader}/getAccountList/${ctx.user.accountID}/0`,
+      headers: {
+        "Authorization": "uKRd;$SuXd8b$MFX",
+      },
+    })
+      .then((res) => {
+        const data = res.data.data;
+        const Agents = data.filter((x) => x.account_type === 2);
+        setAgents(Agents);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
   return (
     <div className="container text-light container-wallet">
       <div className="heading-text">
@@ -31,33 +59,24 @@ function AdminAgents() {
         </div>
       </div>
       <div className="row text-black second-box">
-        <AdminAgentCard
-          masterAgentNo="MasterAgent_01"
-          agentNo="Agent_01"
-          noOfPlayers="10"
-          mobile="09152723321"
-          status="ACTIVE"
-          lastPwChange="09/26/2019"
-          walletBalance="P500"
-        />
-        <AdminAgentCard
-          masterAgentNo="MasterAgent_01"
-          agentNo="Agent_02"
-          noOfPlayers="10"
-          mobile="09152723321"
-          status="ACTIVE"
-          lastPwChange="09/26/2019"
-          walletBalance="P500"
-        />
-        <AdminAgentCard
-          masterAgentNo="MasterAgent_01"
-          agentNo="Agent_03"
-          noOfPlayers="10"
-          mobile="09152723321"
-          status="ACTIVE"
-          lastPwChange="09/26/2019"
-          walletBalance="P500"
-        />
+        {agents.map((x) => (
+            <UserCard 
+                key={x.account_id}
+                accountId={x.account_id}
+                username={x.username}
+                noOfAgents="TBS"
+                mobile={x.phone_num}
+                noOfPlayers="TBS"
+                commission={x.commission}
+                status={x.account_status === 1 ? "ACTIVE" : "LOCKED"}
+                lastEditChange={x.lastedit_date.substring(0, 10)}
+                walletBalance={x.wallet}
+                editor={ctx.user.username}
+                editorId={ctx.user.accountID}
+                accountType="2"
+              />
+          ))
+        }
       </div>
     </div>
   );

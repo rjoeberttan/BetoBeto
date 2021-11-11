@@ -1,8 +1,46 @@
-import React from "react";
-import MasterPlayerCard from "./MasterPlayerCard";
+import {React, useContext, useEffect, useState} from "react";
+import UserCard from "../Usercard/UserCard";
+import EmptyUsersUnder from "../EmptyUsersUnder";
+import { AuthContext } from "../../store/auth-context";
+import axios from "axios";
+
 import "./MasterPlayers.css";
 
 function MasterPlayers() {
+  const ctx = useContext(AuthContext);
+  const accountHeader = "http://localhost:4003";  function renderEmpty(){
+    return (<div>Earl Empty</div>);
+  }
+  const [players, setPlayers] = useState([]);
+
+  useEffect(() => {
+    getUserList();
+  }, []);
+  function renderEmpty(){
+    return (<div>Earl Empty</div>);
+  }
+  function getUserList() {
+    axios({
+      method: "get",
+      url: `${accountHeader}/getAccountList/${ctx.user.accountID}/1`,
+      headers: {
+        "Authorization": "uKRd;$SuXd8b$MFX",
+      },
+    })
+      .then((res) => {
+        const data = res.data.data;
+        const Players = data.filter((x) => x.account_type === 3);
+        console.log(Players)
+        setPlayers(Players);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
+
+
+
   return (
     <div className="container text-light container-wallet">
       <div className="heading-text">
@@ -28,54 +66,24 @@ function MasterPlayers() {
         </div>
       </div>
       <div className="row text-black second-box">
-        <MasterPlayerCard
-          playerNo="Player_01"
-          agentNo="Agent_01"
-          mobile="09152723321"
-          status="ACTIVE"
-          lastPwChange="09/26/2019"
-          walletBalance="P500"
-        />
-        <MasterPlayerCard
-          playerNo="Player_02"
-          agentNo="Agent_02"
-          mobile="09152723321"
-          status="ACTIVE"
-          lastPwChange="09/26/2019"
-          walletBalance="P500"
-        />
-        <MasterPlayerCard
-          playerNo="Player_03"
-          agentNo="Agent_03"
-          mobile="09152723321"
-          status="ACTIVE"
-          lastPwChange="09/26/2019"
-          walletBalance="P500"
-        />
-        <MasterPlayerCard
-          playerNo="Player_01"
-          agentNo="Agent_01"
-          mobile="09152723321"
-          status="ACTIVE"
-          lastPwChange="09/26/2019"
-          walletBalance="P500"
-        />
-        <MasterPlayerCard
-          playerNo="Player_01"
-          agentNo="Agent_01"
-          mobile="09152723321"
-          status="ACTIVE"
-          lastPwChange="09/26/2019"
-          walletBalance="P500"
-        />
-        <MasterPlayerCard
-          playerNo="Player_01"
-          agentNo="Agent_01"
-          mobile="09152723321"
-          status="ACTIVE"
-          lastPwChange="09/26/2019"
-          walletBalance="P500"
-        />
+        {players.map((x) => (
+                <UserCard 
+                    key={x.account_id}
+                    accountId={x.account_id}
+                    username={x.username}
+                    noOfAgents="TBS"
+                    mobile={x.phone_num}
+                    noOfPlayers="TBS"
+                    commission={x.commission}
+                    status={x.account_status === 1 ? "ACTIVE" : "LOCKED"}
+                    lastEditChange={x.lastedit_date.substring(0, 10)}
+                    walletBalance={x.wallet}
+                    editor={ctx.user.username}
+                    editorId={ctx.user.accountID}
+                    accountType="3"
+                  />
+              ))
+        }
       </div>
     </div>
   );
