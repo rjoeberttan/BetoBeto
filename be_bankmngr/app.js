@@ -295,7 +295,7 @@ app.post("/acceptWithdrawal", (req, res) => {
             // Process 2
             // Check wallet of requester if there is enough funds to transfer
             sqlQuery2 = "SELECT wallet FROM accounts WHERE account_id = ?"
-            db.query(sqlQuery2, [accepterAccountId], (err, result2) => {
+            db.query(sqlQuery2, [accountId], (err, result2) => {
                 if (err) {
                     logger.error("Error in acceptWithdrawal request for transactionId:" + transactionId + " " +err);
                 } else if (result2.length <= 0){

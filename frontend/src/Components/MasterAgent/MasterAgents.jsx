@@ -68,7 +68,7 @@ function MasterAgents() {
                     walletBalance={x.wallet}
                     editor={ctx.user.username}
                     editorId={ctx.user.accountID}
-                    accountType="3"
+                    accountType="2"
                   />
               ))
         }

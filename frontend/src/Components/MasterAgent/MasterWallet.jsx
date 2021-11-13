@@ -1,7 +1,65 @@
-import React from "react";
+import axios from "axios";
+import React, { useEffect, useContext, useState } from "react";
+import { AuthContext } from "../../store/auth-context";
+import WalletRequestTable from "../WalletRequestTable";
 import "./MasterWallet.css";
 
 function MasterWallet() {
+  //============================================
+  // Variable and useState Definitions
+  //============================================
+  const ctx = useContext(AuthContext);
+  const bankHeader = "http://localhost:4006"
+  const [depositRequest, setDepositRequest] = useState([])
+  const [withdrawalRequest, setWithdrawalRequest] = useState([])
+
+  //============================================
+  // useEffect Definitions
+  //============================================
+  useEffect(() => {
+    getUnsettledDeposits()
+    getUnsettledWithdrawals()
+  }, [])
+
+  function getUnsettledDeposits(){
+    const accType = (ctx.user.accountType === "admin") ? 0 : (ctx.user.accountType === "masteragent" ? 1 : 2)
+    axios({
+      method: "get",
+      url: `${bankHeader}/getUnsettledRequest/${ctx.user.accountID}/${accType}/0`,
+      headers: {
+        "Authorization": "[9@kw7L>F86_P](p",
+      },
+    })
+      .then((res) => {
+        const data = res.data.data;
+        console.log(data)
+        setDepositRequest(data)
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
+  function getUnsettledWithdrawals(){
+    const accType = (ctx.user.accountType === "admin") ? 0 : (ctx.user.accountType === "masteragent" ? 1 : 2)
+    axios({
+      method: "get",
+      url: `${bankHeader}/getUnsettledRequest/${ctx.user.accountID}/${accType}/2`,
+      headers: {
+        "Authorization": "[9@kw7L>F86_P](p",
+      },
+    })
+      .then((res) => {
+        const data = res.data.data;
+        console.log(data)
+        setWithdrawalRequest(data)
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+  }
+
   return (
     <div className="container text-light container-wallet">
       <div className="heading-text">
@@ -100,19 +158,21 @@ function MasterWallet() {
               <div className="card-body">
                 <div className="wallet-spacing">
                   <h5 className="card-title">Deposit Request:</h5>
-                  <div className="card-text">3 request</div>
+                  <div className="card-text">{depositRequest.length} request</div>
                 </div>
                 <div className="wallet-spacing">
                   <h5 className="card-title">Withdrawal Request:</h5>
-                  <div className="card-text">2 request</div>
+                  <div className="card-text">{withdrawalRequest.length} request</div>
                 </div>
               </div>
             </div>
           </div>
         </div>
       </form>
+
+
       <div className="row second-box">
-        <div className="col-md-6">
+        <div className="col-md-12">
           <h2>Deposit Request</h2>
           <table class="table table-success table-striped">
             <thead>
@@ -121,41 +181,33 @@ function MasterWallet() {
                 <th scope="col">Cellphone No.</th>
                 <th scope="col">User Type</th>
                 <th scope="col">Amount</th>
+                <th scope="col">Placement Date</th>
                 <th scope="col">Action</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <th scope="row">July 10</th>
-                <td>Mark</td>
-                <td>Otto</td>
-                <td>@mdo</td>
-                <td>
-                  <button className="btn btn-color text-light">Confirm</button>
-                </td>
-              </tr>
-              <tr>
-                <th scope="row">July 11</th>
-                <td>Jacob</td>
-                <td>Thornton</td>
-                <td>@fat</td>
-                <td>
-                  <button className="btn btn-color text-light">Confirm</button>
-                </td>
-              </tr>
-              <tr>
-                <th scope="row">July 12</th>
-                <td>Larry the Bird</td>
-                <td>@twitter</td>
-                <td>123123</td>
-                <td>
-                  <button className="btn btn-color text-light">Confirm</button>
-                </td>
-              </tr>
+              {depositRequest.map((x) => (
+                <WalletRequestTable 
+                  key={x.transaction_id}
+                  transactionId={x.transaction_id}
+                  requesterAccountId={x.account_id}
+                  requesterUsername={x.username}
+                  requesterType={x.account_type}
+                  placementDate={x.placement_date.substring(0, 10)}
+                  amount={x.amount}
+                  phoneNum={x.phone_num}
+                  accepterAccountId={ctx.user.accountID}
+                  accepterUsername={ctx.user.username}
+                  transactionType="0"
+                  accepterWallet={ctx.walletBalance}
+                />
+              ))}
             </tbody>
           </table>
         </div>
-        <div className="col-md-6">
+
+
+        <div className="col-md-12">
           <h2>Withdrawal Request</h2>
           <table class="table table-success table-striped">
             <thead>
@@ -164,37 +216,27 @@ function MasterWallet() {
                 <th scope="col">Cellphone No.</th>
                 <th scope="col">User Type</th>
                 <th scope="col">Amount</th>
+                <th scope="col">Placement Date</th>
                 <th scope="col">Action</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <th scope="row">July 10</th>
-                <td>Mark</td>
-                <td>Otto</td>
-                <td>@mdo</td>
-                <td>
-                  <button className="btn btn-color text-light">Confirm</button>
-                </td>
-              </tr>
-              <tr>
-                <th scope="row">July 11</th>
-                <td>Jacob</td>
-                <td>Thornton</td>
-                <td>@fat</td>
-                <td>
-                  <button className="btn btn-color text-light">Confirm</button>
-                </td>
-              </tr>
-              <tr>
-                <th scope="row">July 12</th>
-                <td>Larry the Bird</td>
-                <td>@twitter</td>
-                <td>123123</td>
-                <td>
-                  <button className="btn btn-color text-light">Confirm</button>
-                </td>
-              </tr>
+              {withdrawalRequest.map((x) => (
+                <WalletRequestTable 
+                  key={x.transaction_id}
+                  transactionId={x.transaction_id}
+                  requesterAccountId={x.account_id}
+                  requesterUsername={x.username}
+                  requesterType={x.account_type}
+                  placementDate={x.placement_date.substring(0, 10)}
+                  amount={x.amount}
+                  phoneNum={x.phone_num}
+                  accepterAccountId={ctx.user.accountID}
+                  accepterUsername={ctx.user.username}
+                  transactionType="2"
+                  accepterWallet={ctx.user.walletBalance}
+                />
+              ))}
             </tbody>
           </table>
         </div>

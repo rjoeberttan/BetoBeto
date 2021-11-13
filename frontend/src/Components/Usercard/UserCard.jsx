@@ -266,6 +266,7 @@ function UserCard({
   }
 
   function renderCommission(accountType){
+    console.log(accountType)
     if ((accountType === "1" )|| (accountType === "2")){ 
       return (
         <div className="col-md-12 text-spacing">
