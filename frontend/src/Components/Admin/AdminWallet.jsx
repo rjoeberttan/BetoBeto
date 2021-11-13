@@ -2,7 +2,7 @@ import axios from "axios";
 import React, { useEffect, useContext, useState } from "react";
 import { AuthContext } from "../../store/auth-context";
 import WalletRequestTable from "../WalletRequestTable";
-import { toast, ToastContainer, Zoom } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 import "./AdminWallet.css";
 
 function AdminWallet() {
@@ -10,28 +10,31 @@ function AdminWallet() {
   // Variable and useState Definitions
   //============================================
   const ctx = useContext(AuthContext);
-  const bankHeader = "http://localhost:4006"
-  const accountHeader = "http://localhost:4003"
-  const [depositRequest, setDepositRequest] = useState([])
-  const [withdrawalRequest, setWithdrawalRequest] = useState([])
-  const [usersList, setUsersList] = useState([])
-  const [activeUserId, setActiveUserId] = useState("")
-  const [activeUsername, setActiveUsername] = useState("")
+  const bankHeader = "http://localhost:4006";
+  const accountHeader = "http://localhost:4003";
+  const [depositRequest, setDepositRequest] = useState([]);
+  const [withdrawalRequest, setWithdrawalRequest] = useState([]);
+  const [usersList, setUsersList] = useState([]);
+  const [activeUserId, setActiveUserId] = useState("");
+  const [activeUsername, setActiveUsername] = useState("");
   const [amount, setAmount] = useState(0);
 
   //============================================
   // useEffect Definitions
   //============================================
   useEffect(() => {
-    getUnsettledDeposits()
-    getUnsettledWithdrawals()
-    getUsersList()
+    getUnsettledDeposits();
+    getUnsettledWithdrawals();
+    getUsersList();
+  }, []);
 
-  }, [])
-
-
-  function getUnsettledDeposits(){
-    const accType = (ctx.user.accountType === "admin") ? 0 : (ctx.user.accountType === "masteragent" ? 1 : 2)
+  function getUnsettledDeposits() {
+    const accType =
+      ctx.user.accountType === "admin"
+        ? 0
+        : ctx.user.accountType === "masteragent"
+        ? 1
+        : 2;
     axios({
       method: "get",
       url: `${bankHeader}/getUnsettledRequest/${ctx.user.accountID}/${accType}/0`,
@@ -41,15 +44,20 @@ function AdminWallet() {
     })
       .then((res) => {
         const data = res.data.data;
-        setDepositRequest(data)
+        setDepositRequest(data);
       })
       .catch((err) => {
         console.log(err);
       });
   }
 
-  function getUnsettledWithdrawals(){
-    const accType = (ctx.user.accountType === "admin") ? 0 : (ctx.user.accountType === "masteragent" ? 1 : 2)
+  function getUnsettledWithdrawals() {
+    const accType =
+      ctx.user.accountType === "admin"
+        ? 0
+        : ctx.user.accountType === "masteragent"
+        ? 1
+        : 2;
     axios({
       method: "get",
       url: `${bankHeader}/getUnsettledRequest/${ctx.user.accountID}/${accType}/2`,
@@ -59,7 +67,7 @@ function AdminWallet() {
     })
       .then((res) => {
         const data = res.data.data;
-        setWithdrawalRequest(data)
+        setWithdrawalRequest(data);
       })
       .catch((err) => {
         console.log(err);
@@ -76,74 +84,71 @@ function AdminWallet() {
     })
       .then((res) => {
         const data = res.data.data;
-        console.log(data)
+        console.log(data);
         setUsersList(data);
-        setActiveUsername(data[1].username)
-        setActiveUserId(data[1].account_id)
+        setActiveUsername(data[1].username);
+        setActiveUserId(data[1].account_id);
       })
       .catch((err) => {
         console.log(err);
       });
   }
 
-  function setActiveUser(e){
-    const [accountId, username] = (e.target.value).split("-")
+  function setActiveUser(e) {
+    const [accountId, username] = e.target.value.split("-");
     // console.log(accountId, username)
-    setActiveUserId(accountId)
-    setActiveUsername(username)
+    setActiveUserId(accountId);
+    setActiveUsername(username);
 
-    e.preventDefault()
+    e.preventDefault();
   }
-
 
   //=====================================================
   // Event Handler Functions
   //=====================================================
-  function handleAmount(e){
-    const amount = parseFloat(e.target.value).toFixed(2)
-    setAmount(amount)
+  function handleAmount(e) {
+    const amount = parseFloat(e.target.value).toFixed(2);
+    setAmount(amount);
   }
 
-  function submitTransfer(e){
-    const senderWallet = parseFloat(ctx.walletBalance).toFixed(2)
+  function submitTransfer(e) {
+    const senderWallet = parseFloat(ctx.walletBalance).toFixed(2);
 
     if (senderWallet < parseFloat(amount)) {
-      toast.error("Wallet balance is bigger than to send")
+      toast.error("Wallet balance is bigger than to send");
     } else {
       const data = {
         fromAccountId: ctx.user.accountID,
         fromUsername: ctx.user.username,
         toAccountId: activeUserId,
         toUsername: activeUsername,
-        amount: amount
-      }
-      console.log(data)
-      
+        amount: amount,
+      };
+      console.log(data);
+
       axios({
         method: "post",
         url: `${bankHeader}/transferFunds`,
         headers: {
           "Authorization": "[9@kw7L>F86_P](p",
         },
-        data: data
+        data: data,
       })
         .then((res) => {
           let newWallet = parseFloat(ctx.walletBalance) - parseFloat(amount);
           ctx.walletHandler(newWallet);
-  
-          toast.success(res.data.message)
+
+          toast.success(res.data.message);
           console.log(res);
-          
         })
         .catch((err) => {
           console.log(err);
-          toast.error("Fund transfer failed")
+          toast.error("Fund transfer failed");
         });
     }
 
     e.preventDefault();
   }
-
 
   //=====================================================
   //  Components
@@ -151,7 +156,7 @@ function AdminWallet() {
 
   return (
     <div className="container text-light container-wallet">
-      <ToastContainer/>
+      <ToastContainer />
       <div className="heading-text">
         <h1 className="display-5 small-device bold-small">Wallet</h1>
       </div>
@@ -284,7 +289,9 @@ function AdminWallet() {
                   <div className="col-md-9">
                     <select class="form-select" onChange={setActiveUser}>
                       {usersList.map((x) => (
-                        <option value={x.account_id + '-' + x.username}>{x.username} </option>
+                        <option value={x.account_id + "-" + x.username}>
+                          {x.username}{" "}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -304,7 +311,10 @@ function AdminWallet() {
                   </div>
                 </div>
                 <div className="col-md-12 text-center">
-                  <button className="btn btn-color register-btn text-light" onClick={submitTransfer}>
+                  <button
+                    className="btn btn-color register-btn text-light"
+                    onClick={submitTransfer}
+                  >
                     Submit
                   </button>
                 </div>
@@ -328,7 +338,6 @@ function AdminWallet() {
         </div>
       </form>
 
-
       <div className="row second-box">
         <div className="col-md-12">
           <h2>Deposit Request</h2>
@@ -345,7 +354,7 @@ function AdminWallet() {
             </thead>
             <tbody>
               {depositRequest.map((x) => (
-                <WalletRequestTable 
+                <WalletRequestTable
                   key={x.transaction_id}
                   transactionId={x.transaction_id}
                   requesterAccountId={x.account_id}
@@ -364,7 +373,6 @@ function AdminWallet() {
           </table>
         </div>
 
-
         <div className="col-md-12">
           <h2>Withdrawal Request</h2>
           <table class="table table-success table-striped">
@@ -380,7 +388,7 @@ function AdminWallet() {
             </thead>
             <tbody>
               {withdrawalRequest.map((x) => (
-                <WalletRequestTable 
+                <WalletRequestTable
                   key={x.transaction_id}
                   transactionId={x.transaction_id}
                   requesterAccountId={x.account_id}

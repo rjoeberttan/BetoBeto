@@ -99,16 +99,14 @@ function NavBar(props) {
                 Wallet
               </Link>
             </li>
-            {props.user === "admin" ? null : (
-              <li className="nav-item">
-                <Link
-                  className="nav-link active right-border"
-                  to={`/${props.user}/transactions`}
-                >
-                  {props.user === "player" ? "My Transactions" : "Transactions"}
-                </Link>
-              </li>
-            )}
+            <li className="nav-item">
+              <Link
+                className="nav-link active right-border"
+                to={`/${props.user}/transactions`}
+              >
+                Transactions
+              </Link>
+            </li>
           </ul>
           <div className="nav-item dropdown text-center">
             <span

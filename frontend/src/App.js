@@ -38,6 +38,8 @@ import AdminAccount from "./Components/Admin/AdminAccount";
 import AdminWallet from "./Components/Admin/AdminWallet";
 //ERROR PAGE
 import ErrorPage from "./Components/ErrorPage";
+//IMPORT TRANSACTION TABLE
+import TransactionsPage from "./Components/TransactionsPage";
 //CSS IMPORTS
 import "./App.css";
 import { AuthContext } from "./store/auth-context";
@@ -160,7 +162,11 @@ function App() {
                 exact
                 component={AdminGameSettings}
               /> */}
-              <Route path="/admin/gameroom/settings/:gameid" exact component={AdminGameSettings} />
+              <Route
+                path="/admin/gameroom/settings/:gameid"
+                exact
+                component={AdminGameSettings}
+              />
               <Route
                 path="/admin/masteragents"
                 exact
@@ -169,6 +175,11 @@ function App() {
               <Route path="/admin/agents" exact component={AdminAgents} />
               <Route path="/admin/players" exact component={AdminPlayers} />
               <Route path="/admin/wallet" exact component={AdminWallet} />
+              <Route
+                path="/admin/transactions"
+                exact
+                component={TransactionsPage}
+              />
               <Route path="/admin/account" exact component={AdminAccount} />
             </>
           ) : null}

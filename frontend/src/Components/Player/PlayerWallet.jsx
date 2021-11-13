@@ -11,40 +11,6 @@ function Wallet() {
   //====================================
   const ctx = useContext(AuthContext);
   const bankHeader = "http://localhost:4006";
-  const [wdAmount, setWdAmount] = useState("0");
-
-  //====================================
-  // Event Handler Functions
-  //====================================
-  function handleWithdrawAmt(e) {
-    setWdAmount(parseFloat(e.target.value).toFixed(2));
-  }
-
-  function submitWithdrawal(e) {
-    console.log(wdAmount);
-    if (parseFloat(wdAmount) > parseFloat(ctx.walletBalance).toFixed(2)) {
-      console.log("Withdrawal amount is greater than current wallet");
-    } else {
-      axios({
-        method: "post",
-        url: `${bankHeader}/requestWithdrawal`,
-        headers: {
-          "Authorization": "[9@kw7L>F86_P](p",
-        },
-        data: {
-          amount: wdAmount,
-          accountId: ctx.user.accountID,
-        },
-      })
-        .then((res) => {
-          console.log(res);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    }
-    e.preventDefault();
-  }
 
   return (
     <div className="container text-light container-wallet">

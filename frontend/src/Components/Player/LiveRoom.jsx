@@ -290,7 +290,7 @@ function LiveRoom() {
           <TextScroller text={gameDetails.banner} />
         </div>
         <div className="col-md-8">
-          <YoutubeEmbed embedId="rokGy0huYEA" />
+          <YoutubeEmbed embedId="5qap5aO4i9A" />
         </div>
         <div className="col-md-4 live-room-colorbox">
           <div class="card txt-black">
