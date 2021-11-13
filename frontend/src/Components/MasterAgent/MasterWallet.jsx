@@ -5,6 +5,7 @@ import WalletRequestTable from "../WalletRequestTable";
 import "./MasterWallet.css";
 import WithdrawalReq from "../WithdrawalReq";
 import DepositRequest from "../DepositRequest";
+import { toast, ToastContainer, Zoom } from "react-toastify";
 
 function MasterWallet() {
   //============================================
@@ -12,8 +13,13 @@ function MasterWallet() {
   //============================================
   const ctx = useContext(AuthContext);
   const bankHeader = "http://localhost:4006"
+  const accountHeader = "http://localhost:4003"
   const [depositRequest, setDepositRequest] = useState([])
   const [withdrawalRequest, setWithdrawalRequest] = useState([])
+  const [usersList, setUsersList] = useState([])
+  const [activeUserId, setActiveUserId] = useState("")
+  const [activeUsername, setActiveUsername] = useState("")
+  const [amount, setAmount] = useState(0);
 
   //============================================
   // useEffect Definitions
@@ -21,6 +27,7 @@ function MasterWallet() {
   useEffect(() => {
     getUnsettledDeposits()
     getUnsettledWithdrawals()
+    getUsersList()
   }, [])
 
   function getUnsettledDeposits(){
@@ -59,11 +66,89 @@ function MasterWallet() {
       .catch((err) => {
         console.log(err);
       });
-
   }
 
+  function getUsersList() {
+    axios({
+      method: "get",
+      url: `${accountHeader}/getAccountList/${ctx.user.accountID}/1`,
+      headers: {
+        "Authorization": "uKRd;$SuXd8b$MFX",
+      },
+    })
+      .then((res) => {
+        const data = res.data.data;
+        console.log(data)
+        setUsersList(data);
+        setActiveUsername(data[0].username)
+        setActiveUserId(data[0].account_id)
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
+
+  //=====================================================
+  // Event Handler Functions
+  //=====================================================
+  function setActiveUser(e){
+    const [accountId, username] = (e.target.value).split("-")
+    // console.log(accountId, username)
+    setActiveUserId(accountId)
+    setActiveUsername(username)
+
+    e.preventDefault()
+  }
+
+  function handleAmount(e){
+    const amount = parseFloat(e.target.value).toFixed(2)
+    setAmount(amount)
+  }
+
+  function submitTransfer(e){
+    const senderWallet = parseFloat(ctx.walletBalance).toFixed(2)
+
+    if (senderWallet < parseFloat(amount)) {
+      toast.error("Wallet balance is bigger than to send")
+    } else {
+      const data = {
+        fromAccountId: ctx.user.accountID,
+        fromUsername: ctx.user.username,
+        toAccountId: activeUserId,
+        toUsername: activeUsername,
+        amount: amount
+      }
+      console.log(data)
+      
+      axios({
+        method: "post",
+        url: `${bankHeader}/transferFunds`,
+        headers: {
+          "Authorization": "[9@kw7L>F86_P](p",
+        },
+        data: data
+      })
+        .then((res) => {
+          let newWallet = parseFloat(ctx.walletBalance) - parseFloat(amount);
+          ctx.walletHandler(newWallet);
+          toast.success(res.data.message)
+          
+        })
+        .catch((err) => {
+          toast.error("Fund transfer failed")
+        });
+    }
+
+    e.preventDefault();
+  }
+
+  //=====================================================
+  //  Components
+  //=====================================================
   return (
     <div className="container text-light container-wallet">
+      <ToastContainer />
       <div className="heading-text">
         <h1 className="display-5 small-device bold-small">Wallet</h1>
       </div>
@@ -75,7 +160,7 @@ function MasterWallet() {
               <div className="card-body">
                 <div className="wallet-spacing">
                   <h5 className="card-title">Wallet balance</h5>
-                  <div className="card-text">P 2,000.00</div>
+                  <div className="card-text">P {ctx.walletBalance}</div>
                 </div>
                 <div className="wallet-spacing">
                   <h5 className="card-title">Commissions</h5>
@@ -128,11 +213,10 @@ function MasterWallet() {
                     <label className="col-form-label">Username</label>
                   </div>
                   <div className="col-md-12">
-                    <select class="form-select">
-                      <option selected>Player_01</option>
-                      <option>Player_02</option>
-                      <option>Player_03</option>
-                      <option>Player_04</option>
+                    <select class="form-select" onChange={setActiveUser}>
+                      {usersList.map((x) => (
+                        <option value={x.account_id + '-' + x.username}>{x.username} </option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -145,12 +229,12 @@ function MasterWallet() {
                       type="number"
                       className="form-control"
                       onWheel={(e) => e.target.blur()}
-                      placeholder="P500"
+                      placeholder="0.00"
                     />
                   </div>
                 </div>
                 <div className="col-md-12 text-center">
-                  <button className="btn btn-color register-btn text-light">
+                  <button className="btn btn-color register-btn text-light" onClick={submitTransfer}>
                     Submit
                   </button>
                 </div>
@@ -173,8 +257,8 @@ function MasterWallet() {
             </div>
           </div> */}
           {/* card sample */}
-          <DepositRequest accId={12} header="sdad" col="3" />
-          <WithdrawalReq accId={12} header="sdad" walletBalance="12" col="3" />
+          <DepositRequest accId={ctx.user.accountID} header="http://localhost:4006" col="3" />
+          <WithdrawalReq accId={ctx.user.accountID} header="http://localhost:4006" walletBalance={ctx.walletBalance} col="3" />
         </div>
       </form>
 

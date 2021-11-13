@@ -1,5 +1,6 @@
 import axios from "axios";
 import React, { useEffect, props, useState, createContext, useContext } from "react";
+import { toast, ToastContainer, Zoom } from "react-toastify";
 import { AuthContext } from "../store/auth-context";
 
 function WalletRequestTable({
@@ -70,11 +71,12 @@ function WalletRequestTable({
         .then((res) => {
             setConfirmed(true)
             console.log(res)
-
             const newAmount = ctx.walletBalance - amount
+            toast.success(res.data.message)
             ctx.walletHandler(newAmount)
         })
         .catch((err) => {
+            toast.error("Accept Deposit Failed")
             console.log(err);
         });
        
@@ -103,9 +105,11 @@ function WalletRequestTable({
 
             const newAmount = ctx.walletBalance + amount
             ctx.walletHandler(newAmount)
+            toast.success(res.data.message)
         })
         .catch((err) => {
             console.log(err);
+            toast.error("Accept Withdrawal Failed")
         });
 
     }

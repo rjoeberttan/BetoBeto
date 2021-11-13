@@ -2,6 +2,7 @@ import axios from "axios";
 import React, { useEffect, useContext, useState } from "react";
 import { AuthContext } from "../../store/auth-context";
 import WalletRequestTable from "../WalletRequestTable";
+import { toast, ToastContainer, Zoom } from "react-toastify";
 import "./AdminWallet.css";
 
 function AdminWallet() {
@@ -10,8 +11,13 @@ function AdminWallet() {
   //============================================
   const ctx = useContext(AuthContext);
   const bankHeader = "http://localhost:4006"
+  const accountHeader = "http://localhost:4003"
   const [depositRequest, setDepositRequest] = useState([])
   const [withdrawalRequest, setWithdrawalRequest] = useState([])
+  const [usersList, setUsersList] = useState([])
+  const [activeUserId, setActiveUserId] = useState("")
+  const [activeUsername, setActiveUsername] = useState("")
+  const [amount, setAmount] = useState(0);
 
   //============================================
   // useEffect Definitions
@@ -19,6 +25,8 @@ function AdminWallet() {
   useEffect(() => {
     getUnsettledDeposits()
     getUnsettledWithdrawals()
+    getUsersList()
+
   }, [])
 
 
@@ -33,7 +41,6 @@ function AdminWallet() {
     })
       .then((res) => {
         const data = res.data.data;
-        console.log(data)
         setDepositRequest(data)
       })
       .catch((err) => {
@@ -52,7 +59,6 @@ function AdminWallet() {
     })
       .then((res) => {
         const data = res.data.data;
-        console.log(data)
         setWithdrawalRequest(data)
       })
       .catch((err) => {
@@ -60,12 +66,92 @@ function AdminWallet() {
       });
   }
 
+  function getUsersList() {
+    axios({
+      method: "get",
+      url: `${accountHeader}/getAccountList/${ctx.user.accountID}/0`,
+      headers: {
+        "Authorization": "uKRd;$SuXd8b$MFX",
+      },
+    })
+      .then((res) => {
+        const data = res.data.data;
+        console.log(data)
+        setUsersList(data);
+        setActiveUsername(data[1].username)
+        setActiveUserId(data[1].account_id)
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
+  function setActiveUser(e){
+    const [accountId, username] = (e.target.value).split("-")
+    // console.log(accountId, username)
+    setActiveUserId(accountId)
+    setActiveUsername(username)
+
+    e.preventDefault()
+  }
 
 
+  //=====================================================
+  // Event Handler Functions
+  //=====================================================
+  function handleAmount(e){
+    const amount = parseFloat(e.target.value).toFixed(2)
+    setAmount(amount)
+  }
 
+  function submitTransfer(e){
+    const senderWallet = parseFloat(ctx.walletBalance).toFixed(2)
+
+    if (senderWallet < parseFloat(amount)) {
+      toast.error("Wallet balance is bigger than to send")
+    } else {
+      const data = {
+        fromAccountId: ctx.user.accountID,
+        fromUsername: ctx.user.username,
+        toAccountId: activeUserId,
+        toUsername: activeUsername,
+        amount: amount
+      }
+      console.log(data)
+      
+      axios({
+        method: "post",
+        url: `${bankHeader}/transferFunds`,
+        headers: {
+          "Authorization": "[9@kw7L>F86_P](p",
+        },
+        data: data
+      })
+        .then((res) => {
+          let newWallet = parseFloat(ctx.walletBalance) - parseFloat(amount);
+          ctx.walletHandler(newWallet);
+  
+          toast.success(res.data.message)
+          console.log(res);
+          
+        })
+        .catch((err) => {
+          console.log(err);
+          toast.error("Fund transfer failed")
+        });
+    }
+
+    e.preventDefault();
+  }
+
+
+  //=====================================================
+  //  Components
+  //=====================================================
 
   return (
     <div className="container text-light container-wallet">
+      <ToastContainer/>
       <div className="heading-text">
         <h1 className="display-5 small-device bold-small">Wallet</h1>
       </div>
@@ -196,11 +282,10 @@ function AdminWallet() {
                     <label className="col-form-label">Username</label>
                   </div>
                   <div className="col-md-9">
-                    <select class="form-select">
-                      <option selected>Player_01</option>
-                      <option>Player_02</option>
-                      <option>Player_03</option>
-                      <option>Player_04</option>
+                    <select class="form-select" onChange={setActiveUser}>
+                      {usersList.map((x) => (
+                        <option value={x.account_id + '-' + x.username}>{x.username} </option>
+                      ))}
                     </select>
                   </div>
                 </div>
@@ -214,11 +299,12 @@ function AdminWallet() {
                       className="form-control"
                       onWheel={(e) => e.target.blur()}
                       placeholder="P500"
+                      onChange={handleAmount}
                     />
                   </div>
                 </div>
                 <div className="col-md-12 text-center">
-                  <button className="btn btn-color register-btn text-light">
+                  <button className="btn btn-color register-btn text-light" onClick={submitTransfer}>
                     Submit
                   </button>
                 </div>

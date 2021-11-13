@@ -1,14 +1,17 @@
 import React, { useState } from "react";
+import { toast, ToastContainer, Zoom } from "react-toastify";
+
 const axios = require("axios").default;
 
 export default function DepositRequest(props) {
   const [dpAmount, setDpAmount] = useState();
 
   function handleDepositAmt(e) {
-    setDpAmount(parseFloat(e.target.value).toFixed(2));
+    setDpAmount(e.target.value);
   }
 
   function submitDeposit(e) {
+    console.log(dpAmount, props.accId)
     axios({
       method: "post",
       url: `${props.header}/requestDeposit`,
@@ -22,15 +25,20 @@ export default function DepositRequest(props) {
     })
       .then((res) => {
         console.log(res);
+        toast.success(res.data.message)
+        setDpAmount('');
       })
       .catch((err) => {
         console.log(err);
+        toast.error("Error requesting deposit")
+        setDpAmount('');
       });
-    setDpAmount("");
+   
     e.preventDefault();
   }
 
   return (
+    
     <div className={`col-sm-${props.col ? 3 : 4} wallet-card`}>
       <div className="card">
         <div className="card-body">
@@ -44,7 +52,8 @@ export default function DepositRequest(props) {
                 type="number"
                 className="form-control"
                 onWheel={(e) => e.target.blur()}
-                placeholder="P500"
+                placeholder="0.00"
+                value={dpAmount}
                 onChange={handleDepositAmt}
               />
             </div>

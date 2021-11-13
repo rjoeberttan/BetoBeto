@@ -1,11 +1,12 @@
 import React, { useState } from "react";
+import { toast, ToastContainer, Zoom } from "react-toastify";
 const axios = require("axios").default;
 
 export default function WithdrawalReq(props) {
-  const [wdAmount, setWdAmount] = useState("0");
+  const [wdAmount, setWdAmount] = useState();
 
   function handleWithdrawAmt(e) {
-    setWdAmount(parseFloat(e.target.value).toFixed(2));
+    setWdAmount(e.target.value);
   }
 
   function submitWithdrawal(e) {
@@ -25,10 +26,13 @@ export default function WithdrawalReq(props) {
         },
       })
         .then((res) => {
+          toast.success(res.data.message)
           console.log(res);
+          setWdAmount('')
         })
         .catch((err) => {
           console.log(err);
+          setWdAmount('')
         });
     }
     e.preventDefault();
@@ -48,7 +52,8 @@ export default function WithdrawalReq(props) {
                 type="number"
                 className="form-control"
                 onWheel={(e) => e.target.blur()}
-                placeholder="P500"
+                placeholder="0.00"
+                value={wdAmount}
                 onChange={handleWithdrawAmt}
               />
             </div>
