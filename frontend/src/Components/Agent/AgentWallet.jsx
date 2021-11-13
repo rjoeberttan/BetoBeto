@@ -1,7 +1,13 @@
+<<<<<<< HEAD
 import axios from "axios";
 import React, { useEffect, useContext, useState } from "react";
 import { AuthContext } from "../../store/auth-context";
 import WalletRequestTable from "../WalletRequestTable";
+=======
+import React from "react";
+import WithdrawalReq from "../WithdrawalReq";
+import DepositRequest from "../DepositRequest";
+>>>>>>> 3dbed3bb3203b06fdc45494f3d2b602d0f0d89aa
 import "./AgentWallet.css";
 
 function AgentWallet() {
@@ -68,7 +74,7 @@ function AgentWallet() {
       </div>
       <form>
         <div className="row txt-black">
-          <div className="col-sm-4 wallet-card">
+          <div className="col-sm-3 wallet-card">
             <div className="card">
               <div className="card-body">
                 <div className="wallet-spacing">
@@ -84,15 +90,15 @@ function AgentWallet() {
               </div>
             </div>
           </div>
-          <div className="col-sm-4 wallet-card">
+          <div className="col-sm-3 wallet-card">
             <div className="card">
               <div className="card-body">
                 <h5 className="card-title">Transfer Funds</h5>
                 <div className="row wallet-box">
-                  <div className="col-md-3">
+                  <div className="col-md-4">
                     <label className="col-form-label">Username</label>
                   </div>
-                  <div className="col-md-9">
+                  <div className="col-md-12">
                     <select class="form-select">
                       <option selected>Player_01</option>
                       <option>Player_02</option>
@@ -102,10 +108,10 @@ function AgentWallet() {
                   </div>
                 </div>
                 <div className="row wallet-box wallet-box-2">
-                  <div className="col-md-3">
+                  <div className="col-md-4">
                     <label className="col-form-label">Amount</label>
                   </div>
-                  <div className="col-md-9">
+                  <div className="col-md-12">
                     <input
                       type="number"
                       className="form-control"
@@ -122,20 +128,8 @@ function AgentWallet() {
               </div>
             </div>
           </div>
-          <div className="col-sm-4 wallet-card">
-            <div className="card">
-              <div className="card-body">
-                <div className="wallet-spacing">
-                  <h5 className="card-title">Deposit Request:</h5>
-                  <div className="card-text">3 request</div>
-                </div>
-                <div className="wallet-spacing">
-                  <h5 className="card-title">Withdrawal Request:</h5>
-                  <div className="card-text">2 request</div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <DepositRequest accId={12} header="sdad" col="3" />
+          <WithdrawalReq accId={12} header="sdad" walletBalance="12" col="3" />
         </div>
       </form>
       

@@ -3,6 +3,8 @@ import React, { useEffect, useContext, useState } from "react";
 import { AuthContext } from "../../store/auth-context";
 import WalletRequestTable from "../WalletRequestTable";
 import "./MasterWallet.css";
+import WithdrawalReq from "../WithdrawalReq";
+import DepositRequest from "../DepositRequest";
 
 function MasterWallet() {
   //============================================
@@ -67,7 +69,8 @@ function MasterWallet() {
       </div>
       <form>
         <div className="row txt-black">
-          <div className="col-sm-4 wallet-card">
+          {/* card one */}
+          <div className="col-sm-3 wallet-card">
             <div className="card">
               <div className="card-body">
                 <div className="wallet-spacing">
@@ -84,11 +87,12 @@ function MasterWallet() {
               </div>
             </div>
           </div>
-          <div className="col-sm-4 wallet-card">
+
+          {/* card two */}
+          <div className="col-sm-3 wallet-card">
             <div className="card">
               <div className="card-body">
                 <h5 className="card-title">Transfer Funds</h5>
-
                 <div className="wallet-box master-wallet">
                   <div class="form-check form-check-inline">
                     <input
@@ -120,10 +124,10 @@ function MasterWallet() {
                 </div>
 
                 <div className="row wallet-box">
-                  <div className="col-md-3">
+                  <div className="col-md-4">
                     <label className="col-form-label">Username</label>
                   </div>
-                  <div className="col-md-9">
+                  <div className="col-md-12">
                     <select class="form-select">
                       <option selected>Player_01</option>
                       <option>Player_02</option>
@@ -133,10 +137,10 @@ function MasterWallet() {
                   </div>
                 </div>
                 <div className="row wallet-box wallet-box-2">
-                  <div className="col-md-3">
+                  <div className="col-md-4">
                     <label className="col-form-label">Amount</label>
                   </div>
-                  <div className="col-md-9">
+                  <div className="col-md-12">
                     <input
                       type="number"
                       className="form-control"
@@ -153,7 +157,8 @@ function MasterWallet() {
               </div>
             </div>
           </div>
-          <div className="col-sm-4 wallet-card">
+          {/* card three */}
+          {/* <div className="col-sm-4 wallet-card">
             <div className="card">
               <div className="card-body">
                 <div className="wallet-spacing">
@@ -166,7 +171,10 @@ function MasterWallet() {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
+          {/* card sample */}
+          <DepositRequest accId={12} header="sdad" col="3" />
+          <WithdrawalReq accId={12} header="sdad" walletBalance="12" col="3" />
         </div>
       </form>
 
