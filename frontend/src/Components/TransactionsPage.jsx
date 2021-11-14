@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { AuthContext } from "../store/auth-context";
+import { toast, ToastContainer } from "react-toastify";
 
 export default function TransactionsPage() {
   const ctx = useContext(AuthContext);
@@ -107,7 +108,7 @@ export default function TransactionsPage() {
 
   function handleSearchButton(e) {
     if (dateFilter.startDate === "" || dateFilter.endDate === "") {
-      alert("wala kang date");
+      toast.error('Sorry there are no transaction found on your query')
     } else {
       getTransactionsTable(activeUserId);
     }

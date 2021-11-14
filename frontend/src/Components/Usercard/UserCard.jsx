@@ -1,6 +1,7 @@
 import React, { useEffect, props, useState, createContext, useContext } from "react";
 import { AuthContext } from "../../store/auth-context";
 import axios from "axios";
+import { toast, ToastContainer } from "react-toastify";
 
 function UserCard({
   key,
@@ -118,11 +119,10 @@ function UserCard({
 
   function submitPassword(e) {
     if (password.password !== password.confirmPassword) {
-      console.log("password do not match");
-      //toaster passwords do not match
+      toast.error("Sorry. Password do not match.")
     } 
     else if (password.password.length < 8 || password.password.length > 20) {
-      console.log("password length error");
+      toast.error("Password should be between 8 to 20 characters")
       //toaster pssword length error
     } 
     else {
@@ -164,6 +164,7 @@ function UserCard({
     })
       .then((res) => {
         console.log(res);
+        // toast.success("Commission Updated");
       })
       .catch((err) => {
         console.log(err);
@@ -194,9 +195,13 @@ function UserCard({
         newWallet = parseFloat(currentWallet) + parseFloat(topUpAmount);
         setCurrentWallet(newWallet)
         console.log(res);
+        toast.success(res.data.message, {
+          autoClose : 1500
+        })
       })
       .catch((err) => {
         console.log(err);
+        toast.error("Failed fund transfer");
       });
     // e.preventDefault();
   }
@@ -224,8 +229,10 @@ function UserCard({
         
         if(newStatus === "LOCKED"){
           setLockStatusText("UNLOCK ACCOUNT")
+          // toast.success("Account successfully unlocked");
         } else {
           setLockStatusText("LOCK ACCOUNT")
+          // toast.success("Account successfully locked");
         }
       })
       .catch((err) => {
@@ -278,7 +285,7 @@ function UserCard({
               <input
                 type="number"
                 className="form-control"
-                placeholder={parseFloat(commission).toFixed(2)}
+                placeholder={parseFloat(commission).toFixed(2)} 
                 onChange={(e) => setCommission(e.target.value)}
               />
             </div>
@@ -309,6 +316,7 @@ function UserCard({
 
   return (
     <div className="col-sm-4 wallet-card">
+      <ToastContainer/>
       <div className="card">
         <div className="card-body">
           <h3>{username}</h3>

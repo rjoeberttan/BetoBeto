@@ -612,7 +612,7 @@ app.post("/transferFunds", (req, res) => {
   const toAccountId = req.body.toAccountId;
   const toUsername = req.body.toUsername;
   const amount = req.body.amount;
-
+  console.log(apiKey);
   // Check if body is complete
   if (
     !fromAccountId ||

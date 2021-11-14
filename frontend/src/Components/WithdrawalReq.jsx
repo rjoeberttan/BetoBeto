@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import { toast, ToastContainer, Zoom } from "react-toastify";
+import { ToastContainer, toast, Zoom, Bounce} from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import 'react-toastify/dist/ReactToastify.min.css';
 const axios = require("axios").default;
 
 export default function WithdrawalReq(props) {
@@ -10,9 +12,9 @@ export default function WithdrawalReq(props) {
   }
 
   function submitWithdrawal(e) {
-    console.log(wdAmount);
     if (parseFloat(wdAmount) > parseFloat(props.walletBalance).toFixed(2)) {
-      console.log("Withdrawal amount is greater than current wallet");
+      toast.error('Withdrawal amount is greater than current wallet');
+      console.log('haha');
     } else {
       axios({
         method: "post",
@@ -40,6 +42,7 @@ export default function WithdrawalReq(props) {
 
   return (
     <div className={`col-sm-${props.col ? 3 : 4} wallet-card`}>
+        <ToastContainer/>
       <div className="card">
         <div className="card-body">
           <h5 className="card-title">Withdrawal Request</h5>

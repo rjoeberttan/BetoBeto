@@ -59,9 +59,7 @@ function Register() {
       }).catch((err) => {
         console.log(err);
         toast.error(<div> Sorry your registration is invalid <br /> Please try again </div>, {
-            draggable: true,
-            position: toast.POSITION.TOP_RIGHT,
-            autoClose: 2500
+            autoClose: 1500
           });
       })}
     e.preventDefault();
