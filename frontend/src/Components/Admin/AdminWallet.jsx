@@ -15,6 +15,8 @@ function AdminWallet() {
   const [depositRequest, setDepositRequest] = useState([]);
   const [withdrawalRequest, setWithdrawalRequest] = useState([]);
   const [usersList, setUsersList] = useState([]);
+  const [filteredList, setFilteredList] = useState([]);
+  const [userFilter, setUserFilter] = useState("0");
   const [activeUserId, setActiveUserId] = useState("");
   const [activeUsername, setActiveUsername] = useState("");
   const [amount, setAmount] = useState(0);
@@ -88,6 +90,7 @@ function AdminWallet() {
         setUsersList(data);
         setActiveUsername(data[1].username);
         setActiveUserId(data[1].account_id);
+        setFilteredList(data)
       })
       .catch((err) => {
         console.log(err);
@@ -148,6 +151,21 @@ function AdminWallet() {
     }
 
     e.preventDefault();
+  }
+
+
+  function handleFilterChange(e) {
+    const value = Number(e.target.value);
+    console.log(value);
+    if (value !== 0) {
+      const x = usersList.filter((user) => user.account_type === value);
+      setUserFilter(e.target.value);
+      setFilteredList(x);
+    } else {
+      console.log("gegege");
+      setFilteredList(usersList);
+      setUserFilter(e.target.value);
+    }
   }
 
   //=====================================================
@@ -249,7 +267,9 @@ function AdminWallet() {
                       class="form-check-input"
                       type="radio"
                       name="inlineRadioOptions"
-                      value="option1"
+                      value="0"
+                      onChange={handleFilterChange}
+                      defaultChecked
                     />
                     <label class="form-check-label">All</label>
                   </div>
@@ -258,7 +278,8 @@ function AdminWallet() {
                       class="form-check-input"
                       type="radio"
                       name="inlineRadioOptions"
-                      value="option2"
+                      value="1"
+                      onChange={handleFilterChange}
                     />
                     <label class="form-check-label">M. Agent</label>
                   </div>
@@ -267,7 +288,8 @@ function AdminWallet() {
                       class="form-check-input"
                       type="radio"
                       name="inlineRadioOptions"
-                      value="option2"
+                      value="2"
+                      onChange={handleFilterChange}
                     />
                     <label class="form-check-label">Agents</label>
                   </div>
@@ -276,7 +298,8 @@ function AdminWallet() {
                       class="form-check-input"
                       type="radio"
                       name="inlineRadioOptions"
-                      value="option3"
+                      value="3"
+                      onChange={handleFilterChange}
                     />
                     <label class="form-check-label">Player</label>
                   </div>
@@ -288,7 +311,7 @@ function AdminWallet() {
                   </div>
                   <div className="col-md-9">
                     <select class="form-select" onChange={setActiveUser}>
-                      {usersList.map((x) => (
+                      {filteredList.map((x) => (
                         <option value={x.account_id + "-" + x.username}>
                           {x.username}{" "}
                         </option>
@@ -321,20 +344,6 @@ function AdminWallet() {
               </div>
             </div>
           </div>
-          {/* <div className="col-sm-4 wallet-card">
-            <div className="card">
-              <div className="card-body">
-                <div className="wallet-spacing">
-                  <h5 className="card-title">Deposit Request:</h5>
-                  <div className="card-text">{depositRequest.length} request/s</div>
-                </div>
-                <div className="wallet-spacing">
-                  <h5 className="card-title">Withdrawal Request:</h5>
-                  <div className="card-text">{withdrawalRequest.length} request/s</div>
-                </div>
-              </div>
-            </div>
-          </div> */}
         </div>
       </form>
 

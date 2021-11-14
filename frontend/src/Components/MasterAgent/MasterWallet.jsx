@@ -17,6 +17,8 @@ function MasterWallet() {
   const [depositRequest, setDepositRequest] = useState([])
   const [withdrawalRequest, setWithdrawalRequest] = useState([])
   const [usersList, setUsersList] = useState([])
+  const [userFilter, setUserFilter] = useState("0");
+  const [filteredList, setFilteredList] = useState([]);
   const [activeUserId, setActiveUserId] = useState("")
   const [activeUsername, setActiveUsername] = useState("")
   const [amount, setAmount] = useState(0);
@@ -82,6 +84,7 @@ function MasterWallet() {
         setUsersList(data);
         setActiveUsername(data[0].username)
         setActiveUserId(data[0].account_id)
+        setFilteredList(data)
       })
       .catch((err) => {
         console.log(err);
@@ -143,6 +146,20 @@ function MasterWallet() {
     e.preventDefault();
   }
 
+  function handleFilterChange(e) {
+    const value = Number(e.target.value);
+    console.log(value);
+    if (value !== 0) {
+      const x = usersList.filter((user) => user.account_type === value);
+      setUserFilter(e.target.value);
+      setFilteredList(x);
+    } else {
+      console.log("gegege");
+      setFilteredList(usersList);
+      setUserFilter(e.target.value);
+    }
+  }
+
   //=====================================================
   //  Components
   //=====================================================
@@ -184,7 +201,9 @@ function MasterWallet() {
                       class="form-check-input"
                       type="radio"
                       name="inlineRadioOptions"
-                      value="option1"
+                      value="1"
+                      onChange={handleFilterChange}
+                      defaultChecked
                     />
                     <label class="form-check-label">All</label>
                   </div>
@@ -193,7 +212,8 @@ function MasterWallet() {
                       class="form-check-input"
                       type="radio"
                       name="inlineRadioOptions"
-                      value="option2"
+                      value="2"
+                      onChange={handleFilterChange}
                     />
                     <label class="form-check-label">Agents</label>
                   </div>
@@ -202,7 +222,8 @@ function MasterWallet() {
                       class="form-check-input"
                       type="radio"
                       name="inlineRadioOptions"
-                      value="option3"
+                      value="3"
+                      onChange={handleFilterChange}
                     />
                     <label class="form-check-label">Player</label>
                   </div>
@@ -214,7 +235,7 @@ function MasterWallet() {
                   </div>
                   <div className="col-md-12">
                     <select class="form-select" onChange={setActiveUser}>
-                      {usersList.map((x) => (
+                      {filteredList.map((x) => (
                         <option value={x.account_id + '-' + x.username}>{x.username} </option>
                       ))}
                     </select>

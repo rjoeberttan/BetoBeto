@@ -408,7 +408,7 @@ app.post("/sendTip", (req, res) => {
 
 
 
-app.get("/getBetHistory/:accountId/:dateFrom-:dateTo", (req, res) => {
+app.get("/getBetHistory/:accountId/:dateFrom/:dateTo", (req, res) => {
     const apiKey = req.header("Authorization") 
     const accountId = req.params.accountId;
     const dateFrom = req.params.dateFrom
@@ -429,7 +429,7 @@ app.get("/getBetHistory/:accountId/:dateFrom-:dateTo", (req, res) => {
     }
 
 
-    sqlQuery = 'SELECT * FROM bets WHERE account_id = ? AND placement_date BETWEEN ? AND ? '
+    sqlQuery = 'SELECT bt.*, (select result from markets where market_id=bt.market_id and settled_date is not null) as result FROM bets bt WHERE account_id = ? AND placement_date BETWEEN ? AND ?';
     db.query(sqlQuery, [accountId, dateFrom, dateTo], (err, result) => {
         if (err) {
             logger.error(" Process 1: Error in getBetHistory request from accountId:" + accountId);

@@ -97,7 +97,7 @@ function App() {
               <Route
                 path="/player/transactions"
                 exact
-                component={PlayerTransactions}
+                component={TransactionsPage}
               />
               <Route path="/player/account" exact component={PlayerAccount} />
               <Route
@@ -116,7 +116,7 @@ function App() {
               <Route
                 path="/agent/transactions"
                 exact
-                component={AgentTransactions}
+                component={TransactionsPage}
               />
               <Route path="/agent/account" exact component={AgentAccount} />
             </>
@@ -143,7 +143,7 @@ function App() {
               <Route
                 path="/masteragent/transactions"
                 exact
-                component={MasterTransactions}
+                component={TransactionsPage}
               />
               <Route
                 path="/masteragent/account"
