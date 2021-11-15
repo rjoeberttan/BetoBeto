@@ -40,6 +40,13 @@ function AdminGameSettings() {
     bb_manip_green: 0,
     bb_manip_purple: 0,
   });
+  const [settingsText, setSettingsText] = useState({
+    create: "CREATE MARKET",
+    open: "OPEN MARKET",
+    close: "CLOSE MARKET",
+    result: "RESULT MARKET"
+  })
+  const [statusChangeDisabled, setStatusChangeDisabled] = useState(false)
 
   let { gameid } = useParams();
 
@@ -265,6 +272,26 @@ function AdminGameSettings() {
     e.preventDefault();
   }
 
+  function DisableSettings() {
+    setSettingsText({
+      create: "PLEASE WAIT",
+      close: "PLEASE WAIT",
+      open: "PLEASE WAIT",
+      result: "PLEASE WAIT",
+    })
+    setStatusChangeDisabled(true)
+
+    setTimeout(() => {
+      setSettingsText({
+        create: "CREATE MARKET",
+        close: "CLOSE MARKET",
+        open: "OPEN MARKET",
+        result: "RESULT MARKET",
+      })
+      setStatusChangeDisabled(false)
+    }, 3000)
+  }
+
   function handleMarketDetailsClick(e) {
     const { name } = e.target;
     if (name === "createMarket") {
@@ -302,6 +329,8 @@ function AdminGameSettings() {
             status: data.status,
           });
           toast.success("Success Create Market");
+          DisableSettings()
+
         })
         .catch((err) => {
           console.log(err);
@@ -341,6 +370,7 @@ function AdminGameSettings() {
             status: data.status,
           });
           toast.success("Success Open Market");
+          DisableSettings()
         })
         .catch((err) => {
           console.log(err);
@@ -380,6 +410,7 @@ function AdminGameSettings() {
             status: data.status,
           });
           toast.success("Success Closed Market");
+          DisableSettings()
         })
         .catch((err) => {
           console.log(err);
@@ -422,6 +453,7 @@ function AdminGameSettings() {
           status: res.data.data.status,
         });
         toast.success("Success Result Market");
+        DisableSettings()
 
         // Settle Bets
         axios({
@@ -740,8 +772,9 @@ function AdminGameSettings() {
                     className="btn btn-color text-light"
                     name="createMarket"
                     onClick={handleMarketDetailsClick}
+                    disabled={statusChangeDisabled}
                   >
-                    CREATE MARKET
+                    {settingsText.create}
                   </button>
                 </div>
                 <div className="col-md-4 text-center">
@@ -749,8 +782,9 @@ function AdminGameSettings() {
                     className="btn btn-color text-light"
                     name="openMarket"
                     onClick={handleMarketDetailsClick}
+                    disabled={statusChangeDisabled}
                   >
-                    OPEN MARKET
+                    {settingsText.open}
                   </button>
                 </div>
                 <div className="col-md-4 text-center">
@@ -758,8 +792,9 @@ function AdminGameSettings() {
                     className="btn btn-color text-light"
                     name="closeMarket"
                     onClick={handleMarketDetailsClick}
+                    disabled={statusChangeDisabled}
                   >
-                    CLOSE MARKET
+                    {settingsText.close}
                   </button>
                 </div>
               </div>
@@ -851,8 +886,9 @@ function AdminGameSettings() {
                   <button
                     className="btn btn-color text-light"
                     onClick={handleResultMarket}
+                    disabled={statusChangeDisabled}
                   >
-                    Result Market
+                    {settingsText.result}
                   </button>
                 </div>
               </div>
