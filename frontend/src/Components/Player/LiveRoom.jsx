@@ -20,6 +20,7 @@ function LiveRoom() {
   const [color, setColor] = useState("red");
   const [placeBetDisabled, setPlaceBetDisabled] = useState(false);
   const [placeTipDisabled, setPlaceTipDisabled] = useState(false);
+  const [placeBetText, setPlaceBetText] = useState("Place Bet")
   const [gameDetails, setGameDetails] = useState({
     banner: "",
     description: "",
@@ -183,6 +184,20 @@ function LiveRoom() {
         console.log(res);
         const newWallet = parseFloat(ctx.walletBalance) - parseFloat(stake);
         ctx.walletHandler(newWallet);
+
+        //Disable Button for 5 seconds
+        setPlaceBetDisabled(true)
+        setPlaceBetText("Please Wait")
+        
+        
+        setTimeout(() => {
+          console.log("disabled")
+          setPlaceBetText("Place Bet")
+          setPlaceBetDisabled(false)
+          
+        }, 5000)
+        
+
         toast.success(`Placed Bet successfully. BetId: ${res.data.data.betId}`);
       })
       .catch((err) => {
@@ -280,6 +295,7 @@ function LiveRoom() {
 
   return (
     <div className="container text-light container-game-room">
+    <ToastContainer/>
       <div className="heading-text">
         <h1 className="display-5 small-device bold-small">
           Live {gameDetails.name}
@@ -401,7 +417,7 @@ function LiveRoom() {
                   disabled={placeBetDisabled}
                   onClick={placeBet}
                 >
-                  Place Bet
+                  {placeBetText}
                 </button>
               </div>
             </div>
