@@ -30,7 +30,9 @@ export default function DepositRequest(props) {
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Error requesting deposit")
+        toast.error("Error requesting deposit",{
+          autoClose : 1500
+        })
         setDpAmount('');
       });
    

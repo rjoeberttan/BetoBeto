@@ -196,9 +196,9 @@ function LiveRoom() {
           setPlaceBetDisabled(false)
           
         }, 5000)
-        
-
-        toast.success(`Placed Bet successfully. BetId: ${res.data.data.betId}`);
+        toast.success(`Placed Bet successfully. BetId: ${res.data.data.betId}`, {
+          autoClose : 2000
+        });
       })
       .catch((err) => {
         console.log(err);
@@ -228,7 +228,10 @@ function LiveRoom() {
 
   function sendTip() {
     if (!tip) {
-      console.log("Tip Amount cannot be empty");
+      // console.log("Tip Amount cannot be empty");
+      toast.error("Sorry. Tip box can't be empty.", {
+        autoClose : 1500
+      });
     } else {
       const data = {
         accountId: ctx.user.accountID,
@@ -250,7 +253,9 @@ function LiveRoom() {
           console.log(res);
           const newWallet = parseFloat(ctx.walletBalance) - parseFloat(tip);
           ctx.walletHandler(newWallet);
-          toast.success(`Thanks for the tip! Enjoy the game`);
+          toast.success(`Thanks for the tip! Enjoy the game`,{
+            autoClose: 1500
+          });
         })
         .catch((err) => {
           console.log(err);

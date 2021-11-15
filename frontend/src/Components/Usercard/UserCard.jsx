@@ -123,7 +123,6 @@ function UserCard({
     } 
     else if (password.password.length < 8 || password.password.length > 20) {
       toast.error("Password should be between 8 to 20 characters")
-      //toaster pssword length error
     } 
     else {
       axios({
@@ -139,7 +138,9 @@ function UserCard({
         },
       })
         .then((res) => {
-          console.log(res);
+          toast.success(res.data.message,{
+            autoClose : 1500
+          });
         })
         .catch((err) => {
           console.log(err);
@@ -164,7 +165,9 @@ function UserCard({
     })
       .then((res) => {
         console.log(res);
-        // toast.success("Commission Updated");
+        toast.success(res.data.message + ' to ' + res.data.data.commission + '%' , {
+          autoClose : 1500
+        });
       })
       .catch((err) => {
         console.log(err);
@@ -229,10 +232,15 @@ function UserCard({
         
         if(newStatus === "LOCKED"){
           setLockStatusText("UNLOCK ACCOUNT")
-          // toast.success("Account successfully unlocked");
+          console.log(res);
+          toast.success("Account successfully locked", {
+            autoClose : 1500
+          });
         } else {
           setLockStatusText("LOCK ACCOUNT")
-          // toast.success("Account successfully locked");
+          toast.success("Account successfully unlocked", {
+            autoClose: 1500 
+          });
         }
       })
       .catch((err) => {

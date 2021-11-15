@@ -24,7 +24,7 @@ function Wallet() {
               <div className="card-body">
                 <h5 className="card-title">Wallet balance</h5>
                 <div className="card-text wallet-balance">
-                  P {parseFloat(ctx.walletBalance).toFixed(2)}
+                  ₱{parseFloat(ctx.walletBalance).toFixed(2)}
                 </div>
               </div>
             </div>

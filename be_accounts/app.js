@@ -612,7 +612,7 @@ app.post("/updatePassword", (req, res) => {
           logger.info(
             "Successful updatePassword request for accountId:" + accountId
           );
-          res.status(200).json({ message: "Password updated Successfully" });
+          res.status(200).json({ message: "Password updated successfully" });
         }
       });
     }

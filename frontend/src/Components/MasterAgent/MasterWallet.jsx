@@ -139,7 +139,9 @@ function MasterWallet() {
           
         })
         .catch((err) => {
-          toast.error("Fund transfer failed")
+          toast.error("Fund transfer failed", {
+            autoClose : 1500
+          })
         });
     }
 
@@ -177,11 +179,11 @@ function MasterWallet() {
               <div className="card-body">
                 <div className="wallet-spacing">
                   <h5 className="card-title">Wallet balance</h5>
-                  <div className="card-text">P {ctx.walletBalance}</div>
+                  <div className="card-text">₱{ctx.walletBalance}</div>
                 </div>
                 <div className="wallet-spacing">
                   <h5 className="card-title">Commissions</h5>
-                  <div className="card-text">P 2,000.00</div>
+                  <div className="card-text">₱2,000.00</div>
                 </div>
                 <hr />
                 <h4>No. of Agents 10</h4>

@@ -13,7 +13,9 @@ export default function WithdrawalReq(props) {
 
   function submitWithdrawal(e) {
     if (parseFloat(wdAmount) > parseFloat(props.walletBalance).toFixed(2)) {
-      toast.error('Withdrawal amount is greater than current wallet');
+      toast.error('Withdrawal amount is greater than current wallet balance', {
+        autoClose : 1500
+      });
       console.log('haha');
     } else {
       axios({
@@ -33,7 +35,10 @@ export default function WithdrawalReq(props) {
           setWdAmount('')
         })
         .catch((err) => {
-          console.log(err);
+          // console.log(err);
+          toast.error('Error requesting withdrawal', {
+            autoClose : 1500
+          })
           setWdAmount('')
         });
     }
