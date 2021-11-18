@@ -390,7 +390,7 @@ export default function TransactionsPage() {
               <td>{x.description}</td>
               <td>₱ {x.amount.toFixed(2)}</td>
               <td>₱ {x.cummulative ? x.cummulative.toFixed(2) : "-"}</td>
-              <td>{x.status === 1 ? "Settled" : "Pending"}</td>
+              <td>{x.status === 1 ? "Settled" : (x.status === 2 ? "Cancelled": "Pending")}</td>
               <td>{x.settled_by}</td>
             </tr>
           ))}

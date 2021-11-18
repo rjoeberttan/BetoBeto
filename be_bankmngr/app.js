@@ -379,6 +379,66 @@ app.post("/requestWithdrawal", (req, res) => {
   });
 });
 
+
+
+app.post("/cancelTransaction", (req, res) => {
+  const apiKey = req.header("Authorization");
+  const transactionId = req.body.transactionId;
+  const accountId = req.body.accountId;
+  const cancellerUsername = req.body.cancellerUsername;
+
+  // Check if body is complete
+  if (!transactionId || !accountId || !cancellerUsername) {
+    logger.warn("cancelTransaction request has missing body parameters");
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn("cancelTransaction request has missing/wrong API_KEY");
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  sqlQuery1 = "SELECT status FROM transactions WHERE transaction_id = ?"
+  db.query(sqlQuery1, [transactionId], (err, result1) => {
+    if (err) {
+      logger.error("Error in cancelTransaction request for transactionId:" + transactionId + " " + err );
+      res.status(500).json({ message: "Server error" });
+    } else if (result1.length <= 0) {
+      logger.warn("Warn in cancel Transaction. Transaction id not found, transactionId: " + transactionId);
+      res.status(409).json({
+        message: "Transaction ID cannot be found",
+        data: { transactionId: transactionId },
+      });
+    } else if (result1[0].status != 0) {
+      logger.warn("Warn in cancel transaction. Transaction is already settled, transactionId: " + transactionId);
+      res.status(409).json({
+        message: "Transaction is already settled/cancelled",
+        data: { transactionId: transactionId },
+      });
+    } else {
+        // Update transactions with status = 2
+        sqlQuery2 = "UPDATE transactions SET status = 2, cummulative=(SELECT wallet FROM accounts WHERE account_id=?), settled_date = NOW(), settled_by = ? WHERE transaction_id=?;";
+        db.query(sqlQuery2, [accountId, cancellerUsername, transactionId],(err, result2) => {
+            if (err) {
+              logger.error("Process 2: Error in cancelTransaction request for transactionId:" + transactionId + " " + err );
+              successful = false;
+            } else {
+              logger.info("Updated transactions table for cancelTransaction Request, transactionId:" + transactionId );
+              res.status(200).json({
+                message: "Transaction Cancelled",
+                data: { transactionId: transactionId },
+              });
+            }
+          }
+        );
+    }
+
+  })
+})
+
 app.post("/acceptWithdrawal", (req, res) => {
   const apiKey = req.header("Authorization");
   const transactionId = req.body.transactionId;

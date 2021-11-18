@@ -283,6 +283,8 @@ app.post("/login", (req, res) => {
           const username = result[0].username;
           const accountId = result[0].account_id;
           const accountType = result[0].account_type;
+          const accountStatus = result[0].account_status
+
 
           const token = jwt.sign(
             { accountId, username, accountType },
@@ -295,6 +297,7 @@ app.post("/login", (req, res) => {
             accountId: accountId,
             username: username,
             accountType: accountType,
+            accountStatus: accountStatus,
             token: token,
           });
 

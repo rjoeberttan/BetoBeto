@@ -106,51 +106,55 @@ export default function AuthContextProvider(props) {
         },
       })
         .then((res) => {
-          const accountType = res.data.accountType;
+          if (res.data.accountStatus === 1){
+            const accountType = res.data.accountType;
   
-          if (accountType === 0) {
-            setAccount({
-              username: person.username,
-              accountType: "admin",
+            if (accountType === 0) {
+              setAccount({
+                username: person.username,
+                accountType: "admin",
+              });
+            } else if (accountType === 1) {
+              setAccount({
+                username: person.username,
+                accountType: "masteragent",
+              });
+            } else if (accountType === 2) {
+              setAccount({
+                username: person.username,
+                accountType: "agent",
+              });
+            } else if (accountType === 3) {
+              setAccount({
+                username: person.username,
+                accountType: "player",
+              });
+            }
+            setAccount((prev) => {
+              return {
+                ...prev,
+                accountID: res.data.accountId,
+              };
             });
-          } else if (accountType === 1) {
-            setAccount({
-              username: person.username,
-              accountType: "masteragent",
-            });
-          } else if (accountType === 2) {
-            setAccount({
-              username: person.username,
-              accountType: "agent",
-            });
-          } else if (accountType === 3) {
-            setAccount({
-              username: person.username,
-              accountType: "player",
-            });
-          }
-          setAccount((prev) => {
-            return {
-              ...prev,
-              accountID: res.data.accountId,
-            };
-          });
-          const token = res.data.token;
-          localStorage.setItem("token", token);
-          //GET WALLET BALANCE
-          axios({
-            method: "get",
-            url: `${hostHeader}/getWalletBalance/${res.data.accountId}`,
-            headers: headers,
-          })
-            .then((res2) => {
-              const walletBalance = res2.data.wallet;
-              setWalletBalance(walletBalance);
+            const token = res.data.token;
+            localStorage.setItem("token", token);
+            //GET WALLET BALANCE
+            axios({
+              method: "get",
+              url: `${hostHeader}/getWalletBalance/${res.data.accountId}`,
+              headers: headers,
             })
-            .catch((err) => {
-              console.log(err);
-            });
-          setIsLoggedIn(true);
+              .then((res2) => {
+                const walletBalance = res2.data.wallet;
+                setWalletBalance(walletBalance);
+              })
+              .catch((err) => {
+                console.log(err);
+              });
+            setIsLoggedIn(true);
+          } else {
+            toast.error("Your account is locked, please contact your Agent")
+          }
         })
         .catch((err) => {
           toast.error("Invalid credentials");

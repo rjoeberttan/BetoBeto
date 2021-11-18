@@ -1,5 +1,6 @@
 import axios from "axios";
 import React, { useEffect, props, useState, createContext, useContext } from "react";
+import { FaCheckCircle, FaTimesCircle} from 'react-icons/fa';
 import { toast, ToastContainer, Zoom } from "react-toastify";
 import { AuthContext } from "../store/auth-context";
 
@@ -113,6 +114,32 @@ function WalletRequestTable({
         });
 
     }
+
+    function cancelTransaction(){
+        const data = {
+            accountId: requesterAccountId,
+            transactionId: transactionId,
+            cancellerUsername: accepterUsername
+        }
+
+        axios({
+            method: "post",
+            url: `${bankHeader}/cancelTransaction`,
+            headers: {
+              "Authorization": "[9@kw7L>F86_P](p",
+            },
+            data: data
+          })
+        .then((res) => {
+            setConfirmed(true)
+            toast.success(res.data.message)
+        })
+        .catch((err) => {
+            toast.error("Cancel Transaction Failed")
+            console.log(err);
+        });
+       
+    }
    
     if (confirmed) {
         return null;
@@ -125,7 +152,9 @@ function WalletRequestTable({
                 <td>P {parseFloat(amount).toFixed(2)}</td>
                 <td>{placementDate}</td>
                 <td>
-                  <button className="btn btn-color text-light" onClick={confirmTransaction}>Confirm</button>
+                  <button className="btn btn-color text-light" onClick={confirmTransaction}><FaCheckCircle /></button>
+                  
+                  <button className="btn btn-color text-light" onClick={cancelTransaction}><FaTimesCircle /></button>
                 </td>
             </tr>
             
