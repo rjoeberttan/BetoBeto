@@ -314,7 +314,7 @@ app.post("/settleColorGameBets", (req, res) => {
                     var updateWalletDetailString = ''
                     updateWalletDetailsArr.forEach(entry => {
                         updateWalletDetailString += `{betId: ${entry.betId}, accountId: ${entry.account_id}, choice: ${entry.choice}, stake: ${entry.stake}, winnings: ${entry.winnings}} `
-                        updateWalletQuery += db.format("UPDATE accounts SET wallet=wallet+?, lastedit_date = NOW() WHERE account_id = ?; UPDATE bets SET cummulative = (SELECT wallet FROM accounts where account_id = ?), status = ?, settled_date = NOW() WHERE bet_id = ?;", [entry.winnings, entry.account_id, entry.account_id, entry.status, entry.betId] )
+                        updateWalletQuery += db.format("UPDATE accounts SET wallet=wallet+?, lastedit_date = NOW() WHERE account_id = ?; UPDATE bets SET cummulative = (SELECT wallet FROM accounts where account_id = ?), winnings=?, status = ?, settled_date = NOW() WHERE bet_id = ?;", [entry.winnings, entry.account_id, entry.account_id, entry.winnings,    entry.status, entry.betId] )
                     })
 
                     db.query(updateWalletQuery, (err, result3) => {
@@ -339,6 +339,7 @@ app.post("/sendTip", (req, res) => {
     const accountId = req.body.accountId
     const amount = req.body.amount
     const wallet = req.body.wallet
+    const adminAccountId = 16
     
 
     // Check if body is complete
@@ -389,7 +390,7 @@ app.post("/sendTip", (req, res) => {
                     cummulative2 = 99999
                     description = "Received Tip - amount: Php " + amount + " from player: " + accountId
                     sqlQuery2 = "INSERT INTO transactions (description, account_id, amount, cummulative, status, placement_date, transaction_type) VALUES (?,?,?,?,1,NOW(), 8)"
-                    db.query(sqlQuery2, [description, 1, amount, cummulative2], (err, result2) => {
+                    db.query(sqlQuery2, [description, adminAccountId, amount, cummulative2], (err, result2) => {
                         if (err) {
                             logger.error("Process 2: Error in sendTip request, from accountId:" + accountId + " error:" + err);
                             res.status(500).json({ message: "Error during managing player wallet" });

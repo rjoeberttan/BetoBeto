@@ -913,6 +913,31 @@ app.get("/getTransactionHistory/:accountId/:dateFrom/:dateTo", (req, res) => {
   });
 });
 
+
+
+
+// Accepted Deposits       Admin Magent Agent
+// Accepted Withdrawal     Admin Magent Agent
+
+// Commission              Magent Agent
+
+// Requested Deposit       Magent Agent
+// Requested Withdrawal    Magent Agent
+
+// Tips Received           Admin
+
+// Cash lost through Bet Winnings   Admin
+
+
+
+
+
+
+
+
+
+
+
 app.listen(4006, () => {
   console.log("Backend Bank Manager listentning at port 4006");
 });
