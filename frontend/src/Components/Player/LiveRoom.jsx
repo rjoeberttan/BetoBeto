@@ -3,10 +3,8 @@ import { useParams } from "react-router-dom";
 import YoutubeEmbed from "../Youtube";
 import TextScroller from "../TextScroller";
 import "./LiveRoom.css";
-import { socketIOClient, io } from "socket.io-client";
 import { AuthContext } from "../../store/auth-context";
 import socket from "../Websocket/socket";
-
 import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/dist/ReactToastify.min.css";
@@ -50,15 +48,20 @@ function LiveRoom() {
   const [stake, setStake] = useState(0);
   const [tip, setTip] = useState(0);
   const { gameId } = useParams();
-  const accountHeader = "http://localhost:4003";
-  const gameHeader = "http://localhost:4004";
-  const betHeader = "http://localhost:4005";
-  socket.emit("join_room", "colorGame");
+  const gameHeader = process.env.REACT_APP_HEADER_GAME;
+  const betHeader = process.env.REACT_APP_HEADER_BET
+  // process.env.REACT_APP_HEADER_BET;
+  console.log(betHeader)
+  const gameAuthorization = {"Authorization": process.env.REACT_APP_KEY_GAME}
+  const betAuthorization = {"Authorization": process.env.REACT_APP_KEY_BET}
+
+  
 
   //===========================================
   // UseEffect
   //===========================================
   useEffect(() => {
+    socket.emit("join_room", "colorGame");
     getLatestGameDetails();
     getLatestMarketDetails();
   }, []);
@@ -71,9 +74,7 @@ function LiveRoom() {
     axios({
       method: "get",
       url: `${gameHeader}/getGameDetails/${gameId}`,
-      headers: {
-        "Authorization": "Q@k=jLc-3CCK3Fc%",
-      },
+      headers: gameAuthorization
     }).then((res) => {
       //get game details
       const { data } = res.data;
@@ -97,9 +98,7 @@ function LiveRoom() {
     axios({
       method: "get",
       url: `${gameHeader}/getLatestMarketDetails/${gameId}`,
-      headers: {
-        "Authorization": "Q@k=jLc-3CCK3Fc%",
-      },
+      headers: gameAuthorization
     }).then((res) => {
       //get game details
       const { market } = res.data.data;
@@ -120,9 +119,7 @@ function LiveRoom() {
     axios({
       method: "get",
       url: `${gameHeader}/getColorGameBetTotals/${gameId}/${marketDetails.market_id}`,
-      headers: {
-        "Authorization": "Q@k=jLc-3CCK3Fc%",
-      },
+      headers: gameAuthorization
     })
       .then((res) => {
         const values = res.data.data;
@@ -175,9 +172,7 @@ function LiveRoom() {
     axios({
       method: "post",
       url: `${betHeader}/placeBet`,
-      headers: {
-        "Authorization": "h75*^*3DWwHFb4$V",
-      },
+      headers: betAuthorization,
       data: data,
     })
       .then((res) => {
@@ -244,9 +239,7 @@ function LiveRoom() {
       axios({
         method: "post",
         url: `${betHeader}/sendTip`,
-        headers: {
-          "Authorization": "h75*^*3DWwHFb4$V",
-        },
+        headers: betAuthorization,
         data: data,
       })
         .then((res) => {
@@ -311,7 +304,7 @@ function LiveRoom() {
           <TextScroller text={gameDetails.banner} />
         </div>
         <div className="col-md-8">
-          <YoutubeEmbed embedId="5qap5aO4i9A" />
+          <YoutubeEmbed embedId="" />
         </div>
         <div className="col-md-4 live-room-colorbox">
           <div class="card txt-black">

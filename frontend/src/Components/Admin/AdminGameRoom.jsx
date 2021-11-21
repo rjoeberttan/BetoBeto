@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import AdminGameRoomList from "./AdminGameRoomList";
 import "./AdminGameRoom.css";
+import env from "react-dotenv";
 const axios = require("axios").default;
 
 function AdminGameRoom() {
@@ -9,9 +10,9 @@ function AdminGameRoom() {
   useEffect(() => {
     axios({
       method: "get",
-      url: `http://localhost:4004/getGamesList`,
+      url: `${process.env.REACT_APP_HEADER_GAME}/getGamesList`,
       headers: {
-        "Authorization": "Q@k=jLc-3CCK3Fc%"
+        "Authorization": process.env.REACT_APP_KEY_GAME
       }
     }).then((res) => {
       setGameList(res.data.data);

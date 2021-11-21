@@ -16,7 +16,7 @@ app.use(express.json());
 app.use(helmet());
 app.use(
   cors({
-    origin: ["http://localhost:3000"],
+    origin: [process.env.FRONTEND],
     methods: ["GET", "POST"],
     credentials: true,
   })

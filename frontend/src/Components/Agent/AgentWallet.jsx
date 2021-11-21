@@ -14,19 +14,43 @@ function AgentWallet() {
   // Variable and useState Definitions
   //============================================
   const ctx = useContext(AuthContext);
-  const accountHeader = "http://localhost:4003"
-  const bankHeader = "http://localhost:4006"
+  const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT
+  const bankHeader = process.env.REACT_APP_HEADER_BANK
+  const accAuthorization = {"Authorization" : process.env.REACT_APP_KEY_ACCOUNT}
+  const bankAuthorization = {"Authorization" : process.env.REACT_APP_KEY_BANK}
   const [depositRequest, setDepositRequest] = useState([])
   const [withdrawalRequest, setWithdrawalRequest] = useState([])
   const [usersList, setUsersList] = useState([])
   const [activeUserId, setActiveUserId] = useState("")
   const [activeUsername, setActiveUsername] = useState("")
   const [amount, setAmount] = useState(0);
+  const [dateFilter, setDateFilter] = useState({
+    startDate: "",
+    endDate: "",
+  });
+  const [earnings, setEarnings] = useState({
+    totalDepositRequested: 0,
+    totalDepositAccepted: 0,
+    totalWithdrawalRequested: 0,
+    totalWithdrawalAccepted: 0,
+    totalFundTransfers: 0,
+    totalFundReceived: 0,
+    totalCommissions: 0,
+    totalEarnings: 0
+  });
 
   //============================================
   // useEffect Definitions
   //============================================
   useEffect(() => {
+    const date = new Date();
+    const dateToday = `${date.getFullYear()}-${
+      date.getMonth() + 1
+    }-${date.getDate()}`;
+    setDateFilter({
+      startDate: dateToday,
+      endDate: dateToday,
+    });
     getUnsettledDeposits()
     getUnsettledWithdrawals()
     getUsersList()
@@ -37,9 +61,7 @@ function AgentWallet() {
     axios({
       method: "get",
       url: `${bankHeader}/getUnsettledRequest/${ctx.user.accountID}/${accType}/0`,
-      headers: {
-        "Authorization": "[9@kw7L>F86_P](p",
-      },
+      headers: bankAuthorization
     })
       .then((res) => {
         const data = res.data.data;
@@ -56,9 +78,7 @@ function AgentWallet() {
     axios({
       method: "get",
       url: `${bankHeader}/getUnsettledRequest/${ctx.user.accountID}/${accType}/2`,
-      headers: {
-        "Authorization": "[9@kw7L>F86_P](p",
-      },
+      headers: bankAuthorization
     })
       .then((res) => {
         const data = res.data.data;
@@ -74,9 +94,7 @@ function AgentWallet() {
     axios({
       method: "get",
       url: `${accountHeader}/getAccountList/${ctx.user.accountID}/2`,
-      headers: {
-        "Authorization": "uKRd;$SuXd8b$MFX",
-      },
+      headers: accAuthorization
     })
       .then((res) => {
         const data = res.data.data;
@@ -108,6 +126,86 @@ function AgentWallet() {
     setAmount(amount)
   }
 
+  function handleDateChange(e) {
+    const { value, name } = e.target;
+    setDateFilter((prev) => {
+      return {
+        ...prev,
+        [name]: value,
+      };
+    });
+  }
+
+  function calculateEarnings(transList){
+    let depositAccepted = 0
+    let withdrawalAccepted = 0
+    let depositRequested = 0
+    let withdrawalRequested = 0
+    let fundTransfers = 0
+    let fundReceived = 0
+    let commissions = 0
+    
+    transList.map((trx) => {
+      console.log(trx.transaction_type, trx.amount)
+      if ((trx.transaction_type === 0) && (trx.status === 1)) {
+        depositRequested += trx.amount
+      } else if (trx.transaction_type === 1) {
+        depositAccepted += trx.amount
+      } else if ((trx.transaction_type === 2) && (trx.status === 1)) {
+        withdrawalRequested += trx.amount
+      } else if (trx.transaction_type === 3) {
+        withdrawalAccepted += trx.amount
+      } else if (trx.transaction_type === 4) {
+        fundTransfers += trx.amount
+      } else if (trx.transaction_type === 5) {
+        fundReceived += trx.amount
+      } else if (trx.transaction_type === 6) {
+        commissions += trx.amount
+      } 
+    })
+
+    var totalEarnings = depositAccepted 
+    - depositRequested 
+    + withdrawalRequested 
+    - withdrawalAccepted
+    - fundTransfers
+    + fundReceived
+    + commissions
+
+    setEarnings((prev) => {
+      return {
+        ...prev,
+        totalDepositRequested: depositRequested.toFixed(2),
+        totalDepositAccepted: depositAccepted.toFixed(2),
+        totalWithdrawalRequested: withdrawalRequested.toFixed(2),
+        totalWithdrawalAccepted: withdrawalAccepted.toFixed(2),
+        totalFundTransfers: fundTransfers.toFixed(2),
+        totalFundReceived: fundReceived.toFixed(2),
+        totalCommissions: commissions.toFixed(2),     
+        totalEarnings: totalEarnings.toFixed(2)  
+      }
+    })
+  }
+
+  function getEarnings(e) {
+    console.log("here")
+    axios({
+      method: "get",
+      url: `${bankHeader}/getTransactionHistory/${ctx.user.accountID}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
+      headers: bankAuthorization
+    })
+      .then((res) => {
+        const data = res.data.data;
+        console.log(res)
+        calculateEarnings(data)    
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+    
+    e.preventDefault()
+  }
+
   function submitTransfer(e){
     const senderWallet = parseFloat(ctx.walletBalance).toFixed(2)
 
@@ -126,9 +224,7 @@ function AgentWallet() {
       axios({
         method: "post",
         url: `${bankHeader}/transferFunds`,
-        headers: {
-          "Authorization": "[9@kw7L>F86_P](p",
-        },
+        headers: bankAuthorization,
         data: data
       })
         .then((res) => {
@@ -146,7 +242,6 @@ function AgentWallet() {
   }
 
 
-
   //=====================================================
   //  Components
   //=====================================================
@@ -161,16 +256,68 @@ function AgentWallet() {
           <div className="col-sm-3 wallet-card">
             <div className="card">
               <div className="card-body">
-                <div className="wallet-spacing">
-                  <h5 className="card-title">Wallet balance</h5>
-                  <div className="card-text">P 2,000.00</div>
+
+                <div className="row">
+                  <div className="admin-wallet-font">
+                    <b>Date Filter:</b>
+                  </div>
+                  <div className="col-md-8">
+                    <input
+                      className="date-style form-label"
+                      type="date"
+                      name="startDate"
+                      value={dateFilter.startDate}
+                      onChange={handleDateChange}
+                    />
+                  </div>
+                  -
+                  <div className="col-md-8">
+                    <input
+                      className="date-style form-label"
+                      type="date"
+                      name="endDate"
+                      value={dateFilter.endDate}
+                      onChange={handleDateChange}
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <button className="btn btn-color transaction-btn text-light col-xs-12" onClick={getEarnings}>
+                      Search
+                    </button>
+                  </div>
                 </div>
                 <div className="wallet-spacing">
-                  <h5 className="card-title">Commissions</h5>
-                  <div className="card-text">P 2,000.00</div>
+                  <h6 className="card-title">(+) Deposit Accepted</h6>
+                  <div className="card-text">₱{earnings.totalDepositAccepted}</div>
                 </div>
-                <hr />
-                <h4>No. of players 50</h4>
+                <div className="wallet-spacing">
+                  <h6 className="card-title">(-) Withdrawal Accepted</h6>
+                  <div className="card-text">₱{earnings.totalWithdrawalAccepted}</div>
+                </div>
+                <div className="wallet-spacing">
+                  <h6 className="card-title">(-) Deposit Requested</h6>
+                  <div className="card-text">₱{earnings.totalDepositRequested}</div>
+                </div>
+                <div className="wallet-spacing">
+                  <h6 className="card-title">(+) Withdrawal Requested</h6>
+                  <div className="card-text">₱{earnings.totalWithdrawalRequested}</div>
+                </div>
+                <div className="wallet-spacing">
+                  <h6 className="card-title">(-) Fund Transfers</h6>
+                  <div className="card-text">₱{earnings.totalFundTransfers}</div>
+                </div>
+                <div className="wallet-spacing">
+                  <h6 className="card-title">(+) Fund Received</h6>
+                  <div className="card-text">₱{earnings.totalFundReceived}</div>
+                </div>
+                <div className="wallet-spacing">
+                  <h6 className="card-title">(+) Commissions</h6>
+                  <div className="card-text">₱{earnings.totalCommissions}</div>
+                </div>
+                <div className="wallet-spacing">
+                  <h6 className="card-title">Total Earnings</h6>
+                  <div className="card-text">₱{earnings.totalEarnings}</div>
+                </div>
               </div>
             </div>
           </div>

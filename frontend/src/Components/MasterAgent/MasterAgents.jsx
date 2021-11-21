@@ -8,7 +8,8 @@ import axios from "axios";
 function MasterAgents() {
 
   const ctx = useContext(AuthContext);
-  const accountHeader = "http://localhost:4003";
+  const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT;
+  const accAuthorization = {"Authorization": process.env.REACT_APP_KEY_ACCOUNT}
   const [agents, setAgents] = useState([]);
 
   useEffect(() => {
@@ -19,9 +20,7 @@ function MasterAgents() {
     axios({
       method: "get",
       url: `${accountHeader}/getAccountList/${ctx.user.accountID}/1`,
-      headers: {
-        "Authorization": "uKRd;$SuXd8b$MFX",
-      },
+      headers: accAuthorization
     })
       .then((res) => {
         const data = res.data.data;

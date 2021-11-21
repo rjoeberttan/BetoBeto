@@ -10,7 +10,6 @@ function Wallet() {
   // Variables and State Init
   //====================================
   const ctx = useContext(AuthContext);
-  const bankHeader = "http://localhost:4006";
 
   return (
     <div className="container text-light container-wallet">
@@ -29,10 +28,9 @@ function Wallet() {
               </div>
             </div>
           </div>
-          <DepositRequest accId={ctx.user.accountID} header={bankHeader} />
+          <DepositRequest accId={ctx.user.accountID} />
           <WithdrawalReq
             accId={ctx.user.accountID}
-            header={bankHeader}
             walletBalance={ctx.walletBalance}
           />
         </div>

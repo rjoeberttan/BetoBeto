@@ -2,10 +2,11 @@ import {React, useContext, useEffect, useState} from "react";
 import { AuthContext } from "../../store/auth-context";
 import axios from "axios";
 import UserCard from "../Usercard/UserCard";
+import env from "react-dotenv";
 
 function AdminAgents() {
   const ctx = useContext(AuthContext);
-  const accountHeader = "http://localhost:4003";
+  const accountUrl = process.env.REACT_APP_HEADER_ACCOUNT;
   const [agents, setAgents] = useState([]);
 
   useEffect(() => {
@@ -15,9 +16,9 @@ function AdminAgents() {
   function getUserList() {
     axios({
       method: "get",
-      url: `${accountHeader}/getAccountList/${ctx.user.accountID}/0`,
+      url: `${accountUrl}/getAccountList/${ctx.user.accountID}/0`,
       headers: {
-        "Authorization": "uKRd;$SuXd8b$MFX",
+        "Authorization": process.env.REACT_APP_KEY_ACCOUNT,
       },
     })
       .then((res) => {

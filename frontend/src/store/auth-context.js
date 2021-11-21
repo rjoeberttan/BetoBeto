@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { toast } from 'react-toastify';
 const axios = require("axios").default;
-require("dotenv").config();
+
 
 export const AuthContext = React.createContext({});
 
 export default function AuthContextProvider(props) {
-  const hostHeader = "http://localhost:4003";
-  const headers = { "Authorization": "uKRd;$SuXd8b$MFX" };
+  const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT;
+  const accAuthorization = { "Authorization": process.env.REACT_APP_KEY_ACCOUNT };
   const [account, setAccount] = useState({
     username: "",
     accountType: "",
@@ -24,10 +24,10 @@ export default function AuthContextProvider(props) {
     const token = localStorage.getItem("token");
     axios({
       method: "get",
-      url: `${hostHeader}/isUserAuth`,
+      url: `${accountHeader}/isUserAuth`,
       headers: {
         "x-access-token": token,
-        "Authorization": "uKRd;$SuXd8b$MFX",
+        "Authorization": process.env.REACT_APP_KEY_ACCOUNT,
       },
     })
       .then((res) => {
@@ -59,8 +59,8 @@ export default function AuthContextProvider(props) {
           }
           axios({
             method: "get",
-            url: `${hostHeader}/getWalletBalance/${res.data.accountId}`,
-            headers: headers,
+            url: `${accountHeader}/getWalletBalance/${res.data.accountId}`,
+            headers: accAuthorization,
           })
             .then((res2) => {
               const walletBalance = res2.data.wallet;
@@ -98,8 +98,8 @@ export default function AuthContextProvider(props) {
     } else {
       axios({
         method: "post",
-        url: `${hostHeader}/login`,
-        headers: headers,
+        url: `${accountHeader}/login`,
+        headers: accAuthorization,
         data: {
           username: person.username,
           password: person.password,
@@ -141,8 +141,8 @@ export default function AuthContextProvider(props) {
             //GET WALLET BALANCE
             axios({
               method: "get",
-              url: `${hostHeader}/getWalletBalance/${res.data.accountId}`,
-              headers: headers,
+              url: `${accountHeader}/getWalletBalance/${res.data.accountId}`,
+              headers: accAuthorization,
             })
               .then((res2) => {
                 const walletBalance = res2.data.wallet;
@@ -181,7 +181,7 @@ export default function AuthContextProvider(props) {
         handleLogOut: handleLogOut,
         walletHandler: walletHandler,
         user: account,
-        hostHeader: hostHeader,
+        hostHeader: accountHeader,
         walletBalance: walletBalance,
         // handleWallet: handleWallet
       }}

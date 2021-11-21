@@ -5,6 +5,8 @@ const axios = require("axios").default;
 
 export default function DepositRequest(props) {
   const [dpAmount, setDpAmount] = useState();
+  const bankHeader = process.env.REACT_APP_HEADER_BANK
+  const bankAuthorization = {"Authorization": process.env.REACT_APP_KEY_BANK}
 
   function handleDepositAmt(e) {
     setDpAmount(e.target.value);
@@ -14,10 +16,8 @@ export default function DepositRequest(props) {
     console.log(dpAmount, props.accId)
     axios({
       method: "post",
-      url: `${props.header}/requestDeposit`,
-      headers: {
-        "Authorization": "[9@kw7L>F86_P](p",
-      },
+      url: `${bankHeader}/requestDeposit`,
+      headers: bankAuthorization,
       data: {
         amount: dpAmount,
         accountId: props.accId,

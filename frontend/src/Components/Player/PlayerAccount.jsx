@@ -15,7 +15,8 @@ function Account() {
     phone: "",
   });
 
-  const accountHeader = "http://localhost:4003";
+  const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT;
+  const accAuthorization = {"Authorization": process.env.REACT_APP_KEY_ACCOUNT}
   //===========================================
   // UseEffect
   //===========================================
@@ -27,9 +28,7 @@ function Account() {
     axios({
       method: "get",
       url: `${accountHeader}/getUserDetails/${accountId}`,
-      headers: {
-        "Authorization": "uKRd;$SuXd8b$MFX",
-      },
+      headers: accAuthorization
     })
       .then((res) => {
         console.log(res);
@@ -68,9 +67,7 @@ function Account() {
       axios({
         method: "post",
         url: `${accountHeader}/updatePhoneDetail`,
-        headers: {
-          "Authorization": "uKRd;$SuXd8b$MFX",
-        },
+        headers: accAuthorization,
         data: {
           phone: userDetails.phone,
           accountId: ctx.user.accountID,
@@ -110,9 +107,7 @@ function Account() {
       axios({
         method: "post",
         url: `${accountHeader}/updatePassword`,
-        headers: {
-          "Authorization": "uKRd;$SuXd8b$MFX",
-        },
+        headers: accAuthorization,
         data: {
           password: password.password,
           accountId: ctx.user.accountID,

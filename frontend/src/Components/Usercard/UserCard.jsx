@@ -22,8 +22,12 @@ function UserCard({
   //=============================================
   // Variables Initialization
   //=============================================
-  const accountHeader = "http://localhost:4003";
-  const bankHeader = "http://localhost:4006"
+  const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT;
+  const bankHeader = process.env.REACT_APP_HEADER_BANK;
+  const accAuthorization = {"Authorization": process.env.REACT_APP_KEY_ACCOUNT}
+  const bankAuthorization = {"Authorization": process.env.REACT_APP_KEY_BANK}
+ 
+  
   const ctx = useContext(AuthContext)
   const [numAgents, setNumAgents] = useState(0);
   const [numPlayers, setNumPlayers] = useState(0);
@@ -55,9 +59,7 @@ function UserCard({
     axios({
       method: "get",
       url: `${accountHeader}/getCountUnderUser/${accountId}`,
-      headers: {
-        "Authorization": "uKRd;$SuXd8b$MFX",
-      },
+      headers: accAuthorization
     })
       .then((res) => {
         setNumAgents(res.data.count)
@@ -72,9 +74,7 @@ function UserCard({
     axios({
       method: "get",
       url: `${accountHeader}/getCountPlayer/${accountId}`,
-      headers: {
-        "Authorization": "uKRd;$SuXd8b$MFX",
-      },
+      headers: accAuthorization
     })
       .then((res) => {
         setNumPlayers(res.data.count)
@@ -89,9 +89,7 @@ function UserCard({
     axios({
       method: "get",
       url: `${accountHeader}/getAgentName/${accountId}`,
-      headers: {
-        "Authorization": "uKRd;$SuXd8b$MFX",
-      },
+      headers: accAuthorization
     })
       .then((res) => {
         console.log(res.data.agentName)
@@ -128,9 +126,7 @@ function UserCard({
       axios({
         method: "post",
         url: `${accountHeader}/updatePassword`,
-        headers: {
-          "Authorization": "uKRd;$SuXd8b$MFX",
-        },
+        headers: accAuthorization,
         data: {
           password: password.password,
           accountId: accountId,
@@ -154,9 +150,7 @@ function UserCard({
     axios({
       method: "post",
       url: `${accountHeader}/updateCommission`,
-      headers: {
-        "Authorization": "uKRd;$SuXd8b$MFX",
-      },
+      headers: accAuthorization,
       data: {
         commission: commissionNew,
         accountId: accountId,
@@ -180,9 +174,7 @@ function UserCard({
     axios({
       method: "post",
       url: `${bankHeader}/transferFunds`,
-      headers: {
-        "Authorization": "[9@kw7L>F86_P](p",
-      },
+      headers: bankAuthorization,
       data: {
         fromAccountId:editorId,
         fromUsername: editor,
@@ -216,9 +208,7 @@ function UserCard({
     axios({
       method: "post",
       url: `${accountHeader}/changeAccountStatus`,
-      headers: {
-        "Authorization": "uKRd;$SuXd8b$MFX",
-      },
+      headers: accAuthorization,
       data: {
         status: currentStatusDigit,
         accountId: accountId,

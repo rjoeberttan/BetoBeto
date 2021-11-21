@@ -6,7 +6,8 @@ import "./AgentPlayers.css";
 
 function AgentPlayers() {
   const ctx = useContext(AuthContext);
-  const accountHeader = "http://localhost:4003";
+  const accountHeader = process.process.env.REACT_APP_REACT_APP_HEADER_ACCOUNT;
+  const accAuthorization = {"Authorization" : process.process.env.REACT_APP_REACT_APP_KEY_ACCOUNT}
   const [players, setPlayers] = useState([]);
 
   useEffect(() => {
@@ -17,9 +18,7 @@ function AgentPlayers() {
     axios({
       method: "get",
       url: `${accountHeader}/getAccountList/${ctx.user.accountID}/2`,
-      headers: {
-        "Authorization": "uKRd;$SuXd8b$MFX",
-      },
+      headers: accAuthorization
     })
       .then((res) => {
         const data = res.data.data;

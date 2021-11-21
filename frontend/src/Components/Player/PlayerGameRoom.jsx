@@ -7,14 +7,14 @@ const axios  = require("axios");
 function GameRoom() {
 
   const [gameList, setGameList] = useState([]);
+  const gameHeader = process.env.REACT_APP_HEADER_GAME;
+  const gameAuthorization = {"Authorization": process.env.REACT_APP_KEY_GAME}
 
   useEffect(() => {
     axios({
       method: "get",
-      url: `http://localhost:4004/getGamesList`,
-      headers: {
-        "Authorization": "Q@k=jLc-3CCK3Fc%"
-      }
+      url: `${gameHeader}/getGamesList`,
+      headers: gameAuthorization
     }).then((res) => {
       console.log(res)
       setGameList(res.data.data);

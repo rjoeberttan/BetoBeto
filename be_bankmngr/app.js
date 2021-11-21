@@ -13,7 +13,7 @@ app.use(express.json());
 app.use(helmet());
 app.use(
   cors({
-    origin: ["http://localhost:3000"],
+    origin: [process.env.FRONTEND],
     methods: ["GET", "POST"],
     credentials: true,
   })
@@ -914,23 +914,106 @@ app.get("/getTransactionHistory/:accountId/:dateFrom/:dateTo", (req, res) => {
 });
 
 
+app.get("/getBetCommissionEarnings/:dateFrom/:dateTo", (req, res) => {
+  const apiKey = req.header("Authorization");
+  const dateFrom = req.params.dateFrom;
+  const dateTo = req.params.dateTo;
+
+  var stake = 0
+  var winnings = 0
+  var commissions = 0
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn("getBetCommissionEarnings request has missing/wrong API_KEY");
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  sqlQuery =
+    "SELECT SUM(stake) as stake, SUM(winnings) as winnings from bets where placement_date AND placement_date BETWEEN ? AND ?;";
+  db.query(sqlQuery, [dateFrom, dateTo], (err, result) => {
+    if (err) {
+      logger.error(
+        " Process 1: Error in getBetCommissionEarnings request from accountId:" + err
+      );
+    } else {
+      // res.status(200).json({ message: "Request Successful", data: result });
+      stake = result[0].stake
+      winnings = result[0].winnings
+
+      sqlQuery2 = "SELECT SUM(amount) as commission from transactions where  placement_date BETWEEN ? AND ? AND transaction_type = 6;";
+      db.query(sqlQuery2, [dateFrom, dateTo], (err, result2) => {
+      if (err) {
+        logger.error(
+          " Process 1: Error in getBetCommissionEarnings request from accountId:" + err
+        );
+      } else {
+        commissions = result2[0].commission
+        res.status(200).json({ message: "Request Successful", data: {stake: stake, winnings: winnings, commissions: commissions} });        
+      }
+      })
+    }
+  });
+});
 
 
-// Accepted Deposits       Admin Magent Agent
-// Accepted Withdrawal     Admin Magent Agent
-
-// Commission              Magent Agent
-
-// Requested Deposit       Magent Agent
-// Requested Withdrawal    Magent Agent
-
-// Tips Received           Admin
-
-// Cash lost through Bet Winnings   Admin
 
 
+// app.get("/getAcceptedDeposits/:accountId/:dateFrom/:dateTo", (req, res) => {
+//   const apiKey = req.header("Authorization");
+//   const accountId = req.params.accountId;
+//   const dateFrom = req.params.dateFrom;
+//   const dateTo = req.params.dateTo;
 
+//   // Check if body is complete
+//   if (!accountId) {
+//     logger.warn("getAcceptedDeposits request has missing body parameters");
+//     res.status(400).json({ message: "Missing body parameters" });
+//     return;
+//   }
 
+//   // Check if apiKey is correct
+//   if (!apiKey || apiKey !== process.env.API_KEY) {
+//     logger.warn("getAcceptedDeposits request has missing/wrong API_KEY");
+//     res.status(401).json({ message: "Unauthorized Request" });
+//     return;
+//   }
+
+//   sqlQuery =
+//     "SELECT * from transactions WHERE account_id = ? AND transaction_type = 1 A ND placement_date BETWEEN ? AND ?;";
+//   db.query(sqlQuery, [accountId, dateFrom, dateTo], (err, result) => {
+//     if (err) {
+//       logger.error(
+//         " Process 1: Error in getAcceptedDeposits request from accountId:" +
+//           accountId
+//       );
+//     } else {
+//       res.status(200).json({ message: "Request Successful", data: result });
+//     }
+//   });
+
+// })
+
+// app.get("/getAcceptedWithdrawals/:accountId/:dateFrom/:dateTo", (req, res) => {
+  
+// })
+
+// app.get("/getFundTransfersGiven/:accountId/:dateFrom/:dateTo", (req, res) => {
+  
+// })
+
+// app.get("/getFundTransfersReceived/:accountId/:dateFrom/:dateTo", (req, res) => {
+  
+// })
+
+// app.get("/getRequestedWithdrawals/:accountId/:dateFrom/:dateTo", (req, res) => {
+  
+// })
+
+// app.get("/getTotalCommissions/:accountId/:dateFrom/:dateTo", (req, res) => {
+  
+// })
 
 
 

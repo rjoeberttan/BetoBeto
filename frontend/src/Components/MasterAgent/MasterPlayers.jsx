@@ -8,7 +8,10 @@ import "./MasterPlayers.css";
 
 function MasterPlayers() {
   const ctx = useContext(AuthContext);
-  const accountHeader = "http://localhost:4003";  function renderEmpty(){
+  const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT;
+  const accAuthorization = {"Authorization": process.env.REACT_APP_KEY_ACCOUNT}  
+  
+  function renderEmpty(){
     return (<div>Earl Empty</div>);
   }
   const [players, setPlayers] = useState([]);
@@ -23,9 +26,7 @@ function MasterPlayers() {
     axios({
       method: "get",
       url: `${accountHeader}/getAccountList/${ctx.user.accountID}/1`,
-      headers: {
-        "Authorization": "uKRd;$SuXd8b$MFX",
-      },
+      headers: accAuthorization
     })
       .then((res) => {
         const data = res.data.data;

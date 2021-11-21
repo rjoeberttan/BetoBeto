@@ -4,9 +4,13 @@ import { AuthContext } from "../store/auth-context";
 import { toast, ToastContainer } from "react-toastify";
 
 export default function TransactionsPage() {
-  const accountHeader = "http://localhost:4003";
-  const bankHeader = "http://localhost:4006";
-  const betHeader = "http://localhost:4005";
+  const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT;
+  const bankHeader = process.env.REACT_APP_HEADER_BANK;
+  const betHeader = process.env.REACT_APP_HEADER_BET;
+  const accAuthorization = {"Authorization": process.env.REACT_APP_KEY_ACCOUNT}
+  const bankAuthorization = {"Authorization": process.env.REACT_APP_KEY_BANK}
+  const betAuthorization = {"Authorization": process.env.REACT_APP_KEY_BET}
+
   const ctx = useContext(AuthContext);
   const [usersList, setUsersList] = useState([]);
   const [activeUserId, setActiveUserId] = useState(ctx.user.accountID);
@@ -32,6 +36,18 @@ export default function TransactionsPage() {
     if (ctx.user.accountType !== 2) {
       getUsersList();
     }
+
+
+    // Set Initial UserFilter
+    if (ctx.accountType === 0){
+      setUserFilter("0")
+    } else if (ctx.accountType === 1){
+      setUserFilter("2")
+    } else if (ctx.user.accountType === 2){
+      setUserFilter("3")
+    } else {
+      setUserFilter("9")
+    }
   }, []);
 
   function getUsersList() {
@@ -49,9 +65,7 @@ export default function TransactionsPage() {
     axios({
       method: "get",
       url: `${accountHeader}/getAccountList/${ctx.user.accountID}/${accType}`,
-      headers: {
-        "Authorization": "uKRd;$SuXd8b$MFX",
-      },
+      headers: accAuthorization
     })
       .then((res) => {
         const data = res.data.data;
@@ -70,9 +84,7 @@ export default function TransactionsPage() {
     axios({
       method: "get",
       url: `${bankHeader}/getTransactionHistory/${accountId}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
-      headers: {
-        "Authorization": "[9@kw7L>F86_P](p",
-      },
+      headers: bankAuthorization
     })
       .then((res) => {
         const data = res.data.data;
@@ -87,13 +99,10 @@ export default function TransactionsPage() {
     axios({
       method: "get",
       url: `${betHeader}/getBetHistory/${accountId}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
-      headers: {
-        "Authorization": "h75*^*3DWwHFb4$V",
-      },
+      headers: betAuthorization
     })
       .then((res) => {
         const data = res.data.data;
-        console.log(data);
         setBetList(data);
       })
       .catch((err) => {
@@ -110,8 +119,8 @@ export default function TransactionsPage() {
 
   function handleFilterChange(e) {
     const value = Number(e.target.value);
-    setUserFilter(value)
-    if ((value !== 0) || (value !== 9)) {
+    console.log(value)
+    if ((value !== 0) && (value !== 9)) {
       const x = usersList.filter((user) => user.account_type === value);
       setUserFilter(e.target.value);
       setFilteredList(x);
@@ -119,11 +128,15 @@ export default function TransactionsPage() {
         setActiveUserId(x[0].account_id);
         setActiveUsername(x[0].username);
         getTransactionsTable(x[0].account_id)
+        getBetTable(x[0].account_id)
       }
     } else if (value === 9) {
+      setUserFilter(e.target.value);
+      setFilteredList([])
       setActiveUserId(ctx.user.accountID);
       setActiveUsername(ctx.user.username);
       getTransactionsTable(ctx.user.accountID)
+      getBetTable(ctx.user.accountID)
     } 
     else {
       setFilteredList(usersList);
@@ -131,6 +144,7 @@ export default function TransactionsPage() {
       setActiveUserId(usersList[0].account_id);
       setActiveUsername(usersList[0].username);
       getTransactionsTable(usersList[0].account_id)
+      getBetTable(usersList[0].account_id)
     }
   }
 
@@ -153,6 +167,7 @@ export default function TransactionsPage() {
       getTransactionsTable(activeUserId);
       getBetTable(activeUserId)
     } else {
+      console.log(activeUserId)
       getTransactionsTable(activeUserId);
       getBetTable(activeUserId)
     }
@@ -385,7 +400,7 @@ export default function TransactionsPage() {
         <tbody>
           {transactionsList.map((x) => (
             <tr>
-              <td>{x.placement_date.substring(0, 10)}</td>
+              <td>{x.placement_date}</td>
               <td>{x.transaction_id}</td>
               <td>{x.description}</td>
               <td>₱ {x.amount.toFixed(2)}</td>
@@ -433,8 +448,6 @@ export default function TransactionsPage() {
         ): null
       }
       {(transactionsList.length === 0) && (userFilter === "3")? renderEmptyTable(true): renderEmptyTable(false) }
-
-
     </div>
   );
 }

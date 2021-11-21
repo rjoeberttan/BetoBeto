@@ -6,7 +6,7 @@ import "./AdminPlayers.css";
 
 function AdminMasterAgents() {
   const ctx = useContext(AuthContext);
-  const accountHeader = "http://localhost:4003";
+  const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT;
   const [masterAgents, setMasterAgents] = useState([]);
 
   useEffect(() => {
@@ -18,7 +18,7 @@ function AdminMasterAgents() {
       method: "get",
       url: `${accountHeader}/getAccountList/${ctx.user.accountID}/0`,
       headers: {
-        "Authorization": "uKRd;$SuXd8b$MFX",
+        "Authorization": process.env.REACT_APP_KEY_ACCOUNT,
       },
     })
       .then((res) => {

@@ -16,7 +16,7 @@ app.use(helmet());
 app.use(express.urlencoded({ extended: true }));
 app.use(
     cors({
-        origin: ["http://localhost:3000"],
+        origin: [process.env.FRONTEND],
         methods: ["GET", "POST"],
         credentials: true,
     })
@@ -79,6 +79,8 @@ app.post("/placeBet", (req, res) => {
         res.status(400).json({ message: "Missing body parameters" });
         return;
     }
+
+    console.log(apiKey, process.env.API_KEY)
 
     // Check if apiKey is correct
     if (!apiKey || apiKey !== process.env.API_KEY) {
@@ -182,52 +184,58 @@ app.post("/placeBet", (req, res) => {
                                             })
                                         }
                                     })
-                                }
-                            })
 
-                            // Process 7 Master Agent Part
-                            sqlQueryMasterAgent = "SELECT account_id, commission, wallet FROM accounts WHERE account_id = (SELECT agent_id FROM accounts WHERE account_id = (SELECT agent_id FROM accounts WHERE account_id = ?))"
-                            db.query(sqlQueryMasterAgent, [accountId], (err, resultMasterAgent) => {
-                                if (err) {
-                                    logger.error("Process 4: Error in getting commission details of master agent of account_id:"+accountId + " err:" + err) 
-                                } else if (resultMasterAgent.length <= 0){
-                                    logger.warn("Process 4: No associated master agent for accountId:" + accountId + " to give commissions to from betId:" + betId)
-                                } else if (!resultMasterAgent[0].commission) {
-                                    logger.warn("Process 4: No associated master agent for accountId:" + accountId + " to give commissions to")
-                                } else {
 
-                                    const masterCommission = parseFloat(parseFloat(stake/100) * parseFloat(resultMasterAgent[0].commission)).toFixed(2)
-                                    const masterCummulative = (parseFloat(resultMasterAgent[0].wallet) + parseFloat(masterCommission)).toFixed(2)
-
-                                    // Process 8 
-                                    // Increase Master Agent Wallet
-                                    logger.info("Increasing agent wallet, agentId: " + resultMasterAgent[0].account_id+ " wallet increased to:" + masterCummulative + " for betId:" + betId)
-                                    sqlQueryMasterAgent2 = "UPDATE accounts SET wallet = ? WHERE account_id = ?"
-                                    db.query(sqlQueryMasterAgent2, [masterCummulative, resultMasterAgent[0].account_id], (err, resultMasterAgent2) => {
+                                    //Process 7 Master Agent Part
+                                    sqlQueryMasterAgent = "SELECT account_id, commission, wallet FROM accounts WHERE account_id = (SELECT agent_id FROM accounts WHERE account_id = (SELECT agent_id FROM accounts WHERE account_id = ?))"
+                                    db.query(sqlQueryMasterAgent, [accountId], (err, resultMasterAgent) => {
                                         if (err) {
-                                            logger.error("Process 5: Error in increasing wallet for agent: " + resultMasterAgent[0].account_id + "  to wallet:" + masterCummulative + " for betId:" + betId  + " err:" + err)
-                                        } else if (resultMasterAgent2.affectedRows <= 0){
-                                            logger.warn("Process 5: Warn in increasing wallet, update not successful, for agent: " + resultAgent[0].account_id + "  to wallet:" + masterCummulative + " for betId:" + betId)
+                                            logger.error("Process 4: Error in getting commission details of master agent of account_id:"+accountId + " err:" + err) 
+                                        } else if (resultMasterAgent.length <= 0){
+                                            logger.warn("Process 4: No associated master agent for accountId:" + accountId + " to give commissions to from betId:" + betId)
+                                        } else if (!resultMasterAgent[0].commission) {
+                                            logger.warn("Process 4: No associated master agent for accountId:" + accountId + " to give commissions to")
                                         } else {
-                                            logger.info("Wallet increased successfully for agentId: " + resultMasterAgent[0].account_id + " to:" + masterCummulative + " for betId:" + betId)
-                                        
-                                            // Process 9
-                                            // Insert to transactions table
-                                            transDescription2 = "Commission from BetId " + betId
-                                            sqlQueryMasterAgent3 = "INSERT INTO transactions (description, account_id, amount, cummulative, status, placement_date, transaction_type) VALUES (?,?,?,?,1, NOW(), 6)"
-                                            db.query(sqlQueryMasterAgent3, [transDescription2, resultMasterAgent[0].account_id, masterCommission, masterCummulative], (err, resultMasterAgent3) => {
+
+                                            const masterCommission = (parseFloat(parseFloat(stake/100) * parseFloat(resultMasterAgent[0].commission)).toFixed(2)) - agentCommission
+                                            const supposedMasterCommission = parseFloat(masterCommission) + parseFloat(agentCommission)
+                                            // console.log(`Agent Commission: ${agentCommission} supposed MA ${supposedMasterCommission} final MA ${masterCommission}`)
+                                            const masterCummulative = (parseFloat(resultMasterAgent[0].wallet) + parseFloat(masterCommission)).toFixed(2)
+
+                                            // Process 8 
+                                            // Increase Master Agent Wallet
+                                            logger.info("Increasing agent wallet, agentId: " + resultMasterAgent[0].account_id+ " wallet increased to:" + masterCummulative + " for betId:" + betId)
+                                            sqlQueryMasterAgent2 = "UPDATE accounts SET wallet = ? WHERE account_id = ?"
+                                            db.query(sqlQueryMasterAgent2, [masterCummulative, resultMasterAgent[0].account_id], (err, resultMasterAgent2) => {
                                                 if (err) {
-                                                    logger.error("Process 6: Error in inserting commission transaction for agent: " + resultMasterAgent[0].account_id +  " for betId:" + betId  + " err:" + err)
-                                                } else if (resultMasterAgent3.affectedRows <= 0){
-                                                    logger.warn("Process 6: Warn in inserting commission transaction, update not successful, for agent: " + resultMasterAgent[0].account_id + " for betId:" + betId)
+                                                    logger.error("Process 5: Error in increasing wallet for agent: " + resultMasterAgent[0].account_id + "  to wallet:" + masterCummulative + " for betId:" + betId  + " err:" + err)
+                                                } else if (resultMasterAgent2.affectedRows <= 0){
+                                                    logger.warn("Process 5: Warn in increasing wallet, update not successful, for agent: " + resultAgent[0].account_id + "  to wallet:" + masterCummulative + " for betId:" + betId)
                                                 } else {
-                                                    logger.info("Insert into commissions table successful, transactionId:" + resultMasterAgent3.insertId)
+                                                    logger.info("Wallet increased successfully for agentId: " + resultMasterAgent[0].account_id + " to:" + masterCummulative + " for betId:" + betId)
+                                                
+                                                    // Process 9
+                                                    // Insert to transactions table
+                                                    transDescription2 = "Commission from BetId " + betId
+                                                    sqlQueryMasterAgent3 = "INSERT INTO transactions (description, account_id, amount, cummulative, status, placement_date, transaction_type) VALUES (?,?,?,?,1, NOW(), 6)"
+                                                    db.query(sqlQueryMasterAgent3, [transDescription2, resultMasterAgent[0].account_id, masterCommission, masterCummulative], (err, resultMasterAgent3) => {
+                                                        if (err) {
+                                                            logger.error("Process 6: Error in inserting commission transaction for agent: " + resultMasterAgent[0].account_id +  " for betId:" + betId  + " err:" + err)
+                                                        } else if (resultMasterAgent3.affectedRows <= 0){
+                                                            logger.warn("Process 6: Warn in inserting commission transaction, update not successful, for agent: " + resultMasterAgent[0].account_id + " for betId:" + betId)
+                                                        } else {
+                                                            logger.info("Insert into commissions table successful, transactionId:" + resultMasterAgent3.insertId)
+                                                        }
+                                                    })
                                                 }
                                             })
                                         }
-                                    })
+                                    })       
+
                                 }
-                            })                      
+                            })
+
+               
                         }
                     })
                 }

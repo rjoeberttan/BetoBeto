@@ -10,8 +10,14 @@ function AdminWallet() {
   // Variable and useState Definitions
   //============================================
   const ctx = useContext(AuthContext);
-  const bankHeader = "http://localhost:4006";
-  const accountHeader = "http://localhost:4003";
+  const bankHeader = process.env.REACT_APP_HEADER_BANK;
+  const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT;
+  const bankAuthorization = {
+    "Authorization": process.env.REACT_APP_KEY_BANK
+  }
+  const accAuthorization = {
+    "Authorization": process.env.REACT_APP_KEY_ACCOUNT
+  }
   const [depositRequest, setDepositRequest] = useState([]);
   const [withdrawalRequest, setWithdrawalRequest] = useState([]);
   const [usersList, setUsersList] = useState([]);
@@ -20,11 +26,34 @@ function AdminWallet() {
   const [activeUserId, setActiveUserId] = useState("");
   const [activeUsername, setActiveUsername] = useState("");
   const [amount, setAmount] = useState(0);
+  const [dateFilter, setDateFilter] = useState({
+    startDate: "",
+    endDate: "",
+  });
+  const [transactionsList, setTransactionsList] = useState([]);
+  const [earnings, setEarnings] = useState({
+    totalDepositAccepted: 0,
+    totalWithdrawalAccepted: 0,
+    totalFundTransfers: 0,
+    totalTipReceived: 0,
+    totalBetsPlaced: 0,
+    totalLossesBetWinnings: 0,
+    totalLossesCommissions: 0,
+    totalEarnings: 0
+  });
 
   //============================================
   // useEffect Definitions
   //============================================
   useEffect(() => {
+    const date = new Date();
+    const dateToday = `${date.getFullYear()}-${
+      date.getMonth() + 1
+    }-${date.getDate()}`;
+    setDateFilter({
+      startDate: dateToday,
+      endDate: dateToday,
+    });
     getUnsettledDeposits();
     getUnsettledWithdrawals();
     getUsersList();
@@ -40,9 +69,7 @@ function AdminWallet() {
     axios({
       method: "get",
       url: `${bankHeader}/getUnsettledRequest/${ctx.user.accountID}/${accType}/0`,
-      headers: {
-        "Authorization": "[9@kw7L>F86_P](p",
-      },
+      headers: bankAuthorization
     })
       .then((res) => {
         const data = res.data.data;
@@ -63,9 +90,7 @@ function AdminWallet() {
     axios({
       method: "get",
       url: `${bankHeader}/getUnsettledRequest/${ctx.user.accountID}/${accType}/2`,
-      headers: {
-        "Authorization": "[9@kw7L>F86_P](p",
-      },
+      headers: bankAuthorization
     })
       .then((res) => {
         const data = res.data.data;
@@ -80,13 +105,10 @@ function AdminWallet() {
     axios({
       method: "get",
       url: `${accountHeader}/getAccountList/${ctx.user.accountID}/0`,
-      headers: {
-        "Authorization": "uKRd;$SuXd8b$MFX",
-      },
+      headers: accAuthorization
     })
       .then((res) => {
         const data = res.data.data;
-        console.log(data);
         setUsersList(data);
         setActiveUsername(data[1].username);
         setActiveUserId(data[1].account_id);
@@ -132,9 +154,7 @@ function AdminWallet() {
       axios({
         method: "post",
         url: `${bankHeader}/transferFunds`,
-        headers: {
-          "Authorization": "[9@kw7L>F86_P](p",
-        },
+        headers:  bankAuthorization,
         data: data,
       })
         .then((res) => {
@@ -168,6 +188,110 @@ function AdminWallet() {
     }
   }
 
+  function handleDateChange(e) {
+    const { value, name } = e.target;
+    setDateFilter((prev) => {
+      return {
+        ...prev,
+        [name]: value,
+      };
+    });
+  }
+
+  function calculateEarnings(transList) {
+    var totalDepositsAccepted = 0
+    var totalWithdrawalAccepted = 0
+    var totalFundTransfers = 0
+    var totalTipReceived = 0
+
+    transList.map((transaction) => {
+      const transType = transaction.transaction_type
+      const amount = transaction.amount
+      if (transType === 1){
+        totalDepositsAccepted += amount
+      } else if (transType === 3){
+        totalWithdrawalAccepted += amount
+      } else if (transType === 4){
+        totalFundTransfers += amount
+      } else if (transType === 8) {
+        totalTipReceived += amount
+      }
+    })
+
+    setEarnings((prev) => {
+      return {
+        ...prev,
+        totalDepositAccepted: parseFloat(totalDepositsAccepted).toFixed(2),
+        totalWithdrawalAccepted: parseFloat(totalWithdrawalAccepted).toFixed(2),
+        totalFundTransfers: parseFloat(totalFundTransfers).toFixed(2),
+        totalTipReceived: parseFloat(totalTipReceived).toFixed(2),
+      }
+    })
+
+    const totalEarnings = parseFloat(totalDepositsAccepted )
+    - parseFloat(totalWithdrawalAccepted )
+    - parseFloat(totalFundTransfers )
+    + parseFloat(totalTipReceived) 
+    + parseFloat(earnings.totalBetsPlaced )
+    - parseFloat(earnings.totalLossesCommissions )
+    - parseFloat(earnings.totalLossesBetWinnings)
+    setEarnings((prev) => {
+      return {
+        ...prev,
+        totalEarnings: parseFloat(totalEarnings).toFixed(2)
+      }
+    })
+    
+  }
+  
+  function getTransactionHistory() {
+    axios({
+      method: "get",
+      url: `${bankHeader}/getTransactionHistory/${ctx.user.accountID}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
+      headers: bankAuthorization
+    })
+      .then((res) => {
+        const data = res.data.data;
+        getBetCommissionEarnings()
+        calculateEarnings(data)      
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
+  function getBetCommissionEarnings() {
+    axios({
+      method: "get",
+      url: `${bankHeader}/getBetCommissionEarnings/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
+      headers: bankAuthorization
+    })
+      .then((res) => {
+        const data = res.data.data;
+        setEarnings((prev) => {
+          return {
+            ...prev,
+            totalBetsPlaced: parseFloat(data.stake).toFixed(2),
+            totalLossesBetWinnings: parseFloat(data.winnings).toFixed(2),
+            totalLossesCommissions: parseFloat(data.commissions).toFixed(2)
+          }
+        })     
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+  }
+
+  function getEarnings(e){
+    getTransactionHistory()
+
+
+    e.preventDefault()
+  } 
+
+
+
   //=====================================================
   //  Components
   //=====================================================
@@ -192,6 +316,8 @@ function AdminWallet() {
                       className="date-style form-label"
                       type="date"
                       name="startDate"
+                      value={dateFilter.startDate}
+                      onChange={handleDateChange}
                     />
                   </div>
                   -
@@ -200,56 +326,78 @@ function AdminWallet() {
                       className="date-style form-label"
                       type="date"
                       name="endDate"
+                      value={dateFilter.endDate}
+                      onChange={handleDateChange}
                     />
                   </div>
                   <div className="col-md-2">
-                    <button className="btn btn-color transaction-btn text-light col-xs-12">
+                    <button className="btn btn-color transaction-btn text-light col-xs-12" onClick={getEarnings}>
                       Search
                     </button>
                   </div>
                 </div>
                 <div className="row">
-                  <div className="col-md-7 col-6 admin-wallet-font">
+                  {/* <div className="col-md-7 col-6 admin-wallet-font">
                     <b>Wallet Balance:</b>
                   </div>
                   <div className="col-md-5 col-6 admin-wallet-font">
                     P 99,999.99
-                  </div>
-                  <div className="col-md-7 col-6 admin-wallet-font">
+                  </div> */}
+                  {/* <div className="col-md-7 col-6 admin-wallet-font">
                     <b>Total Bets Placed:</b>
                   </div>
                   <div className="col-md-5 col-6 admin-wallet-font">
                     P 60, 000.00
-                  </div>
+                  </div> */}
                   <div className="col-md-7 col-6 admin-wallet-font">
-                    <b>Total Deposits Received:</b>
+                    <b>(+) Total Deposits Received:</b>
                   </div>
                   <div className="col-md-5 col-6 admin-wallet-font">
-                    P 50, 000.00
+                    P {earnings.totalDepositAccepted}
                   </div>
                   <div className="col-md-7 col-6 admin-wallet-font">
-                    <b>Total Withdrawals:</b>
+                    <b>(-) Total Withdrawals:</b>
                   </div>
                   <div className="col-md-5 col-6 admin-wallet-font">
-                    P 30, 000.00
+                    P {earnings.totalWithdrawalAccepted}
                   </div>
                   <div className="col-md-7 col-6 admin-wallet-font">
-                    <b>Bet Losses:</b>
+                    <b>(-) Total Fund Transfers:</b>
                   </div>
                   <div className="col-md-5 col-6 admin-wallet-font">
-                    P 20, 000.00
+                    P {earnings.totalFundTransfers}
                   </div>
                   <div className="col-md-7 col-6 admin-wallet-font">
-                    <b>Commissions:</b>
+                    <b>(+) Total Tip Received:</b>
                   </div>
                   <div className="col-md-5 col-6 admin-wallet-font">
-                    P 5, 000.00
+                    P {earnings.totalTipReceived}
+                  </div>
+
+
+                  <div className="col-md-7 col-6 admin-wallet-font">
+                    <b>(+) Total Bets Placed:</b>
+                  </div>
+                  <div className="col-md-5 col-6 admin-wallet-font">
+                    P {earnings.totalBetsPlaced}
+                  </div>
+                  <div className="col-md-7 col-6 admin-wallet-font">
+                    <b>(-) Total Commissions Given:</b>
+                  </div>
+                  <div className="col-md-5 col-6 admin-wallet-font">
+                    P {earnings.totalLossesCommissions}
+                  </div>
+                  <div className="col-md-7 col-6 admin-wallet-font">
+                    <b>(-) Total Bet Winnings:</b>
+                  </div>
+                  <div className="col-md-5 col-6 admin-wallet-font">
+                    P {earnings.totalLossesBetWinnings}
                   </div>
                   <div className="col-md-7 col-6 admin-wallet-font">
                     <b>Total Earnings:</b>
                   </div>
                   <div className="col-md-5 col-6 admin-wallet-font">
-                    P 55, 000.00
+                    P {earnings.totalEarnings}
                   </div>
                 </div>
               </div>

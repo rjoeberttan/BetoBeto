@@ -6,7 +6,6 @@ import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/dist/ReactToastify.min.css";
 import { socketIOClient, io } from "socket.io-client";
-import socket from "../Websocket/socket";
 const axios = require("axios").default;
 
 function AdminGameSettings() {
@@ -50,10 +49,11 @@ function AdminGameSettings() {
 
   let { gameid } = useParams();
 
-  const accountHeader = "http://localhost:4003";
-  const gameHeader = "http://localhost:4004";
-  const betHeader = "http://localhost:4005";
-  const socket = io.connect("http://localhost:3010");
+  const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT;
+  const gameHeader = process.env.REACT_APP_HEADER_GAME;
+  const betHeader = process.env.REACT_APP_HEADER_BET;
+  const socket = io.connect(process.env.REACT_APP_HEADER_WEBSOCKET);
+  console.log(process.env.REACT_APP_HEADER_WEBSOCKET)
 
   useEffect(() => {
     socket.emit("join_room", "colorGame");
@@ -65,14 +65,14 @@ function AdminGameSettings() {
       url: `${accountHeader}/isUserAuth`,
       headers: {
         "x-access-token": token,
-        "Authorization": "uKRd;$SuXd8b$MFX",
+        "Authorization": process.env.REACT_APP_KEY_ACCOUNT,
       },
     }).then((res) => {
       axios({
         method: "get",
         url: `${gameHeader}/getGameDetails/${gameid}`,
         headers: {
-          "Authorization": "Q@k=jLc-3CCK3Fc%",
+          "Authorization": process.env.REACT_APP_KEY_GAME,
         },
       }).then((res) => {
         //get game details
@@ -96,7 +96,7 @@ function AdminGameSettings() {
         method: "get",
         url: `${gameHeader}/getLatestMarketDetails/${gameid}`,
         headers: {
-          "Authorization": "Q@k=jLc-3CCK3Fc%",
+          "Authorization": process.env.REACT_APP_KEY_GAME,
         },
       }).then((res) => {
         //get game details
@@ -120,7 +120,7 @@ function AdminGameSettings() {
           method: "get",
           url: `${gameHeader}/getManipulateValues/${gameid}/${market.market_id}`,
           headers: {
-            "Authorization": "Q@k=jLc-3CCK3Fc%",
+            "Authorization": process.env.REACT_APP_KEY_GAME,
           },
         }).then((res2) => {
           const manip_values = res2.data.data.market;
@@ -184,7 +184,7 @@ function AdminGameSettings() {
         method: "post",
         url: `${gameHeader}/updateGameSettings`,
         headers: {
-          "Authorization": "Q@k=jLc-3CCK3Fc%",
+          "Authorization": process.env.REACT_APP_KEY_GAME,
         },
         data: {
           gameId: gameid,
@@ -216,7 +216,7 @@ function AdminGameSettings() {
       method: "post",
       url: `${gameHeader}/updateColorGameWinMultiplier`,
       headers: {
-        "Authorization": "Q@k=jLc-3CCK3Fc%",
+        "Authorization": process.env.REACT_APP_KEY_GAME,
       },
       data: {
         gameId: gameid,
@@ -248,7 +248,7 @@ function AdminGameSettings() {
       method: "post",
       url: `${gameHeader}/updateBetThreshold`,
       headers: {
-        "Authorization": "Q@k=jLc-3CCK3Fc%",
+        "Authorization": process.env.REACT_APP_KEY_GAME,
       },
       data: {
         gameId: gameid,
@@ -299,7 +299,7 @@ function AdminGameSettings() {
         method: "post",
         url: `${gameHeader}/createColorGameMarket`,
         headers: {
-          "Authorization": "Q@k=jLc-3CCK3Fc%",
+          "Authorization": process.env.REACT_APP_KEY_GAME,
         },
         data: {
           gameId: gameid,
@@ -346,7 +346,7 @@ function AdminGameSettings() {
         method: "post",
         url: `${gameHeader}/openMarket`,
         headers: {
-          "Authorization": "Q@k=jLc-3CCK3Fc%",
+          "Authorization": process.env.REACT_APP_KEY_GAME,
         },
         data: {
           gameId: gameid,
@@ -386,7 +386,7 @@ function AdminGameSettings() {
         method: "post",
         url: `${gameHeader}/closeMarket`,
         headers: {
-          "Authorization": "Q@k=jLc-3CCK3Fc%",
+          "Authorization": process.env.REACT_APP_KEY_GAME,
         },
         data: {
           gameId: gameid,
@@ -431,7 +431,7 @@ function AdminGameSettings() {
       method: "post",
       url: `${gameHeader}/resultMarket`,
       headers: {
-        "Authorization": "Q@k=jLc-3CCK3Fc%",
+        "Authorization": process.env.REACT_APP_KEY_GAME,
       },
       data: {
         gameId: gameid,
@@ -460,7 +460,7 @@ function AdminGameSettings() {
           method: "post",
           url: `${betHeader}/settleColorGameBets`,
           headers: {
-            "Authorization": "h75*^*3DWwHFb4$V",
+            "Authorization": process.env.REACT_APP_KEY_GAME,
           },
           data: {
             gameId: gameid,
@@ -505,7 +505,7 @@ function AdminGameSettings() {
       method: "post",
       url: `${gameHeader}/manipulateBetTotals`,
       headers: {
-        "Authorization": "Q@k=jLc-3CCK3Fc%",
+        "Authorization": process.env.REACT_APP_KEY_GAME,
       },
       data: {
         marketId: marketDetails.market_id,

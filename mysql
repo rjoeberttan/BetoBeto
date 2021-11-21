@@ -1,0 +1,6 @@
+username = doadmin
+password = oklM45HrvpAKjCho
+host = db-mysql-mg-sgp1-do-user-10106658-0.b.db.ondigitalocean.com
+port = 25060
+database = masterg_db
+sslmode = REQUIRED

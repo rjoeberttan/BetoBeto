@@ -21,7 +21,8 @@ function WalletRequestTable({
     // Variable and useState Definitions
     //============================================
     const ctx = useContext(AuthContext);
-    const bankHeader = "http://localhost:4006"
+    const bankHeader = process.env.REACT_APP_HEADER_BANK
+    const bankAuthorization = {"Authorization": process.env.REACT_APP_KEY_BANK}
     const [confirmed, setConfirmed] = useState(false)
     const [requesterTypeStr, setRequesterTypeStr] = useState("")
 
@@ -64,9 +65,7 @@ function WalletRequestTable({
         axios({
             method: "post",
             url: `${bankHeader}/acceptDeposit`,
-            headers: {
-              "Authorization": "[9@kw7L>F86_P](p",
-            },
+            headers: bankAuthorization,
             data: data
           })
         .then((res) => {
@@ -95,9 +94,7 @@ function WalletRequestTable({
         axios({
             method: "post",
             url: `${bankHeader}/acceptWithdrawal`,
-            headers: {
-              "Authorization": "[9@kw7L>F86_P](p",
-            },
+            headers: bankAuthorization,
             data: data
           })
         .then((res) => {
@@ -125,9 +122,7 @@ function WalletRequestTable({
         axios({
             method: "post",
             url: `${bankHeader}/cancelTransaction`,
-            headers: {
-              "Authorization": "[9@kw7L>F86_P](p",
-            },
+            headers: bankAuthorization,
             data: data
           })
         .then((res) => {

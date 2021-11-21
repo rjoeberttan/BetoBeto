@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import env from "react-dotenv";
 
 export default function AdminGameRoomList(props){
     return (<div class="col-md-3 txt-black">

@@ -6,6 +6,8 @@ const axios = require("axios").default;
 
 export default function WithdrawalReq(props) {
   const [wdAmount, setWdAmount] = useState();
+  const bankHeader = process.env.REACT_APP_HEADER_BANK;
+  const bankAuthorization = {"Authorization": process.env.REACT_APP_KEY_BANK}
 
   function handleWithdrawAmt(e) {
     setWdAmount(e.target.value);
@@ -20,10 +22,8 @@ export default function WithdrawalReq(props) {
     } else {
       axios({
         method: "post",
-        url: `${props.header}/requestWithdrawal`,
-        headers: {
-          "Authorization": "[9@kw7L>F86_P](p",
-        },
+        url: `${bankHeader}/requestWithdrawal`,
+        headers: bankAuthorization,
         data: {
           amount: wdAmount,
           accountId: props.accId,

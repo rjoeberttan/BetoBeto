@@ -9,6 +9,8 @@ const axios = require("axios").default;
 
 function Register() {
   const ctx = useContext(AuthContext)
+  const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT
+  const accAuthorization = {"Authorization" : process.env.REACT_APP_KEY_ACCOUNT}
   const [user, setUser] = useState({
     email: "",
     phone: "",
@@ -41,11 +43,10 @@ function Register() {
       toast.error("Username can't be empty.")
     }
     else {
-      const headers = { "Authorization": "uKRd;$SuXd8b$MFX" };
       axios({
         method: "post",
-        url: `${ctx.hostHeader}/register`,
-        headers: headers,
+        url: `${accountHeader}/register`,
+        headers: accAuthorization,
         data: {
           username: user.username,
           password: user.password,
