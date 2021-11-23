@@ -87,7 +87,7 @@ jobs:
       with:
         context: ./be_betmngr
         push: true
-        file: ./be_accobe_betmngrunts/Dockerfile.dev
+        file: ./bet_betmngr/Dockerfile.dev
         tags: mastergtech/be_betmngr:1.0
 
   build-and-deploy-game:
