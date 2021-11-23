@@ -34,7 +34,7 @@ jobs:
         context: ./be_accounts
         push: true
         file: ./be_accounts/Dockerfile.dev
-        tags: mastergtech/be_accounts:latest
+        tags: mastergtech/be_accounts:1.0
 
   build-and-deploy-bank:
     name: Build and Deploy Backend Bank
@@ -43,14 +43,25 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v2
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v1
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+    
+    - name: Login to DockerHub
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-        repository: mastergtech/be_bankmngr
-        dockerfile: be_bankmngr/Dockerfile.dev
-        tags: latest
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v2
+      with:
+        context: ./be_bankmngr
+        push: true
+        file: ./be_bankmngr/Dockerfile.dev
+        tags: mastergtech/be_bankmngr:1.0
 
   build-and-deploy-bet:
     name: Build and Deploy Backend Bet
@@ -59,14 +70,25 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v2
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v1
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+    
+    - name: Login to DockerHub
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-        repository: mastergtech/be_betmngr
-        dockerfile: be_betmngr/Dockerfile.dev
-        tags: latest
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v2
+      with:
+        context: ./be_betmngr
+        push: true
+        file: ./be_accobe_betmngrunts/Dockerfile.dev
+        tags: mastergtech/be_betmngr:1.0
 
   build-and-deploy-game:
     name: Build and Deploy Backend Game
@@ -75,14 +97,25 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v2
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v1
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+    
+    - name: Login to DockerHub
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-        repository: mastergtech/be_gamemngr
-        dockerfile: be_gamemngr/Dockerfile.dev
-        tags: latest
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v2
+      with:
+        context: ./be_gamemngr
+        push: true
+        file: ./be_gamemngr/Dockerfile.dev
+        tags: mastergtech/be_gamemngr:1
   
   build-and-deploy-frontend:
     name: Build and Deploy Frontend
@@ -91,14 +124,25 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v2
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v1
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+    
+    - name: Login to DockerHub
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-        repository: mastergtech/frontend
-        dockerfile: frontend/Dockerfile.dev
-        tags: latest
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v2
+      with:
+        context: ./frontend
+        push: true
+        file: ./frontend/Dockerfile.dev
+        tags: mastergtech/frontend:1
   
   build-and-deploy-nginx:
     name: Build and Deploy Backend Nginx
@@ -107,14 +151,25 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v2
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v1
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+    
+    - name: Login to DockerHub
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-        repository: mastergtech/nginx
-        dockerfile: nginx/Dockerfile.dev
-        tags: latest
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v2
+      with:
+        context: ./nginx
+        push: true
+        file: ./nginx/Dockerfile.dev
+        tags: mastergtech/nginx:1
   
   build-and-deploy-websocket:
     name: Build and Deploy Backend Websocket
@@ -123,12 +178,23 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v2
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v1
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
+    
+    - name: Login to DockerHub
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
-        repository: mastergtech/websocket
-        dockerfile: websocket/Dockerfile.dev
-        tags: latest
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v2
+      with:
+        context: ./websocket
+        push: true
+        file: ./websocket/Dockerfile.dev
+        tags: mastergtech/websocket:1
 
