@@ -34,7 +34,7 @@ jobs:
         context: ./be_accounts
         push: true
         file: ./be_accounts/Dockerfile.dev
-        tags: mastergtech/be_accounts:1.0
+        tags: mastergtech/be_accounts:1.1
 
   build-and-deploy-bank:
     name: Build and Deploy Backend Bank
