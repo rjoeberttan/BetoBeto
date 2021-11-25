@@ -431,7 +431,7 @@ function AdminGameSettings() {
       method: "post",
       url: `${gameHeader}/resultMarket`,
       headers: {
-        "Authorization": process.env.REACT_APP_KEY_GAME,
+        "Authorization": process.env.REACT_APP_KEY_BET,
       },
       data: {
         gameId: gameid,
