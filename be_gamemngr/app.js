@@ -792,7 +792,7 @@ app.post("/resultMarket", (req, res) => {
 app.get("/getLatestMarketDetails/:gameId", (req, res) => {
   const apiKey = req.header("Authorization");
   const gameId = req.params.gameId;
-
+  console.log(apiKey, process.env.API_KEY)
   // Check if body is complete
   if (!gameId) {
     logger.warn("getLatestMarketDetails request has missing body parameters");
