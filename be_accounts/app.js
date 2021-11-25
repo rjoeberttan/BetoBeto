@@ -226,6 +226,7 @@ app.post("/login", (req, res) => {
   const password = req.body.password;
 
   const apiKey = req.header("Authorization");
+  console.log(apiKey, process.env.API_KEY)
 
   // Check if body is complete
   if (!username || !password) {
