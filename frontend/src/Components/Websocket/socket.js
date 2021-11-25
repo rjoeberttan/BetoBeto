@@ -1,6 +1,6 @@
 import io from "socket.io-client";
 
-const socket = io.connect(process.env.REACT_APP_HEADER_WEBSOCKET);
+const socket = io.connect("http://localhost:3010");
 
 
 export default socket;
