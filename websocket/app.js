@@ -10,13 +10,13 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
     cors: {
-        origin: '*'
+        origin: '*',
     },
 });
 
 io.on("connection", (socket) => {
     // Socket IO Method when a market update on color game is received
-    console.log
+    console.log("Socket connection triggered")
     socket.on("color_game_market_update", (data) => {
         console.log(data)
 
