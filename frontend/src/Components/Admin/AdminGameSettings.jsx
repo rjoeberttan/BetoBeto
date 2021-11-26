@@ -2,10 +2,10 @@ import React, { useEffect, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
 import { AuthContext } from "../../store/auth-context";
 import "./AdminGameSettings.css";
-import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/dist/ReactToastify.min.css";
-import { socketIOClient, io } from "socket.io-client";
+import socket from "../Websocket/socket";
 const axios = require("axios").default;
 
 function AdminGameSettings() {
@@ -43,17 +43,17 @@ function AdminGameSettings() {
     create: "CREATE MARKET",
     open: "OPEN MARKET",
     close: "CLOSE MARKET",
-    result: "RESULT MARKET"
-  })
-  const [statusChangeDisabled, setStatusChangeDisabled] = useState(false)
+    result: "RESULT MARKET",
+  });
+  const [betList, setBetList] = useState([]);
+  const [statusChangeDisabled, setStatusChangeDisabled] = useState(false);
 
   let { gameid } = useParams();
 
   const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT;
   const gameHeader = process.env.REACT_APP_HEADER_GAME;
   const betHeader = process.env.REACT_APP_HEADER_BET;
-  const socket = io.connect(process.env.REACT_APP_HEADER_WEBSOCKET);
-  console.log(process.env.REACT_APP_HEADER_WEBSOCKET)
+  console.log(process.env.REACT_APP_HEADER_WEBSOCKET);
 
   useEffect(() => {
     socket.emit("join_room", "colorGame");
@@ -101,6 +101,7 @@ function AdminGameSettings() {
       }).then((res) => {
         //get game details
         const { market } = res.data.data;
+        getBetList(market.market_id);
         setMarketDetails({
           description: market.description,
           market_id: market.market_id,
@@ -124,11 +125,11 @@ function AdminGameSettings() {
           },
         }).then((res2) => {
           const manip_values = res2.data.data.market;
-          console.log(manip_values);
           setManipualteColors(manip_values);
         });
       });
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function handleGameChange(e) {
@@ -196,11 +197,9 @@ function AdminGameSettings() {
         },
       })
         .then((res) => {
-          console.log(res);
           toast.success("Game settings saved");
         })
         .catch((err) => {
-          console.log(err);
           toast.error(
             <p>
               YouTube URL missing<br></br> Please try again
@@ -229,11 +228,9 @@ function AdminGameSettings() {
       },
     })
       .then((res) => {
-        console.log(res);
         toast.success("Win settings saved");
       })
       .catch((err) => {
-        console.log(err);
         toast.error(
           <p>
             Incomplete Multipliers <br></br> Please try again
@@ -258,11 +255,9 @@ function AdminGameSettings() {
       },
     })
       .then((res) => {
-        console.log(res);
         toast.success("Bet tresholds saved");
       })
       .catch((err) => {
-        console.log(err);
         toast.error(
           <p>
             Incomplete bet tresholds <br></br> Please try again
@@ -278,8 +273,8 @@ function AdminGameSettings() {
       close: "PLEASE WAIT",
       open: "PLEASE WAIT",
       result: "PLEASE WAIT",
-    })
-    setStatusChangeDisabled(true)
+    });
+    setStatusChangeDisabled(true);
 
     setTimeout(() => {
       setSettingsText({
@@ -287,9 +282,9 @@ function AdminGameSettings() {
         close: "CLOSE MARKET",
         open: "OPEN MARKET",
         result: "RESULT MARKET",
-      })
-      setStatusChangeDisabled(false)
-    }, 3000)
+      });
+      setStatusChangeDisabled(false);
+    }, 3000);
   }
 
   function handleMarketDetailsClick(e) {
@@ -329,12 +324,9 @@ function AdminGameSettings() {
             status: data.status,
           });
           toast.success("Success Create Market");
-          DisableSettings()
-
+          DisableSettings();
         })
         .catch((err) => {
-          console.log(err);
-          console.log(marketDetails.status);
           if (marketDetails.status === 0) {
             toast.error("Market is still open");
           } else {
@@ -356,7 +348,6 @@ function AdminGameSettings() {
         },
       })
         .then((res) => {
-          console.log(res);
           const { data } = res.data;
           setMarketDetails((prev) => {
             return {
@@ -370,11 +361,9 @@ function AdminGameSettings() {
             status: data.status,
           });
           toast.success("Success Open Market");
-          DisableSettings()
+          DisableSettings();
         })
         .catch((err) => {
-          console.log(err);
-          console.log(marketDetails.status);
           if (marketDetails.status === 0) {
             toast.error("Market is already open");
           } else {
@@ -396,7 +385,6 @@ function AdminGameSettings() {
         },
       })
         .then((res) => {
-          console.log(res);
           const { data } = res.data;
           setMarketDetails((prev) => {
             return {
@@ -410,11 +398,9 @@ function AdminGameSettings() {
             status: data.status,
           });
           toast.success("Success Closed Market");
-          DisableSettings()
+          DisableSettings();
         })
         .catch((err) => {
-          console.log(err);
-          console.log(marketDetails.status);
           if (marketDetails.status === 1) {
             toast.error("Market is already closed");
           } else {
@@ -425,8 +411,6 @@ function AdminGameSettings() {
   }
 
   function handleResultMarket(e) {
-    console.log(gameid);
-    console.log(marketDetails.market_id);
     axios({
       method: "post",
       url: `${gameHeader}/resultMarket`,
@@ -441,7 +425,6 @@ function AdminGameSettings() {
       },
     })
       .then((res) => {
-        console.log(res);
         setMarketDetails((prev) => {
           return {
             ...prev,
@@ -453,14 +436,14 @@ function AdminGameSettings() {
           status: res.data.data.status,
         });
         toast.success("Success Result Market");
-        DisableSettings()
+        DisableSettings();
 
         // Settle Bets
         axios({
           method: "post",
           url: `${betHeader}/settleColorGameBets`,
           headers: {
-            "Authorization": process.env.REACT_APP_KEY_GAME,
+            "Authorization": process.env.REACT_APP_KEY_BET,
           },
           data: {
             gameId: gameid,
@@ -469,15 +452,13 @@ function AdminGameSettings() {
           },
         })
           .then((res) => {
-            console.log(res);
+            // console.log(res);
           })
           .catch((err) => {
-            console.log(err);
+            // console.log(err);
           });
       })
       .catch((err) => {
-        console.log(err);
-        console.log(marketDetails.status);
         if (marketDetails.status === 2) {
           toast.error("Market is already in Result state");
         } else {
@@ -499,8 +480,6 @@ function AdminGameSettings() {
 
   function handleManipulateBetClick(e) {
     e.preventDefault();
-    console.log(manipulateColors);
-    console.log(Object.values(manipulateColors));
     axios({
       method: "post",
       url: `${gameHeader}/manipulateBetTotals`,
@@ -521,6 +500,27 @@ function AdminGameSettings() {
       });
   }
 
+  function getBetList(marketId) {
+    console.log("hehe");
+    axios({
+      method: "get",
+      url: `${betHeader}/getBetMarketList/${marketId}`,
+      headers: {
+        "Authorization": process.env.REACT_APP_KEY_BET,
+      },
+    })
+      .then((res) => {
+        setBetList(res.data.data);
+        console.log(res);
+      })
+      .catch((err) => {});
+  }
+
+  function handleRefresh(e) {
+    e.preventDefault();
+    getBetList(marketDetails.market_id);
+  }
+
   return (
     <div className="container text-light container-game-room">
       <>
@@ -532,11 +532,11 @@ function AdminGameSettings() {
       <div className="row">
         {/* CARD ONE */}
         <div className="col-md-4 card-margin-bottom">
-          <div class="card text-white bg-dark mb-3">
-            <div class="card-body">
-              <h5 class="card-title">Game Settings</h5>
+          <div className="card text-white bg-dark mb-3">
+            <div className="card-body">
+              <h5 className="card-title">Game Settings</h5>
               <form>
-                <h6 class="card-subtitle mb-2 label-margin">Game title:</h6>
+                <h6 className="card-subtitle mb-2 label-margin">Game title:</h6>
                 <input
                   className="form-control"
                   type="text"
@@ -544,7 +544,7 @@ function AdminGameSettings() {
                   value={gameDetails.name}
                   onChange={handleGameChange}
                 ></input>
-                <h6 class="card-subtitle mb-2 label-margin">
+                <h6 className="card-subtitle mb-2 label-margin">
                   Youtube Embed URL:
                 </h6>
                 <input
@@ -554,7 +554,7 @@ function AdminGameSettings() {
                   value={gameDetails.youtube_url}
                   onChange={handleGameChange}
                 ></input>
-                <h6 class="card-subtitle mb-2 label-margin">Banner:</h6>
+                <h6 className="card-subtitle mb-2 label-margin">Banner:</h6>
                 <input
                   className="form-control"
                   type="text"
@@ -573,7 +573,7 @@ function AdminGameSettings() {
                   </button>
                 </div>
                 <div className="row label-margin">
-                  <h6 class="card-subtitle mb-2 label-margin">
+                  <h6 className="card-subtitle mb-2 label-margin">
                     Manipulate Total Color Bets:
                   </h6>
                   <div className="col-md-6 row label-margin">
@@ -665,11 +665,11 @@ function AdminGameSettings() {
 
         {/* CARD TWO */}
         <div className="col-md-4 card-margin-bottom">
-          <div class="card text-white bg-dark mb-3">
-            <div class="card-body">
-              <h5 class="card-title">Bet and Settings</h5>
+          <div className="card text-white bg-dark mb-3">
+            <div className="card-body">
+              <h5 className="card-title">Bet and Settings</h5>
               <form>
-                <h6 class="card-subtitle mb-2 label-margin">
+                <h6 className="card-subtitle mb-2 label-margin">
                   Minimum Bet Amount:
                 </h6>
                 <input
@@ -679,7 +679,7 @@ function AdminGameSettings() {
                   value={gameDetails.min_bet}
                   onChange={handleGameChange}
                 ></input>
-                <h6 class="card-subtitle mb-2 label-margin">
+                <h6 className="card-subtitle mb-2 label-margin">
                   Maximum Bet Amount:
                 </h6>
                 <input
@@ -698,7 +698,9 @@ function AdminGameSettings() {
                     Save Bet Thresholds
                   </button>
                 </div>
-                <h6 class="card-subtitle mb-2 label-margin">Win settings</h6>
+                <h6 className="card-subtitle mb-2 label-margin">
+                  Win settings
+                </h6>
                 <div className="row">
                   <div className="col-md-12 row">
                     <div className="col-md-5 label-margin">
@@ -756,9 +758,9 @@ function AdminGameSettings() {
 
         {/* CARD THREE */}
         <div className="col-md-4 card-margin-bottom">
-          <div class="card text-white bg-dark mb-3">
-            <div class="card-body">
-              <h5 class="card-title">
+          <div className="card text-white bg-dark mb-3">
+            <div className="card-body">
+              <h5 className="card-title">
                 Market Settings:
                 {marketDetails.status === 0
                   ? " OPEN"
@@ -799,10 +801,10 @@ function AdminGameSettings() {
                 </div>
               </div>
               <hr />
-              <h5 class="card-title">
+              <h5 className="card-title">
                 Current Market ID: {marketDetails.market_id}
               </h5>
-              <h6 class="card-subtitle mb-2 text-muted">
+              <h6 className="card-subtitle mb-2 text-muted">
                 <b>Result Market</b>
               </h6>
               <div className="row" style={{ marginTop: "15px" }}>
@@ -898,48 +900,47 @@ function AdminGameSettings() {
 
         {/* CARD FOUR */}
         <div className="col-md-12 card-margin-bottom">
-          <div class="card text-white bg-dark mb-3" style={{}}>
-            <div class="card-body">
-              <h5 class="card-title">Received Bets</h5>
-              <h6 class="card-subtitle mb-2 text-muted">
-                <b>Current Market ID: AB12CD2 </b>
+          <div className="card text-white bg-dark mb-3" style={{}}>
+            <div className="card-body">
+              <h5 className="card-title">Received Bets</h5>
+              <h6 className="card-subtitle mb-2 text-muted">
+                <b>Current Market ID: {marketDetails.market_id} </b>
               </h6>
-              <table class="table table-success table-striped">
+              <table className="table table-success table-striped">
                 <thead>
                   <tr>
                     <th scope="col">Bet ID</th>
-                    <th scope="col">Username</th>
+                    <th scope="col">Account ID</th>
                     <th scope="col">Description</th>
                     <th scope="col">Stake</th>
                     <th scope="col">Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <th scope="row">1</th>
-                    <td>Player01</td>
-                    <td>DICE-BLUE</td>
-                    <td>10.00</td>
-                    <td>WIN</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">2</th>
-                    <td>Player02</td>
-                    <td>DICE-BLUE</td>
-                    <td>200.00</td>
-                    <td>LOSE</td>
-                  </tr>
-                  <tr>
-                    <th scope="row">3</th>
-                    <td>Player03</td>
-                    <td>DICE-BLUE</td>
-                    <td>200.00</td>
-                    <td>PENDING</td>
-                  </tr>
+                  {betList.map((bet) => (
+                    <tr>
+                      <th scope="row">{bet.bet_id}</th>
+                      <td>{bet.account_id}</td>
+                      <td>{bet.description}</td>
+                      <td>{bet.stake}</td>
+                      <td>
+                        {bet.status === 0
+                          ? "Pending"
+                          : bet.status === 1
+                          ? "Lose"
+                          : "Win"}
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
               <div className="col-md-12 text-center">
-                <button className="btn btn-color text-light">Refresh</button>
+                <button
+                  className="btn btn-color text-light"
+                  onClick={handleRefresh}
+                >
+                  Refresh
+                </button>
               </div>
             </div>
           </div>

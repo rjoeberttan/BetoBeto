@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
 const axios = require("axios").default;
-
 
 export const AuthContext = React.createContext({});
 
 export default function AuthContextProvider(props) {
   const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT;
-  const accAuthorization = { "Authorization": process.env.REACT_APP_KEY_ACCOUNT };
+  const accAuthorization = {
+    "Authorization": process.env.REACT_APP_KEY_ACCOUNT,
+  };
   const [account, setAccount] = useState({
     username: "",
     accountType: "",
     accountID: "",
+    email: "",
+    phoneNum: "",
   });
   const [walletBalance, setWalletBalance] = useState(null);
 
@@ -37,24 +40,32 @@ export default function AuthContextProvider(props) {
               username: res.data.username,
               accountID: res.data.accountId,
               accountType: "admin",
+              email: res.data.email,
+              phoneNum: res.data.phoneNum,
             });
           } else if (res.data.accountType === 1) {
             setAccount({
               username: res.data.username,
               accountID: res.data.accountId,
               accountType: "masteragent",
+              email: res.data.email,
+              phoneNum: res.data.phoneNum,
             });
           } else if (res.data.accountType === 2) {
             setAccount({
               username: res.data.username,
               accountID: res.data.accountId,
               accountType: "agent",
+              email: res.data.email,
+              phoneNum: res.data.phoneNum,
             });
           } else if (res.data.accountType === 3) {
             setAccount({
               username: res.data.username,
               accountID: res.data.accountId,
               accountType: "player",
+              email: res.data.email,
+              phoneNum: res.data.phoneNum,
             });
           }
           axios({
@@ -82,13 +93,12 @@ export default function AuthContextProvider(props) {
         });
         console.log("YOUR TOKEN HAS EXPIRED");
       });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-
   function walletHandler(wallet) {
-    setWalletBalance(wallet)
+    setWalletBalance(wallet);
   }
-
 
   function loginHandler(person) {
     if (person.username === "") {
@@ -106,27 +116,35 @@ export default function AuthContextProvider(props) {
         },
       })
         .then((res) => {
-          if (res.data.accountStatus === 1){
+          if (res.data.accountStatus === 1) {
             const accountType = res.data.accountType;
-  
+
             if (accountType === 0) {
               setAccount({
                 username: person.username,
+                email: res.data.email,
+                phoneNum: res.data.phoneNum,
                 accountType: "admin",
               });
             } else if (accountType === 1) {
               setAccount({
                 username: person.username,
+                email: res.data.email,
+                phoneNum: res.data.phoneNum,
                 accountType: "masteragent",
               });
             } else if (accountType === 2) {
               setAccount({
                 username: person.username,
+                email: res.data.email,
+                phoneNum: res.data.phoneNum,
                 accountType: "agent",
               });
             } else if (accountType === 3) {
               setAccount({
                 username: person.username,
+                email: res.data.email,
+                phoneNum: res.data.phoneNum,
                 accountType: "player",
               });
             }
@@ -153,14 +171,13 @@ export default function AuthContextProvider(props) {
               });
             setIsLoggedIn(true);
           } else {
-            toast.error("Your account is locked, please contact your Agent")
+            toast.error("Your account is locked, please contact your Agent");
           }
         })
         .catch((err) => {
           toast.error("Invalid credentials");
         });
     }
-
   }
 
   function handleLogOut() {

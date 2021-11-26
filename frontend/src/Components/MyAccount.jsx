@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
-import { AuthContext } from "../../store/auth-context";
-import styles from "./AdminAccount.module.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/dist/ReactToastify.min.css";
-function AdminAccount() {
+import { AuthContext } from "../store/auth-context";
+import styles from "./MyAccount.module.css";
+
+function MyAccount() {
   const ctx = useContext(AuthContext);
   const style = {
     width: "18 rem",
@@ -131,4 +132,4 @@ function AdminAccount() {
   );
 }
 
-export default AdminAccount;
+export default MyAccount;

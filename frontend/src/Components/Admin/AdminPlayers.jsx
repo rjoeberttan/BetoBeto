@@ -1,4 +1,4 @@
-import {React, useContext, useEffect, useState} from "react";
+import { React, useContext, useEffect, useState } from "react";
 import UserCard from "../Usercard/UserCard";
 import { AuthContext } from "../../store/auth-context";
 import axios from "axios";
@@ -11,6 +11,7 @@ function AdminPlayers() {
 
   useEffect(() => {
     getUserList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function getUserList() {
@@ -30,8 +31,6 @@ function AdminPlayers() {
         console.log(err);
       });
   }
-
-
 
   return (
     <div className="container text-light container-wallet">
@@ -59,23 +58,22 @@ function AdminPlayers() {
       </div>
       <div className="row text-black second-box">
         {players.map((x) => (
-              <UserCard 
-                  key={x.account_id}
-                  accountId={x.account_id}
-                  username={x.username}
-                  noOfAgents="TBS"
-                  mobile={x.phone_num}
-                  noOfPlayers="TBS"
-                  commission={x.commission}
-                  status={x.account_status === 1 ? "ACTIVE" : "LOCKED"}
-                  lastEditChange={x.lastedit_date.substring(0, 10)}
-                  walletBalance={x.wallet}
-                  editor={ctx.user.username}
-                  editorId={ctx.user.accountID}
-                  accountType="3"
-                />
-            ))
-        }
+          <UserCard
+            key={x.account_id}
+            accountId={x.account_id}
+            username={x.username}
+            noOfAgents="TBS"
+            mobile={x.phone_num}
+            noOfPlayers="TBS"
+            commission={x.commission}
+            status={x.account_status === 1 ? "ACTIVE" : "LOCKED"}
+            lastEditChange={x.lastedit_date.substring(0, 10)}
+            walletBalance={x.wallet}
+            editor={ctx.user.username}
+            editorId={ctx.user.accountID}
+            accountType="3"
+          />
+        ))}
       </div>
     </div>
   );

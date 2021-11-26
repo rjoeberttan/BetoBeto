@@ -40,6 +40,7 @@ const logger = createLogger({
   transports: [new transports.Console()],
 });
 
+console.log(process.env.API_KEY);
 // Configure Database Connection
 const db = mysql.createConnection({
   user: process.env.MYSQL_USERNAME,
@@ -283,11 +284,12 @@ app.post("/login", (req, res) => {
           const username = result[0].username;
           const accountId = result[0].account_id;
           const accountType = result[0].account_type;
-          const accountStatus = result[0].account_status
-
+          const accountStatus = result[0].account_status;
+          const email = result[0].email;
+          const phoneNum = result[0].phone_num;
 
           const token = jwt.sign(
-            { accountId, username, accountType },
+            { accountId, username, accountType, email, phoneNum },
             process.env.JWT_SECRET,
             { expiresIn: "2h" }
           );
@@ -298,6 +300,8 @@ app.post("/login", (req, res) => {
             username: username,
             accountType: accountType,
             accountStatus: accountStatus,
+            email: email,
+            phoneNum: phoneNum,
             token: token,
           });
 
@@ -365,6 +369,8 @@ app.get("/isUserAuth", (req, res) => {
           accountId: decoded.accountId,
           username: decoded.username,
           accountType: decoded.accountType,
+          email: decoded.email,
+          phoneNum: decoded.phoneNum,
         });
       }
     });
@@ -819,7 +825,6 @@ app.get("/getAccountList/:accountId/:accountType", (req, res) => {
   }
 });
 
-
 app.get("/getCountUnderUser/:accountId", (req, res) => {
   // Get body
   const accountId = req.params.accountId;
@@ -888,7 +893,8 @@ app.get("/getCountPlayer/:accountId", (req, res) => {
 
   // Process 1
   // Get all necessary details
-  sqlQuery = "select count(*) as userCount from accounts where agent_id in (select account_id from accounts where agent_id = ?);";
+  sqlQuery =
+    "select count(*) as userCount from accounts where agent_id in (select account_id from accounts where agent_id = ?);";
   db.query(sqlQuery, [accountId], (err, result) => {
     if (err) {
       logger.error(
@@ -907,7 +913,6 @@ app.get("/getCountPlayer/:accountId", (req, res) => {
     }
   });
 });
-
 
 app.get("/getAgentName/:accountId", (req, res) => {
   // Get body
@@ -933,7 +938,8 @@ app.get("/getAgentName/:accountId", (req, res) => {
 
   // Process 1
   // Get all necessary details
-  sqlQuery = "select username from accounts where account_id in (select agent_id from accounts where account_id = ?);";
+  sqlQuery =
+    "select username from accounts where account_id in (select agent_id from accounts where account_id = ?);";
   db.query(sqlQuery, [accountId], (err, result) => {
     if (err) {
       logger.error(
@@ -941,9 +947,7 @@ app.get("/getAgentName/:accountId", (req, res) => {
       );
       res.status(500).json({ message: "Server error" });
     } else {
-      logger.info(
-        "Successful getAgentName request for accountId:" + accountId
-      );
+      logger.info("Successful getAgentName request for accountId:" + accountId);
       res.status(200).json({
         message: "Request successful",
         agentName: result[0].username,
@@ -951,8 +955,6 @@ app.get("/getAgentName/:accountId", (req, res) => {
     }
   });
 });
-
-
 
 app.listen(4003, () => {
   console.log("Server listentning at port 4003");

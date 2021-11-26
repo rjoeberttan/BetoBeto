@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 services:
   nginx:
     depends_on:
@@ -20,7 +20,7 @@ services:
       context: ./be_accounts
     volumes:
       - /app/node_modules
-      - ./be_accounts:/app
+      - C/Users/Earl Paquibol/Desktop/Client/BetoBeto/be_accounts:/app
     ports:
       - "4003:4003"
   bet:
