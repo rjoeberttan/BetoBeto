@@ -5,7 +5,7 @@ import "./AdminGameSettings.css";
 import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/dist/ReactToastify.min.css";
-import { socketIOClient, io } from "socket.io-client";
+import socket from "../Websocket/socket";
 const axios = require("axios").default;
 
 function AdminGameSettings() {
@@ -52,7 +52,6 @@ function AdminGameSettings() {
   const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT;
   const gameHeader = process.env.REACT_APP_HEADER_GAME;
   const betHeader = process.env.REACT_APP_HEADER_BET;
-  const socket = io.connect(process.env.REACT_APP_HEADER_WEBSOCKET);
   console.log(process.env.REACT_APP_HEADER_WEBSOCKET)
 
   useEffect(() => {
