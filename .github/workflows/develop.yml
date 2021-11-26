@@ -34,7 +34,7 @@ jobs:
         context: ./be_accounts
         push: true
         file: ./be_accounts/Dockerfile.dev
-        tags: mastergtech/be_accounts:1.4
+        tags: mastergtech/be_accounts:1.5
 
   build-and-deploy-bank:
     name: Build and Deploy Backend Bank
@@ -61,7 +61,7 @@ jobs:
         context: ./be_bankmngr
         push: true
         file: ./be_bankmngr/Dockerfile.dev
-        tags: mastergtech/be_bankmngr:1.4
+        tags: mastergtech/be_bankmngr:1.5
 
   build-and-deploy-bet:
     name: Build and Deploy Backend Bet
@@ -88,7 +88,7 @@ jobs:
         context: ./be_betmngr
         push: true
         file: ./be_betmngr/Dockerfile.dev
-        tags: mastergtech/be_betmngr:1.4
+        tags: mastergtech/be_betmngr:1.5
 
   build-and-deploy-game:
     name: Build and Deploy Backend Game
@@ -115,7 +115,7 @@ jobs:
         context: ./be_gamemngr
         push: true
         file: ./be_gamemngr/Dockerfile.dev
-        tags: mastergtech/be_gamemngr:1.4
+        tags: mastergtech/be_gamemngr:1.5
   
   build-and-deploy-frontend:
     name: Build and Deploy Frontend
@@ -142,7 +142,7 @@ jobs:
         context: ./frontend
         push: true
         file: ./frontend/Dockerfile.dev
-        tags: mastergtech/frontend:1.4
+        tags: mastergtech/frontend:1.5
   
   build-and-deploy-nginx:
     name: Build and Deploy Backend Nginx
@@ -169,7 +169,7 @@ jobs:
         context: ./nginx
         push: true
         file: ./nginx/Dockerfile.dev
-        tags: mastergtech/nginx:1.4
+        tags: mastergtech/nginx:1.5
   
   build-and-deploy-websocket:
     name: Build and Deploy Backend Websocket
@@ -196,5 +196,5 @@ jobs:
         context: ./websocket
         push: true
         file: ./websocket/Dockerfile.dev
-        tags: mastergtech/websocket:1.4
+        tags: mastergtech/websocket:1.5
 
