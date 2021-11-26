@@ -13,15 +13,16 @@ function AdminWallet() {
   const bankHeader = process.env.REACT_APP_HEADER_BANK;
   const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT;
   const bankAuthorization = {
-    "Authorization": process.env.REACT_APP_KEY_BANK
-  }
+    "Authorization": process.env.REACT_APP_KEY_BANK,
+  };
   const accAuthorization = {
-    "Authorization": process.env.REACT_APP_KEY_ACCOUNT
-  }
+    "Authorization": process.env.REACT_APP_KEY_ACCOUNT,
+  };
   const [depositRequest, setDepositRequest] = useState([]);
   const [withdrawalRequest, setWithdrawalRequest] = useState([]);
   const [usersList, setUsersList] = useState([]);
   const [filteredList, setFilteredList] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [userFilter, setUserFilter] = useState("0");
   const [activeUserId, setActiveUserId] = useState("");
   const [activeUsername, setActiveUsername] = useState("");
@@ -30,7 +31,6 @@ function AdminWallet() {
     startDate: "",
     endDate: "",
   });
-  const [transactionsList, setTransactionsList] = useState([]);
   const [earnings, setEarnings] = useState({
     totalDepositAccepted: 0,
     totalWithdrawalAccepted: 0,
@@ -39,7 +39,7 @@ function AdminWallet() {
     totalBetsPlaced: 0,
     totalLossesBetWinnings: 0,
     totalLossesCommissions: 0,
-    totalEarnings: 0
+    totalEarnings: 0,
   });
 
   //============================================
@@ -57,6 +57,7 @@ function AdminWallet() {
     getUnsettledDeposits();
     getUnsettledWithdrawals();
     getUsersList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function getUnsettledDeposits() {
@@ -69,7 +70,7 @@ function AdminWallet() {
     axios({
       method: "get",
       url: `${bankHeader}/getUnsettledRequest/${ctx.user.accountID}/${accType}/0`,
-      headers: bankAuthorization
+      headers: bankAuthorization,
     })
       .then((res) => {
         const data = res.data.data;
@@ -90,7 +91,7 @@ function AdminWallet() {
     axios({
       method: "get",
       url: `${bankHeader}/getUnsettledRequest/${ctx.user.accountID}/${accType}/2`,
-      headers: bankAuthorization
+      headers: bankAuthorization,
     })
       .then((res) => {
         const data = res.data.data;
@@ -105,14 +106,14 @@ function AdminWallet() {
     axios({
       method: "get",
       url: `${accountHeader}/getAccountList/${ctx.user.accountID}/0`,
-      headers: accAuthorization
+      headers: accAuthorization,
     })
       .then((res) => {
         const data = res.data.data;
         setUsersList(data);
         setActiveUsername(data[1].username);
         setActiveUserId(data[1].account_id);
-        setFilteredList(data)
+        setFilteredList(data);
       })
       .catch((err) => {
         console.log(err);
@@ -124,7 +125,6 @@ function AdminWallet() {
     // console.log(accountId, username)
     setActiveUserId(accountId);
     setActiveUsername(username);
-
     e.preventDefault();
   }
 
@@ -154,7 +154,7 @@ function AdminWallet() {
       axios({
         method: "post",
         url: `${bankHeader}/transferFunds`,
-        headers:  bankAuthorization,
+        headers: bankAuthorization,
         data: data,
       })
         .then((res) => {
@@ -172,7 +172,6 @@ function AdminWallet() {
 
     e.preventDefault();
   }
-
 
   function handleFilterChange(e) {
     const value = Number(e.target.value);
@@ -198,25 +197,16 @@ function AdminWallet() {
     });
   }
 
-  function calculateEarnings(transList) {
-    var totalDepositsAccepted = 0
-    var totalWithdrawalAccepted = 0
-    var totalFundTransfers = 0
-    var totalTipReceived = 0
-
-    transList.map((transaction) => {
-      const transType = transaction.transaction_type
-      const amount = transaction.amount
-      if (transType === 1){
-        totalDepositsAccepted += amount
-      } else if (transType === 3){
-        totalWithdrawalAccepted += amount
-      } else if (transType === 4){
-        totalFundTransfers += amount
-      } else if (transType === 8) {
-        totalTipReceived += amount
-      }
-    })
+  function calculateEarnings(earnings) {
+    const {
+      totalDepositsAccepted,
+      totalWithdrawalAccepted,
+      totalFundTransfers,
+      totalTipReceived,
+      totalBetsPlaced,
+      totalLossesCommissions,
+      totalLossesBetWinnings,
+    } = earnings;
 
     setEarnings((prev) => {
       return {
@@ -225,72 +215,91 @@ function AdminWallet() {
         totalWithdrawalAccepted: parseFloat(totalWithdrawalAccepted).toFixed(2),
         totalFundTransfers: parseFloat(totalFundTransfers).toFixed(2),
         totalTipReceived: parseFloat(totalTipReceived).toFixed(2),
-      }
-    })
+        totalBetsPlaced: parseFloat(totalBetsPlaced).toFixed(2),
+        totalLossesCommissions: parseFloat(totalLossesCommissions).toFixed(2),
+        totalLossesBetWinnings: parseFloat(totalLossesBetWinnings).toFixed(2),
+      };
+    });
 
-    const totalEarnings = parseFloat(totalDepositsAccepted )
-    - parseFloat(totalWithdrawalAccepted )
-    - parseFloat(totalFundTransfers )
-    + parseFloat(totalTipReceived) 
-    + parseFloat(earnings.totalBetsPlaced )
-    - parseFloat(earnings.totalLossesCommissions )
-    - parseFloat(earnings.totalLossesBetWinnings)
+    const totalEarnings =
+      parseFloat(earnings.totalDepositsAccepted) -
+      parseFloat(earnings.totalWithdrawalAccepted) -
+      parseFloat(earnings.totalFundTransfers) +
+      parseFloat(earnings.totalTipReceived) +
+      parseFloat(earnings.totalBetsPlaced) -
+      parseFloat(earnings.totalLossesCommissions) -
+      parseFloat(earnings.totalLossesBetWinnings);
+
     setEarnings((prev) => {
       return {
         ...prev,
-        totalEarnings: parseFloat(totalEarnings).toFixed(2)
-      }
-    })
-    
+        totalEarnings: parseFloat(totalEarnings).toFixed(2),
+      };
+    });
   }
-  
+
   function getTransactionHistory() {
     axios({
       method: "get",
       url: `${bankHeader}/getTransactionHistory/${ctx.user.accountID}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
-      headers: bankAuthorization
+      headers: bankAuthorization,
     })
       .then((res) => {
+        let totalDepositsAccepted = 0;
+        let totalWithdrawalAccepted = 0;
+        let totalFundTransfers = 0;
+        let totalTipReceived = 0;
+        let totalBetsPlaced = 0;
+        let totalLossesBetWinnings = 0;
+        let totalLossesCommissions = 0;
         const data = res.data.data;
-        getBetCommissionEarnings()
-        calculateEarnings(data)      
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }
-
-  function getBetCommissionEarnings() {
-    axios({
-      method: "get",
-      url: `${bankHeader}/getBetCommissionEarnings/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
-      headers: bankAuthorization
-    })
-      .then((res) => {
-        const data = res.data.data;
-        setEarnings((prev) => {
-          return {
-            ...prev,
-            totalBetsPlaced: parseFloat(data.stake).toFixed(2),
-            totalLossesBetWinnings: parseFloat(data.winnings).toFixed(2),
-            totalLossesCommissions: parseFloat(data.commissions).toFixed(2)
+        data.forEach((transaction) => {
+          const transType = transaction.transaction_type;
+          const amount = transaction.amount;
+          if (transType === 1) {
+            totalDepositsAccepted += amount;
+          } else if (transType === 3) {
+            totalWithdrawalAccepted += amount;
+          } else if (transType === 4) {
+            totalFundTransfers += amount;
+          } else if (transType === 8) {
+            totalTipReceived += amount;
           }
-        })     
+        });
+        axios({
+          method: "get",
+          url: `${bankHeader}/getBetCommissionEarnings/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
+          headers: bankAuthorization,
+        })
+          .then((res) => {
+            const data = res.data.data;
+            totalBetsPlaced = data.stake;
+            totalLossesBetWinnings = data.winnings;
+            totalLossesCommissions = data.commissions;
+            calculateEarnings({
+              totalDepositsAccepted: totalDepositsAccepted,
+              totalWithdrawalAccepted: totalWithdrawalAccepted,
+              totalFundTransfers: totalFundTransfers,
+              totalTipReceived: totalTipReceived,
+              totalBetsPlaced: totalBetsPlaced,
+              totalLossesCommissions: totalLossesCommissions,
+              totalLossesBetWinnings: totalLossesBetWinnings,
+            });
+          })
+          .catch((err) => {
+            console.log(err);
+          });
       })
       .catch((err) => {
         console.log(err);
       });
-
   }
 
-  function getEarnings(e){
-    getTransactionHistory()
+  function getEarnings(e) {
+    getTransactionHistory();
 
-
-    e.preventDefault()
-  } 
-
-
+    e.preventDefault();
+  }
 
   //=====================================================
   //  Components
@@ -331,7 +340,10 @@ function AdminWallet() {
                     />
                   </div>
                   <div className="col-md-2">
-                    <button className="btn btn-color transaction-btn text-light col-xs-12" onClick={getEarnings}>
+                    <button
+                      className="btn btn-color transaction-btn text-light col-xs-12"
+                      onClick={getEarnings}
+                    >
                       Search
                     </button>
                   </div>
@@ -374,7 +386,6 @@ function AdminWallet() {
                     P {earnings.totalTipReceived}
                   </div>
 
-
                   <div className="col-md-7 col-6 admin-wallet-font">
                     <b>(+) Total Bets Placed:</b>
                   </div>
@@ -410,46 +421,46 @@ function AdminWallet() {
                 <h5 className="card-title">Increase Wallet</h5>
 
                 <div className="wallet-box master-wallet admin-wallet">
-                  <div class="form-check form-check-inline">
+                  <div className="form-check form-check-inline">
                     <input
-                      class="form-check-input"
+                      className="form-check-input"
                       type="radio"
                       name="inlineRadioOptions"
                       value="0"
                       onChange={handleFilterChange}
                       defaultChecked
                     />
-                    <label class="form-check-label">All</label>
+                    <label className="form-check-label">All</label>
                   </div>
-                  <div class="form-check form-check-inline">
+                  <div className="form-check form-check-inline">
                     <input
-                      class="form-check-input"
+                      className="form-check-input"
                       type="radio"
                       name="inlineRadioOptions"
                       value="1"
                       onChange={handleFilterChange}
                     />
-                    <label class="form-check-label">M. Agent</label>
+                    <label className="form-check-label">M. Agent</label>
                   </div>
-                  <div class="form-check form-check-inline">
+                  <div className="form-check form-check-inline">
                     <input
-                      class="form-check-input"
+                      className="form-check-input"
                       type="radio"
                       name="inlineRadioOptions"
                       value="2"
                       onChange={handleFilterChange}
                     />
-                    <label class="form-check-label">Agents</label>
+                    <label className="form-check-label">Agents</label>
                   </div>
-                  <div class="form-check form-check-inline">
+                  <div className="form-check form-check-inline">
                     <input
-                      class="form-check-input"
+                      className="form-check-input"
                       type="radio"
                       name="inlineRadioOptions"
                       value="3"
                       onChange={handleFilterChange}
                     />
-                    <label class="form-check-label">Player</label>
+                    <label className="form-check-label">Player</label>
                   </div>
                 </div>
 
@@ -458,9 +469,12 @@ function AdminWallet() {
                     <label className="col-form-label">Username</label>
                   </div>
                   <div className="col-md-9">
-                    <select class="form-select" onChange={setActiveUser}>
+                    <select className="form-select" onChange={setActiveUser}>
                       {filteredList.map((x) => (
-                        <option value={x.account_id + "-" + x.username}>
+                        <option
+                          key={Math.random()}
+                          value={x.account_id + "-" + x.username}
+                        >
                           {x.username}{" "}
                         </option>
                       ))}
@@ -498,7 +512,7 @@ function AdminWallet() {
       <div className="row second-box">
         <div className="col-md-12">
           <h2>Deposit Request</h2>
-          <table class="table table-success table-striped">
+          <table className="table table-success table-striped">
             <thead>
               <tr>
                 <th scope="col">Username</th>
@@ -532,7 +546,7 @@ function AdminWallet() {
 
         <div className="col-md-12">
           <h2>Withdrawal Request</h2>
-          <table class="table table-success table-striped">
+          <table className="table table-success table-striped">
             <thead>
               <tr>
                 <th scope="col">Username</th>

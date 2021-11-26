@@ -13,19 +13,16 @@ import Banner from "./Components/Navbar/Banner";
 import NavBar from "./Components/Navbar/NavBar";
 //PLAYER IMPORTS
 import PlayerGameRoom from "./Components/Player/PlayerGameRoom";
-import PlayerTransactions from "./Components/Player/PlayerTransactions";
 import PlayerAccount from "./Components/Player/PlayerAccount";
 import PlayerLiveRoom from "./Components/Player/LiveRoom";
 import PlayerWallet from "./Components/Player/PlayerWallet";
 //AGENT IMPORTS
 import AgentPlayers from "./Components/Agent/AgentPlayers";
-import AgentTransactions from "./Components/Agent/AgentTransactions";
 import AgentAccount from "./Components/Agent/AgentAccount";
 import AgentWallet from "./Components/Agent/AgentWallet";
 //MASTERAGENT IMPORTS
 import MasterAgents from "./Components/MasterAgent/MasterAgents";
 import MasterPlayers from "./Components/MasterAgent/MasterPlayers";
-import MasterTransactions from "./Components/MasterAgent/MasterTransactions";
 import MasterAccount from "./Components/MasterAgent/MasterAccount";
 import MasterWallet from "./Components/MasterAgent/MasterWallet";
 //ADMIN IMPORTS
@@ -43,6 +40,7 @@ import TransactionsPage from "./Components/TransactionsPage";
 //CSS IMPORTS
 import "./App.css";
 import { AuthContext } from "./store/auth-context";
+import MyAccount from "./Components/MyAccount";
 
 function App() {
   const token = localStorage.getItem("token");
@@ -118,7 +116,7 @@ function App() {
                 exact
                 component={TransactionsPage}
               />
-              <Route path="/agent/account" exact component={AgentAccount} />
+              <Route path="/agent/account" exact component={MyAccount} />
             </>
           ) : null}
 
@@ -145,11 +143,7 @@ function App() {
                 exact
                 component={TransactionsPage}
               />
-              <Route
-                path="/masteragent/account"
-                exact
-                component={MasterAccount}
-              />
+              <Route path="/masteragent/account" exact component={MyAccount} />
             </>
           ) : null}
 
@@ -180,7 +174,7 @@ function App() {
                 exact
                 component={TransactionsPage}
               />
-              <Route path="/admin/account" exact component={AdminAccount} />
+              <Route path="/admin/account" exact component={MyAccount} />
             </>
           ) : null}
 

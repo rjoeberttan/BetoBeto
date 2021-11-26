@@ -1,24 +1,38 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
+import { AuthContext } from "../../store/auth-context";
 import styles from "./AdminAccount.module.css";
-
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "react-toastify/dist/ReactToastify.min.css";
 function AdminAccount() {
+  const ctx = useContext(AuthContext);
   const style = {
     width: "18 rem",
   };
 
-  const [cellNum, setCellNum] = useState("09273141930");
+  const [cellNum, setCellNum] = useState(ctx.user.phoneNum);
 
   function handleChange(e) {
     const { value } = e.target;
     setCellNum(value);
   }
 
+  useEffect(() => {
+    console.log(ctx.user);
+    //     accountID: 16
+    // accountType: "admin"
+    // email: "admin1@gmail.com"
+    // phoneNum: "09150000000"
+    // username: "admin1"
+  }, []);
+
   const linkTxt = useRef(null);
 
-  const referralLink = "http://localhost:3000/admin/account";
+  const referralLink = `http://localhost:3000/register/${ctx.user.accountID}`;
 
   return (
     <div className={`container text-light ${styles.containerAccount}`}>
+      <ToastContainer />
       <div className="heading-text">
         <h1 className="display-5 small-device bold-small">My Account</h1>
       </div>
@@ -40,6 +54,7 @@ function AdminAccount() {
                   className="btn btn-color register-btn text-light "
                   onClick={() => {
                     navigator.clipboard.writeText(linkTxt.current.textContent);
+                    toast.info("Copied to clipboard");
                   }}
                 >
                   COPY
@@ -56,10 +71,12 @@ function AdminAccount() {
           <form>
             <div className="row">
               <div className="col-sm-12 spacing">
-                <label className="form-label">Email: testing@admin.com</label>
+                <label className="form-label">Email: {ctx.user.email}</label>
               </div>
               <div className="col-md-12 spacing">
-                <label className="form-label">Username: admin </label>
+                <label className="form-label">
+                  Username: {ctx.user.username}{" "}
+                </label>
               </div>
               <div className="col-md-12 spacing">
                 <label className="form-label">Cellphone No.</label>

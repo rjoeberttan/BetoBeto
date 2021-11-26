@@ -1,9 +1,9 @@
 import React, { useContext, useState } from "react";
 import logo from "./loginimg.jpg";
 import { AuthContext } from "../../store/auth-context";
-import { ToastContainer, toast, Zoom, Bounce} from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import 'react-toastify/dist/ReactToastify.min.css';
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "react-toastify/dist/ReactToastify.min.css";
 
 function Login() {
   const ctx = useContext(AuthContext);
@@ -13,10 +13,8 @@ function Login() {
   });
 
   function handleClick(event) {
-
-      ctx.loginHandler(user);
-      event.preventDefault();
-    
+    ctx.loginHandler(user);
+    event.preventDefault();
   }
 
   function handleChange(event) {
@@ -35,7 +33,7 @@ function Login() {
 
   return (
     <div className="container center txt-black">
-      <ToastContainer/>
+      <ToastContainer />
       <div className="card" style={{ style }}>
         <img src={logo} className="card-img-top" alt="..." />
         <div className="card-body">

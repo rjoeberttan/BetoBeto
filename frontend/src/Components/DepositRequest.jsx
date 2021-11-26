@@ -1,19 +1,19 @@
 import React, { useState } from "react";
-import { toast, ToastContainer, Zoom } from "react-toastify";
+import { toast } from "react-toastify";
 
 const axios = require("axios").default;
 
 export default function DepositRequest(props) {
   const [dpAmount, setDpAmount] = useState();
-  const bankHeader = process.env.REACT_APP_HEADER_BANK
-  const bankAuthorization = {"Authorization": process.env.REACT_APP_KEY_BANK}
+  const bankHeader = process.env.REACT_APP_HEADER_BANK;
+  const bankAuthorization = { "Authorization": process.env.REACT_APP_KEY_BANK };
 
   function handleDepositAmt(e) {
     setDpAmount(e.target.value);
   }
 
   function submitDeposit(e) {
-    console.log(dpAmount, props.accId)
+    console.log(dpAmount, props.accId);
     axios({
       method: "post",
       url: `${bankHeader}/requestDeposit`,
@@ -25,23 +25,22 @@ export default function DepositRequest(props) {
     })
       .then((res) => {
         console.log(res);
-        toast.success(res.data.message)
-        setDpAmount('');
+        toast.success(res.data.message);
+        setDpAmount("");
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Error requesting deposit",{
-          autoClose : 1500
-        })
-        setDpAmount('');
+        toast.error("Error requesting deposit", {
+          autoClose: 1500,
+        });
+        setDpAmount("");
       });
-   
+
     e.preventDefault();
   }
 
   return (
-    
-    <div className={`col-sm-${props.col ? 3 : 4} wallet-card`}>
+    <div className={`col-sm-${props.col} wallet-card`}>
       <div className="card">
         <div className="card-body">
           <h5 className="card-title">Deposit Request</h5>

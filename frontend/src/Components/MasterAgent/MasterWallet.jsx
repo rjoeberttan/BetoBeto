@@ -5,24 +5,28 @@ import WalletRequestTable from "../WalletRequestTable";
 import "./MasterWallet.css";
 import WithdrawalReq from "../WithdrawalReq";
 import DepositRequest from "../DepositRequest";
-import { toast, ToastContainer, Zoom } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 
 function MasterWallet() {
   //============================================
   // Variable and useState Definitions
   //============================================
   const ctx = useContext(AuthContext);
-  const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT
-  const bankHeader = process.env.REACT_APP_HEADER_BANK
-  const accAuthorization = {"Authorization" : process.env.REACT_APP_KEY_ACCOUNT}
-  const bankAuthorization = {"Authorization" : process.env.REACT_APP_KEY_BANK}
-  const [depositRequest, setDepositRequest] = useState([])
-  const [withdrawalRequest, setWithdrawalRequest] = useState([])
-  const [usersList, setUsersList] = useState([])
+  const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT;
+  const bankHeader = process.env.REACT_APP_HEADER_BANK;
+  const accAuthorization = {
+    "Authorization": process.env.REACT_APP_KEY_ACCOUNT,
+  };
+  const bankAuthorization = { "Authorization": process.env.REACT_APP_KEY_BANK };
+  const [depositRequest, setDepositRequest] = useState([]);
+  const [withdrawalRequest, setWithdrawalRequest] = useState([]);
+  const [usersList, setUsersList] = useState([]);
+  // eslint-disable-next-line no-unused-vars
   const [userFilter, setUserFilter] = useState("0");
   const [filteredList, setFilteredList] = useState([]);
-  const [activeUserId, setActiveUserId] = useState("")
-  const [activeUsername, setActiveUsername] = useState("")
+  const [activeUserId, setActiveUserId] = useState("");
+  const [activeUsername, setActiveUsername] = useState("");
+  // eslint-disable-next-line no-unused-vars
   const [amount, setAmount] = useState(0);
   const [dateFilter, setDateFilter] = useState({
     startDate: "",
@@ -36,7 +40,7 @@ function MasterWallet() {
     totalFundTransfers: 0,
     totalFundReceived: 0,
     totalCommissions: 0,
-    totalEarnings: 0
+    totalEarnings: 0,
   });
 
   //============================================
@@ -51,39 +55,50 @@ function MasterWallet() {
       startDate: dateToday,
       endDate: dateToday,
     });
-    getUnsettledDeposits()
-    getUnsettledWithdrawals()
-    getUsersList()
-  }, [])
+    getUnsettledDeposits();
+    getUnsettledWithdrawals();
+    getUsersList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  function getUnsettledDeposits(){
-    const accType = (ctx.user.accountType === "admin") ? 0 : (ctx.user.accountType === "masteragent" ? 1 : 2)
+  function getUnsettledDeposits() {
+    const accType =
+      ctx.user.accountType === "admin"
+        ? 0
+        : ctx.user.accountType === "masteragent"
+        ? 1
+        : 2;
     axios({
       method: "get",
       url: `${bankHeader}/getUnsettledRequest/${ctx.user.accountID}/${accType}/0`,
-      headers: bankAuthorization
+      headers: bankAuthorization,
     })
       .then((res) => {
         const data = res.data.data;
-        console.log(data)
-        setDepositRequest(data)
+        console.log(data);
+        setDepositRequest(data);
       })
       .catch((err) => {
         console.log(err);
       });
   }
 
-  function getUnsettledWithdrawals(){
-    const accType = (ctx.user.accountType === "admin") ? 0 : (ctx.user.accountType === "masteragent" ? 1 : 2)
+  function getUnsettledWithdrawals() {
+    const accType =
+      ctx.user.accountType === "admin"
+        ? 0
+        : ctx.user.accountType === "masteragent"
+        ? 1
+        : 2;
     axios({
       method: "get",
       url: `${bankHeader}/getUnsettledRequest/${ctx.user.accountID}/${accType}/2`,
-      headers: bankAuthorization
+      headers: bankAuthorization,
     })
       .then((res) => {
         const data = res.data.data;
-        console.log(data)
-        setWithdrawalRequest(data)
+        console.log(data);
+        setWithdrawalRequest(data);
       })
       .catch((err) => {
         console.log(err);
@@ -94,70 +109,63 @@ function MasterWallet() {
     axios({
       method: "get",
       url: `${accountHeader}/getAccountList/${ctx.user.accountID}/1`,
-      headers: accAuthorization
+      headers: accAuthorization,
     })
       .then((res) => {
         const data = res.data.data;
-        console.log(data)
+        console.log(data);
         setUsersList(data);
-        setActiveUsername(data[0].username)
-        setActiveUserId(data[0].account_id)
-        setFilteredList(data)
+        setActiveUsername(data[0].username);
+        setActiveUserId(data[0].account_id);
+        setFilteredList(data);
       })
       .catch((err) => {
         console.log(err);
       });
   }
 
-
   //=====================================================
   // Event Handler Functions
   //=====================================================
-  function setActiveUser(e){
-    const [accountId, username] = (e.target.value).split("-")
+  function setActiveUser(e) {
+    const [accountId, username] = e.target.value.split("-");
     // console.log(accountId, username)
-    setActiveUserId(accountId)
-    setActiveUsername(username)
+    setActiveUserId(accountId);
+    setActiveUsername(username);
 
-    e.preventDefault()
+    e.preventDefault();
   }
 
-  function handleAmount(e){
-    const amount = parseFloat(e.target.value).toFixed(2)
-    setAmount(amount)
-  }
-
-  function submitTransfer(e){
-    const senderWallet = parseFloat(ctx.walletBalance).toFixed(2)
+  function submitTransfer(e) {
+    const senderWallet = parseFloat(ctx.walletBalance).toFixed(2);
 
     if (senderWallet < parseFloat(amount)) {
-      toast.error("Wallet balance is bigger than to send")
+      toast.error("Wallet balance is bigger than to send");
     } else {
       const data = {
         fromAccountId: ctx.user.accountID,
         fromUsername: ctx.user.username,
         toAccountId: activeUserId,
         toUsername: activeUsername,
-        amount: amount
-      }
-      console.log(data)
-      
+        amount: amount,
+      };
+      console.log(data);
+
       axios({
         method: "post",
         url: `${bankHeader}/transferFunds`,
         headers: bankAuthorization,
-        data: data
+        data: data,
       })
         .then((res) => {
           let newWallet = parseFloat(ctx.walletBalance) - parseFloat(amount);
           ctx.walletHandler(newWallet);
-          toast.success(res.data.message)
-          
+          toast.success(res.data.message);
         })
         .catch((err) => {
           toast.error("Fund transfer failed", {
-            autoClose : 1500
-          })
+            autoClose: 1500,
+          });
         });
     }
 
@@ -187,44 +195,44 @@ function MasterWallet() {
       };
     });
 
-    e.preventDefault()
+    e.preventDefault();
   }
 
-  function calculateEarnings(transList){
-    var depositAccepted = 0
-    var withdrawalAccepted = 0
-    var depositRequested = 0
-    var withdrawalRequested = 0
-    var fundTransfers = 0
-    var fundReceived = 0
-    var commissions = 0
-    
-    transList.map((trx) => {
-      console.log(trx.transaction_type, trx.amount)
-      if ((trx.transaction_type === 0) && (trx.status === 1)) {
-        depositRequested += trx.amount
-      } else if (trx.transaction_type === 1) {
-        depositAccepted += trx.amount
-      } else if ((trx.transaction_type === 2) && (trx.status === 1)) {
-        withdrawalRequested += trx.amount
-      } else if (trx.transaction_type === 3) {
-        withdrawalAccepted += trx.amount
-      } else if (trx.transaction_type === 4) {
-        fundTransfers += trx.amount
-      } else if (trx.transaction_type === 5) {
-        fundReceived += trx.amount
-      } else if (trx.transaction_type === 6) {
-        commissions += trx.amount
-      } 
-    })
+  function calculateEarnings(transList) {
+    var depositAccepted = 0;
+    var withdrawalAccepted = 0;
+    var depositRequested = 0;
+    var withdrawalRequested = 0;
+    var fundTransfers = 0;
+    var fundReceived = 0;
+    var commissions = 0;
 
-    var totalEarnings = depositAccepted 
-    - depositRequested 
-    + withdrawalRequested 
-    - withdrawalAccepted
-    - fundTransfers
-    + fundReceived
-    + commissions
+    transList.forEach((trx) => {
+      if (trx.transaction_type === 0 && trx.status === 1) {
+        depositRequested += trx.amount;
+      } else if (trx.transaction_type === 1) {
+        depositAccepted += trx.amount;
+      } else if (trx.transaction_type === 2 && trx.status === 1) {
+        withdrawalRequested += trx.amount;
+      } else if (trx.transaction_type === 3) {
+        withdrawalAccepted += trx.amount;
+      } else if (trx.transaction_type === 4) {
+        fundTransfers += trx.amount;
+      } else if (trx.transaction_type === 5) {
+        fundReceived += trx.amount;
+      } else if (trx.transaction_type === 6) {
+        commissions += trx.amount;
+      }
+    });
+
+    var totalEarnings =
+      depositAccepted -
+      depositRequested +
+      withdrawalRequested -
+      withdrawalAccepted -
+      fundTransfers +
+      fundReceived +
+      commissions;
 
     setEarnings((prev) => {
       return {
@@ -235,27 +243,27 @@ function MasterWallet() {
         totalWithdrawalAccepted: withdrawalAccepted.toFixed(2),
         totalFundTransfers: fundTransfers.toFixed(2),
         totalFundReceived: fundReceived.toFixed(2),
-        totalCommissions: commissions.toFixed(2),     
-        totalEarnings: totalEarnings.toFixed(2)  
-      }
-    })
+        totalCommissions: commissions.toFixed(2),
+        totalEarnings: totalEarnings.toFixed(2),
+      };
+    });
   }
 
   function getEarnings(e) {
     axios({
       method: "get",
       url: `${bankHeader}/getTransactionHistory/${ctx.user.accountID}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
-      headers: bankAuthorization
+      headers: bankAuthorization,
     })
       .then((res) => {
         const data = res.data.data;
-        calculateEarnings(data)    
+        calculateEarnings(data);
       })
       .catch((err) => {
         console.log(err);
       });
-    
-    e.preventDefault()
+
+    e.preventDefault();
   }
 
   //=====================================================
@@ -270,14 +278,14 @@ function MasterWallet() {
       <form>
         <div className="row txt-black">
           {/* card one */}
-          <div className="col-sm-3 wallet-card">
+          <div className="col-sm-6 wallet-card">
             <div className="card">
               <div className="card-body">
                 <div className="row">
                   <div className="admin-wallet-font">
                     <b>Date Filter:</b>
                   </div>
-                  <div className="col-md-10">
+                  <div className="col-md-4">
                     <input
                       className="date-style form-label"
                       type="date"
@@ -286,8 +294,7 @@ function MasterWallet() {
                       onChange={handleDateChange}
                     />
                   </div>
-                  -
-                  <div className="col-md-10">
+                  <div className="col-md-4">
                     <input
                       className="date-style form-label"
                       type="date"
@@ -296,50 +303,71 @@ function MasterWallet() {
                       onChange={handleDateChange}
                     />
                   </div>
-                  <div className="col-md-8">
-                    <button className="btn btn-color transaction-btn text-light col-xs-12" onClick={getEarnings}>
+                  <div className="col-md-4">
+                    <button
+                      className="btn btn-color transaction-btn text-light col-xs-12"
+                      onClick={getEarnings}
+                    >
                       Search
                     </button>
                   </div>
                 </div>
-                <div className="wallet-spacing">
-                  <h6 className="card-title">(+) Deposit Accepted</h6>
-                  <div className="card-text">₱{earnings.totalDepositAccepted}</div>
-                </div>
-                <div className="wallet-spacing">
-                  <h6 className="card-title">(-) Withdrawal Accepted</h6>
-                  <div className="card-text">₱{earnings.totalWithdrawalAccepted}</div>
-                </div>
-                <div className="wallet-spacing">
-                  <h6 className="card-title">(-) Deposit Requested</h6>
-                  <div className="card-text">₱{earnings.totalDepositRequested}</div>
-                </div>
-                <div className="wallet-spacing">
-                  <h6 className="card-title">(+) Withdrawal Requested</h6>
-                  <div className="card-text">₱{earnings.totalWithdrawalRequested}</div>
-                </div>
-                <div className="wallet-spacing">
-                  <h6 className="card-title">(-) Fund Transfers</h6>
-                  <div className="card-text">₱{earnings.totalFundTransfers}</div>
-                </div>
-                <div className="wallet-spacing">
-                  <h6 className="card-title">(+) Fund Received</h6>
-                  <div className="card-text">₱{earnings.totalFundReceived}</div>
-                </div>
-                <div className="wallet-spacing">
-                  <h6 className="card-title">(+) Commissions</h6>
-                  <div className="card-text">₱{earnings.totalCommissions}</div>
-                </div>
-                <div className="wallet-spacing">
-                  <h6 className="card-title">Total Earnings</h6>
-                  <div className="card-text">₱{earnings.totalEarnings}</div>
+                <div className="row">
+                  <div className="col-md-7 col-6 admin-wallet-font">
+                    <b>(+) Deposit Accepted</b>
+                  </div>
+                  <div className="col-md-5 col-6 admin-wallet-font">
+                    ₱{earnings.totalDepositAccepted}
+                  </div>
+                  <div className="col-md-7 col-6 admin-wallet-font">
+                    <b>(-) Withdrawal Accepted</b>
+                  </div>
+                  <div className="col-md-5 col-6 admin-wallet-font">
+                    ₱{earnings.totalWithdrawalAccepted}
+                  </div>
+                  <div className="col-md-7 col-6 admin-wallet-font">
+                    <b>(-) Deposit Requested</b>
+                  </div>
+                  <div className="col-md-5 col-6 admin-wallet-font">
+                    ₱{earnings.totalDepositRequested}
+                  </div>
+                  <div className="col-md-7 col-6 admin-wallet-font">
+                    <b>(+) Withdrawal Requested</b>
+                  </div>
+                  <div className="col-md-5 col-6 admin-wallet-font">
+                    ₱{earnings.totalWithdrawalRequested}
+                  </div>
+                  <div className="col-md-7 col-6 admin-wallet-font">
+                    <b>(-) Fund Transfers</b>
+                  </div>
+                  <div className="col-md-5 col-6 admin-wallet-font">
+                    ₱{earnings.totalFundTransfers}
+                  </div>
+                  <div className="col-md-7 col-6 admin-wallet-font">
+                    <b>(+) Fund Received</b>
+                  </div>
+                  <div className="col-md-5 col-6 admin-wallet-font">
+                    ₱{earnings.totalFundReceived}
+                  </div>
+                  <div className="col-md-7 col-6 admin-wallet-font">
+                    <b>(+) Commissions</b>
+                  </div>
+                  <div className="col-md-5 col-6 admin-wallet-font">
+                    ₱{earnings.totalCommissions}
+                  </div>
+                  <div className="col-md-7 col-6 admin-wallet-font">
+                    <b>Total Earnings</b>
+                  </div>
+                  <div className="col-md-5 col-6 admin-wallet-font">
+                    ₱{earnings.totalEarnings}
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
           {/* card two */}
-          <div className="col-sm-3 wallet-card">
+          <div className="col-sm-6 wallet-card">
             <div className="card">
               <div className="card-body">
                 <h5 className="card-title">Transfer Funds</h5>
@@ -384,7 +412,9 @@ function MasterWallet() {
                   <div className="col-md-12">
                     <select class="form-select" onChange={setActiveUser}>
                       {filteredList.map((x) => (
-                        <option value={x.account_id + '-' + x.username}>{x.username} </option>
+                        <option value={x.account_id + "-" + x.username}>
+                          {x.username}{" "}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -403,7 +433,10 @@ function MasterWallet() {
                   </div>
                 </div>
                 <div className="col-md-12 text-center">
-                  <button className="btn btn-color register-btn text-light" onClick={submitTransfer}>
+                  <button
+                    className="btn btn-color register-btn text-light"
+                    onClick={submitTransfer}
+                  >
                     Submit
                   </button>
                 </div>
@@ -426,11 +459,19 @@ function MasterWallet() {
             </div>
           </div> */}
           {/* card sample */}
-          <DepositRequest accId={ctx.user.accountID} header="http://localhost:4006" col="3" />
-          <WithdrawalReq accId={ctx.user.accountID} header="http://localhost:4006" walletBalance={ctx.walletBalance} col="3" />
+          <DepositRequest
+            accId={ctx.user.accountID}
+            header="http://localhost:4006"
+            col="6"
+          />
+          <WithdrawalReq
+            accId={ctx.user.accountID}
+            header="http://localhost:4006"
+            walletBalance={ctx.walletBalance}
+            col="6"
+          />
         </div>
       </form>
-
 
       <div className="row second-box">
         <div className="col-md-12">
@@ -448,7 +489,7 @@ function MasterWallet() {
             </thead>
             <tbody>
               {depositRequest.map((x) => (
-                <WalletRequestTable 
+                <WalletRequestTable
                   key={x.transaction_id}
                   transactionId={x.transaction_id}
                   requesterAccountId={x.account_id}
@@ -467,7 +508,6 @@ function MasterWallet() {
           </table>
         </div>
 
-
         <div className="col-md-12">
           <h2>Withdrawal Request</h2>
           <table class="table table-success table-striped">
@@ -483,7 +523,7 @@ function MasterWallet() {
             </thead>
             <tbody>
               {withdrawalRequest.map((x) => (
-                <WalletRequestTable 
+                <WalletRequestTable
                   key={x.transaction_id}
                   transactionId={x.transaction_id}
                   requesterAccountId={x.account_id}

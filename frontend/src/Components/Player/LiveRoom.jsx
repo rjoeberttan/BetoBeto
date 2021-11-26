@@ -5,7 +5,7 @@ import TextScroller from "../TextScroller";
 import "./LiveRoom.css";
 import { AuthContext } from "../../store/auth-context";
 import socket from "../Websocket/socket";
-import { ToastContainer, toast, Zoom, Bounce } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/dist/ReactToastify.min.css";
 const axios = require("axios");
@@ -18,7 +18,7 @@ function LiveRoom() {
   const [color, setColor] = useState("red");
   const [placeBetDisabled, setPlaceBetDisabled] = useState(false);
   const [placeTipDisabled, setPlaceTipDisabled] = useState(false);
-  const [placeBetText, setPlaceBetText] = useState("Place Bet")
+  const [placeBetText, setPlaceBetText] = useState("Place Bet");
   const [gameDetails, setGameDetails] = useState({
     banner: "",
     description: "",
@@ -49,13 +49,11 @@ function LiveRoom() {
   const [tip, setTip] = useState(0);
   const { gameId } = useParams();
   const gameHeader = process.env.REACT_APP_HEADER_GAME;
-  const betHeader = process.env.REACT_APP_HEADER_BET
+  const betHeader = process.env.REACT_APP_HEADER_BET;
   // process.env.REACT_APP_HEADER_BET;
-  console.log(betHeader)
-  const gameAuthorization = {"Authorization": process.env.REACT_APP_KEY_GAME}
-  const betAuthorization = {"Authorization": process.env.REACT_APP_KEY_BET}
-
-  
+  console.log(betHeader);
+  const gameAuthorization = { "Authorization": process.env.REACT_APP_KEY_GAME };
+  const betAuthorization = { "Authorization": process.env.REACT_APP_KEY_BET };
 
   //===========================================
   // UseEffect
@@ -64,17 +62,19 @@ function LiveRoom() {
     socket.emit("join_room", "colorGame");
     getLatestGameDetails();
     getLatestMarketDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     getColorGameBetTotals();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [marketDetails]);
 
   function getLatestGameDetails() {
     axios({
       method: "get",
       url: `${gameHeader}/getGameDetails/${gameId}`,
-      headers: gameAuthorization
+      headers: gameAuthorization,
     }).then((res) => {
       //get game details
       const { data } = res.data;
@@ -98,7 +98,7 @@ function LiveRoom() {
     axios({
       method: "get",
       url: `${gameHeader}/getLatestMarketDetails/${gameId}`,
-      headers: gameAuthorization
+      headers: gameAuthorization,
     }).then((res) => {
       //get game details
       const { market } = res.data.data;
@@ -119,7 +119,7 @@ function LiveRoom() {
     axios({
       method: "get",
       url: `${gameHeader}/getColorGameBetTotals/${gameId}/${marketDetails.market_id}`,
-      headers: gameAuthorization
+      headers: gameAuthorization,
     })
       .then((res) => {
         const values = res.data.data;
@@ -151,6 +151,7 @@ function LiveRoom() {
       });
       handlePlaceBetButtonStatus(data.status);
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket]);
 
   //===========================================
@@ -181,19 +182,20 @@ function LiveRoom() {
         ctx.walletHandler(newWallet);
 
         //Disable Button for 5 seconds
-        setPlaceBetDisabled(true)
-        setPlaceBetText("Please Wait")
-        
-        
+        setPlaceBetDisabled(true);
+        setPlaceBetText("Please Wait");
+
         setTimeout(() => {
-          console.log("disabled")
-          setPlaceBetText("Place Bet")
-          setPlaceBetDisabled(false)
-          
-        }, 5000)
-        toast.success(`Placed Bet successfully. BetId: ${res.data.data.betId}`, {
-          autoClose : 2000
-        });
+          console.log("disabled");
+          setPlaceBetText("Place Bet");
+          setPlaceBetDisabled(false);
+        }, 5000);
+        toast.success(
+          `Placed Bet successfully. BetId: ${res.data.data.betId}`,
+          {
+            autoClose: 2000,
+          }
+        );
       })
       .catch((err) => {
         console.log(err);
@@ -225,7 +227,7 @@ function LiveRoom() {
     if (!tip) {
       // console.log("Tip Amount cannot be empty");
       toast.error("Sorry. Tip box can't be empty.", {
-        autoClose : 1500
+        autoClose: 1500,
       });
     } else {
       const data = {
@@ -246,8 +248,8 @@ function LiveRoom() {
           console.log(res);
           const newWallet = parseFloat(ctx.walletBalance) - parseFloat(tip);
           ctx.walletHandler(newWallet);
-          toast.success(`Thanks for the tip! Enjoy the game`,{
-            autoClose: 1500
+          toast.success(`Thanks for the tip! Enjoy the game`, {
+            autoClose: 1500,
           });
         })
         .catch((err) => {
@@ -293,7 +295,7 @@ function LiveRoom() {
 
   return (
     <div className="container text-light container-game-room">
-    <ToastContainer/>
+      <ToastContainer />
       <div className="heading-text">
         <h1 className="display-5 small-device bold-small">
           Live {gameDetails.name}
@@ -304,15 +306,15 @@ function LiveRoom() {
           <TextScroller text={gameDetails.banner} />
         </div>
         <div className="col-md-8">
-          <YoutubeEmbed embedId="" />
+          <YoutubeEmbed embedId={gameDetails.youtube_url} />
         </div>
         <div className="col-md-4 live-room-colorbox">
-          <div class="card txt-black">
-            <div class="card-body">
-              <h5 class="card-title">
+          <div className="card txt-black">
+            <div className="card-body">
+              <h5 className="card-title">
                 Current Market ID: {marketDetails.market_id}
               </h5>
-              <p class="card-text">
+              <p className="card-text">
                 Betting Status:{" "}
                 {marketDetails.status === 0
                   ? " OPEN"
@@ -351,7 +353,7 @@ function LiveRoom() {
                     value="green"
                     onChange={handleChange}
                   />
-                  <label for="huey" className="color-name">
+                  <label htmlFor="huey" className="color-name">
                     Total: ₱ {betTotals.GREEN}
                   </label>
                 </label>
@@ -363,7 +365,7 @@ function LiveRoom() {
                     value="yellow"
                     onChange={handleChange}
                   />
-                  <label for="huey" className="color-name">
+                  <label htmlFor="huey" className="color-name">
                     Total: ₱ {betTotals.YELLOW}
                   </label>
                 </label>
@@ -375,7 +377,7 @@ function LiveRoom() {
                     value="white"
                     onChange={handleChange}
                   />
-                  <label for="huey" className="color-name">
+                  <label htmlFor="huey" className="color-name">
                     Total: ₱ {betTotals.WHITE}
                   </label>
                 </label>
@@ -387,7 +389,7 @@ function LiveRoom() {
                     value="purple"
                     onChange={handleChange}
                   />
-                  <label for="huey" className="color-name">
+                  <label htmlFor="huey" className="color-name">
                     Total: ₱ {betTotals.PURPLE}
                   </label>
                 </label>
@@ -424,19 +426,19 @@ function LiveRoom() {
       </div>
       <div className="label-margin">
         <div className="text-center">
-          <div class="card text-black">
-            <div class="card-body">
-              <h5 class="card-title">Donation Box</h5>
-              <p class="card-text">If you enjoy playing, you can tip me!</p>
-              <div class="input-group mb-2">
+          <div className="card text-black">
+            <div className="card-body">
+              <h5 className="card-title">Donation Box</h5>
+              <p className="card-text">If you enjoy playing, you can tip me!</p>
+              <div className="input-group mb-2">
                 <input
                   type="number"
-                  class="form-control"
+                  className="form-control"
                   placeholder="P500"
                   onChange={handleTipChange}
                 />
                 <button
-                  class="btn btn-color text-light"
+                  className="btn btn-color text-light"
                   type="button"
                   onClick={sendTip}
                   disabled={placeTipDisabled}
@@ -453,9 +455,3 @@ function LiveRoom() {
 }
 
 export default LiveRoom;
-
-// <div className="col-sm-3 col-5 blue-box">Blue</div>
-//                 <div className="col-sm-3 col-5 green-box">Green</div>
-//                 <div className="col-sm-3 col-5 yellow-box">Yellow</div>
-//                 <div className="col-sm-3 col-5 white-box">White</div>
-//                 <div className="col-sm-3 col-5 purple-box">Purple</div>

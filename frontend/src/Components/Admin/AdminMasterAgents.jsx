@@ -11,6 +11,7 @@ function AdminMasterAgents() {
 
   useEffect(() => {
     getUserList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function getUserList() {
@@ -24,12 +25,9 @@ function AdminMasterAgents() {
       .then((res) => {
         const data = res.data.data;
         const masterAgentss = data.filter((x) => x.account_type === 1);
-        console.log(masterAgentss);
         setMasterAgents(masterAgentss);
       })
-      .catch((err) => {
-        console.log(err);
-      });
+      .catch((err) => {});
   }
   return (
     <div className="container text-light container-wallet">

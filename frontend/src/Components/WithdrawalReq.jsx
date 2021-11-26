@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import { ToastContainer, toast, Zoom, Bounce} from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import 'react-toastify/dist/ReactToastify.min.css';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "react-toastify/dist/ReactToastify.min.css";
 const axios = require("axios").default;
 
 export default function WithdrawalReq(props) {
   const [wdAmount, setWdAmount] = useState();
   const bankHeader = process.env.REACT_APP_HEADER_BANK;
-  const bankAuthorization = {"Authorization": process.env.REACT_APP_KEY_BANK}
+  const bankAuthorization = { "Authorization": process.env.REACT_APP_KEY_BANK };
 
   function handleWithdrawAmt(e) {
     setWdAmount(e.target.value);
@@ -15,10 +15,10 @@ export default function WithdrawalReq(props) {
 
   function submitWithdrawal(e) {
     if (parseFloat(wdAmount) > parseFloat(props.walletBalance).toFixed(2)) {
-      toast.error('Withdrawal amount is greater than current wallet balance', {
-        autoClose : 1500
+      toast.error("Withdrawal amount is greater than current wallet balance", {
+        autoClose: 1500,
       });
-      console.log('haha');
+      console.log("haha");
     } else {
       axios({
         method: "post",
@@ -30,24 +30,24 @@ export default function WithdrawalReq(props) {
         },
       })
         .then((res) => {
-          toast.success(res.data.message)
+          toast.success(res.data.message);
           console.log(res);
-          setWdAmount('')
+          setWdAmount("");
         })
         .catch((err) => {
           // console.log(err);
-          toast.error('Error requesting withdrawal', {
-            autoClose : 1500
-          })
-          setWdAmount('')
+          toast.error("Error requesting withdrawal", {
+            autoClose: 1500,
+          });
+          setWdAmount("");
         });
     }
     e.preventDefault();
   }
 
   return (
-    <div className={`col-sm-${props.col ? 3 : 4} wallet-card`}>
-        <ToastContainer/>
+    <div className={`col-sm-${props.col} wallet-card`}>
+      <ToastContainer />
       <div className="card">
         <div className="card-body">
           <h5 className="card-title">Withdrawal Request</h5>

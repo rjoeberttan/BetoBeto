@@ -283,11 +283,13 @@ app.post("/login", (req, res) => {
           const username = result[0].username;
           const accountId = result[0].account_id;
           const accountType = result[0].account_type;
-          const accountStatus = result[0].account_status
-
+          
+          const accountStatus = result[0].account_status;
+          const email = result[0].email;
+          const phoneNum = result[0].phone_num;
 
           const token = jwt.sign(
-            { accountId, username, accountType },
+            { accountId, username, accountType, email, phoneNum },
             process.env.JWT_SECRET,
             { expiresIn: "2h" }
           );
@@ -298,6 +300,8 @@ app.post("/login", (req, res) => {
             username: username,
             accountType: accountType,
             accountStatus: accountStatus,
+            email: email,
+            phoneNum: phoneNum,
             token: token,
           });
 
@@ -365,6 +369,8 @@ app.get("/isUserAuth", (req, res) => {
           accountId: decoded.accountId,
           username: decoded.username,
           accountType: decoded.accountType,
+          email: decoded.email,
+          phoneNum: decoded.phoneNum,
         });
       }
     });
@@ -888,7 +894,8 @@ app.get("/getCountPlayer/:accountId", (req, res) => {
 
   // Process 1
   // Get all necessary details
-  sqlQuery = "select count(*) as userCount from accounts where agent_id in (select account_id from accounts where agent_id = ?);";
+  sqlQuery =
+    "select count(*) as userCount from accounts where agent_id in (select account_id from accounts where agent_id = ?);";
   db.query(sqlQuery, [accountId], (err, result) => {
     if (err) {
       logger.error(
@@ -933,7 +940,8 @@ app.get("/getAgentName/:accountId", (req, res) => {
 
   // Process 1
   // Get all necessary details
-  sqlQuery = "select username from accounts where account_id in (select agent_id from accounts where account_id = ?);";
+  sqlQuery =
+    "select username from accounts where account_id in (select agent_id from accounts where account_id = ?);";
   db.query(sqlQuery, [accountId], (err, result) => {
     if (err) {
       logger.error(

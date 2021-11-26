@@ -1,9 +1,8 @@
-import React, { useContext, useState } from "react";
+import React, { useContext } from "react";
 import "./PlayerWallet.css";
 import { AuthContext } from "../../store/auth-context";
 import DepositRequest from "../DepositRequest";
 import WithdrawalReq from "../WithdrawalReq";
-const axios = require("axios").default;
 
 function Wallet() {
   //====================================
@@ -28,10 +27,11 @@ function Wallet() {
               </div>
             </div>
           </div>
-          <DepositRequest accId={ctx.user.accountID} />
+          <DepositRequest accId={ctx.user.accountID} col="4" />
           <WithdrawalReq
             accId={ctx.user.accountID}
             walletBalance={ctx.walletBalance}
+            col="4"
           />
         </div>
       </form>

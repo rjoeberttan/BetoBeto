@@ -2,7 +2,7 @@
 const express = require("express");
 const mysql = require("mysql");
 const { createLogger, transports, format } = require("winston");
-const io = require("socket.io-client")
+const io = require("socket.io-client");
 const helmet = require("helmet");
 const cors = require("cors");
 const fs = require('fs');
@@ -24,7 +24,7 @@ app.use(
 
 
 // Configure websocket domain
-const socket = io.connect("http://localhost:3010")
+const socket = io.connect("http://localhost:3010");
 
 // Configure Winston Logging
 // For this environment it sends to console first

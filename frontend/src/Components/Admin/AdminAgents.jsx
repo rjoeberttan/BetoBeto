@@ -1,8 +1,7 @@
-import {React, useContext, useEffect, useState} from "react";
+import { React, useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../store/auth-context";
 import axios from "axios";
 import UserCard from "../Usercard/UserCard";
-import env from "react-dotenv";
 
 function AdminAgents() {
   const ctx = useContext(AuthContext);
@@ -11,6 +10,7 @@ function AdminAgents() {
 
   useEffect(() => {
     getUserList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function getUserList() {
@@ -61,23 +61,22 @@ function AdminAgents() {
       </div>
       <div className="row text-black second-box">
         {agents.map((x) => (
-            <UserCard 
-                key={x.account_id}
-                accountId={x.account_id}
-                username={x.username}
-                noOfAgents="TBS"
-                mobile={x.phone_num}
-                noOfPlayers="TBS"
-                commission={x.commission}
-                status={x.account_status === 1 ? "ACTIVE" : "LOCKED"}
-                lastEditChange={x.lastedit_date.substring(0, 10)}
-                walletBalance={x.wallet}
-                editor={ctx.user.username}
-                editorId={ctx.user.accountID}
-                accountType="2"
-              />
-          ))
-        }
+          <UserCard
+            key={x.account_id}
+            accountId={x.account_id}
+            username={x.username}
+            noOfAgents="TBS"
+            mobile={x.phone_num}
+            noOfPlayers="TBS"
+            commission={x.commission}
+            status={x.account_status === 1 ? "ACTIVE" : "LOCKED"}
+            lastEditChange={x.lastedit_date.substring(0, 10)}
+            walletBalance={x.wallet}
+            editor={ctx.user.username}
+            editorId={ctx.user.accountID}
+            accountType="2"
+          />
+        ))}
       </div>
     </div>
   );

@@ -16,19 +16,22 @@ function Account() {
   });
 
   const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT;
-  const accAuthorization = {"Authorization": process.env.REACT_APP_KEY_ACCOUNT}
+  const accAuthorization = {
+    "Authorization": process.env.REACT_APP_KEY_ACCOUNT,
+  };
   //===========================================
   // UseEffect
   //===========================================
   useEffect(() => {
     getUserDetails(ctx.user.accountID);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function getUserDetails(accountId) {
     axios({
       method: "get",
       url: `${accountHeader}/getUserDetails/${accountId}`,
-      headers: accAuthorization
+      headers: accAuthorization,
     })
       .then((res) => {
         console.log(res);
