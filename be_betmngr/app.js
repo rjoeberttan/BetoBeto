@@ -448,9 +448,42 @@ app.get("/getBetHistory/:accountId/:dateFrom/:dateTo", (req, res) => {
     })
 })
 
+app.get("/getBetMarketList/:marketId", (req, res) => {
+    const apiKey = req.header("Authorization");
+    const marketId = req.params.marketId;
+  
+    // Check if body is complete
+    if (!marketId) {
+      logger.warn("getBetMarketList request has missing body parameters");
+      res.status(400).json({ message: "Missing body parameters" });
+      return;
+    }
+  
+    // Check if apiKey is correct
+    if (!apiKey || apiKey !== process.env.API_KEY) {
+      logger.warn("getBetMarketList request has missing/wrong API_KEY");
+      res.status(401).json({ message: "Unauthorized Request" });
+      return;
+    }
+  
+    sqlQuery = "SELECT * from bets WHERE market_id=?";
+    db.query(sqlQuery, [marketId], (err, result) => {
+      if (err) {
+        logger.error(
+          " Process 1: Error in getBetMarketList request from accountId:" +
+            accountId
+        );
+      } else {
+        res.status(200).json({ message: "Request Successful", data: result });
+      }
+    });
+  });
+
 
 
 app.listen(4005, () => {
     console.log("Backend Bet Manager listentning at port 4005");
   });
+
+
   

@@ -53,6 +53,16 @@
     ]
   },
   "react-dotenv": {
-    "whitelist": ["KEY_ACCOUNT", "KEY_GAME", "KEY_BET", "KEY_BANK", "HEADER_ACCOUNT", "HEADER_GAME", "HEADER_BET", "HEADER_BANK", "HEADER_WEBSOCKET"]
+    "whitelist": [
+      "KEY_ACCOUNT",
+      "KEY_GAME",
+      "KEY_BET",
+      "KEY_BANK",
+      "HEADER_ACCOUNT",
+      "HEADER_GAME",
+      "HEADER_BET",
+      "HEADER_BANK",
+      "HEADER_WEBSOCKET"
+    ]
   }
 }

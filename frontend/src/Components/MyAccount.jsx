@@ -1,34 +1,52 @@
-import React, { useState, useRef } from "react";
-import "./AgentAccount.css";
+import React, { useState, useRef, useEffect, useContext } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "react-toastify/dist/ReactToastify.min.css";
+import { AuthContext } from "../store/auth-context";
+import styles from "./MyAccount.module.css";
 
-function AgentAccount() {
+function MyAccount() {
+  const ctx = useContext(AuthContext);
   const style = {
     width: "18 rem",
   };
 
-  const [cellNum, setCellNum] = useState("09273141930");
+  const [cellNum, setCellNum] = useState(ctx.user.phoneNum);
 
   function handleChange(e) {
     const { value } = e.target;
     setCellNum(value);
   }
 
+  useEffect(() => {
+    console.log(ctx.user);
+    //     accountID: 16
+    // accountType: "admin"
+    // email: "admin1@gmail.com"
+    // phoneNum: "09150000000"
+    // username: "admin1"
+  }, []);
+
   const linkTxt = useRef(null);
 
-  const referralLink = "http://localhost:3000/agent/account";
+  const referralLink = `http://localhost:3000/register/${ctx.user.accountID}`;
 
   return (
-    <div className="container text-light container-account">
+    <div className={`container text-light ${styles.containerAccount}`}>
+      <ToastContainer />
       <div className="heading-text">
         <h1 className="display-5 small-device bold-small">My Account</h1>
       </div>
-      <div className="card text-black card-account" style={{ style }}>
+      <div
+        className={`card text-black ${styles.cardAccount}`}
+        style={{ style }}
+      >
         <div className="card-body">
           <div className="heading-text">
             <h1 className="display-6 small-device bold-small">Referral Link</h1>
             <div className="row">
               <div className="col-sm-9 spacing">
-                <label className="referral-link" ref={linkTxt}>
+                <label className={styles.referralLink} ref={linkTxt}>
                   {referralLink}
                 </label>
               </div>
@@ -37,6 +55,7 @@ function AgentAccount() {
                   className="btn btn-color register-btn text-light "
                   onClick={() => {
                     navigator.clipboard.writeText(linkTxt.current.textContent);
+                    toast.info("Copied to clipboard");
                   }}
                 >
                   COPY
@@ -53,10 +72,12 @@ function AgentAccount() {
           <form>
             <div className="row">
               <div className="col-sm-12 spacing">
-                <label className="form-label">Email: testing@player.com</label>
+                <label className="form-label">Email: {ctx.user.email}</label>
               </div>
               <div className="col-md-12 spacing">
-                <label className="form-label">Username: pogiako69 </label>
+                <label className="form-label">
+                  Username: {ctx.user.username}{" "}
+                </label>
               </div>
               <div className="col-md-12 spacing">
                 <label className="form-label">Cellphone No.</label>
@@ -111,4 +132,4 @@ function AgentAccount() {
   );
 }
 
-export default AgentAccount;
+export default MyAccount;
