@@ -101,6 +101,7 @@ export default function AuthContextProvider(props) {
   }
 
   function loginHandler(person) {
+    console.log(accountHeader)
     if (person.username === "") {
       setErrorMessage("Username can't be empty");
     } else if (person.password === "") {

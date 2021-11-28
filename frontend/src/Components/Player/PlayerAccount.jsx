@@ -1,5 +1,8 @@
 import React, { useState, useContext, useEffect } from "react";
 import "./PlayerAccount.css";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import "react-toastify/dist/ReactToastify.min.css"; 
 import { AuthContext } from "../../store/auth-context";
 import axios from "axios";
 
@@ -78,12 +81,11 @@ function Account() {
         },
       })
         .then((res) => {
-          console.log(res);
-          //toaster successfully changed phone num
+          toast.success("Phone number Updated")
         })
         .catch((err) => {
           console.log(err);
-          //toaster failed changed phone num
+          toast.error("Unable to Update Phone Number")
         });
     }
     e.preventDefault();
@@ -118,9 +120,12 @@ function Account() {
         },
       })
         .then((res) => {
+          toast.success("Password updated successfully")
+          setPassword({password: "", confirmPassword: ""})
           console.log(res);
         })
         .catch((err) => {
+          toast.error("Unable to update Password")
           console.log(err);
         });
     }
@@ -183,6 +188,7 @@ function Account() {
                     placeholder="Password"
                     name="password"
                     onChange={handleChangePassword}
+                    value={password.password}
                   />
                 </div>
                 <div className="col-md-6 spacing">
@@ -193,6 +199,7 @@ function Account() {
                     placeholder="Confirm Password"
                     name="confirmPassword"
                     onChange={handleChangePassword}
+                    value={password.confirmPassword}
                   />
                 </div>
                 <div className="col-md-12 text-center">

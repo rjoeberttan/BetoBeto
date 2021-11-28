@@ -55,19 +55,6 @@ function App() {
         <Switch>
           {/* LOGIN REGISTER ROUTES */}
           <Route path="/" exact>
-            {/* REDIRECT TO WHICH PAGE(PLAYER, AGENT, MASTERAGENT, OR ADMIN) */}
-            {/* {token && ctx.ctx.user.accountType === "player" ? (
-              <Redirect to="/player/gameroom" />
-            ) : null}
-            {token && ctx.ctx.user.accountType === "agent" ? (
-              <Redirect to="/agent/players" />
-            ) : null}
-            {token && ctx.ctx.user.accountType === "masteragent" ? (
-              <Redirect to="/masteragent/agents" />
-            ) : null}
-            {token && ctx.ctx.user.accountType === "admin" ? (
-              <Redirect to="/admin/gameroom" />
-            ) : null} */}
             {token && ctx.user.accountType === "player" ? (
               <Redirect to="/player/gameroom" />
             ) : null}
@@ -82,7 +69,23 @@ function App() {
             ) : null}
             <Login />
           </Route>
-          <Route path="/register/:agentid" exact component={Register} />
+
+          <Route path="/register/:agentid" exact>
+            {token && ctx.user.accountType === "player" ? (
+              <Redirect to="/player/gameroom" />
+            ) : null}
+            {token && ctx.user.accountType === "agent" ? (
+              <Redirect to="/agent/players" />
+            ) : null}
+            {token && ctx.user.accountType === "masteragent" ? (
+              <Redirect to="/masteragent/agents" />
+            ) : null}
+            {token && ctx.user.accountType === "admin" ? (
+              <Redirect to="/admin/gameroom" />
+            ) : null}
+            <Register />
+          </Route>          
+      
 
           {/* PLAYER ROUTES */}
           {token && ctx.user.accountType === "player" ? (
@@ -176,7 +179,8 @@ function App() {
           ) : null}
 
           {/* 404 ROUTES */}
-          <Route path="*" exact component={ErrorPage} />
+          <Route path='*'  component={ErrorPage} />
+          <Route path="/error" exact component={ErrorPage} />
         </Switch>
       </div>
     </Router>

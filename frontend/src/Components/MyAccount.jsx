@@ -4,32 +4,126 @@ import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/dist/ReactToastify.min.css";
 import { AuthContext } from "../store/auth-context";
 import styles from "./MyAccount.module.css";
+import axios from "axios";
+
 
 function MyAccount() {
   const ctx = useContext(AuthContext);
   const style = {
     width: "18 rem",
   };
+  const linkTxt = useRef(null);
+  const referralLink = `${process.env.REACT_APP_DOMAIN}/register/${ctx.user.accountID}`;
+  const [cellNum, setCellNum] = useState("");
+  const [password, setPassword] = useState({
+    password: "",
+    confirmPassword: "",
+  });
 
-  const [cellNum, setCellNum] = useState(ctx.user.phoneNum);
+  const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT
+  const accAuthorization = {
+    "Authorization": process.env.REACT_APP_KEY_ACCOUNT,
+  };
 
-  function handleChange(e) {
-    const { value } = e.target;
-    setCellNum(value);
-  }
 
   useEffect(() => {
-    console.log(ctx.user);
-    //     accountID: 16
-    // accountType: "admin"
-    // email: "admin1@gmail.com"
-    // phoneNum: "09150000000"
-    // username: "admin1"
+    getUserDetails(ctx.user.accountID);
   }, []);
 
-  const linkTxt = useRef(null);
+  function getUserDetails(accountId) {
+    axios({
+      method: "get",
+      url: `${accountHeader}/getUserDetails/${accountId}`,
+      headers: accAuthorization,
+    })
+      .then((res) => {
+        setCellNum(res.data.data.phone_num)
+      })
+      .catch((err) => {
+        console.log(err)
+      });
+  }
 
-  const referralLink = `http://localhost:3000/register/${ctx.user.accountID}`;
+  function handlePhoneChange(e) {
+    const { value } = e.target;
+    setCellNum(value.substring(0,11));
+  }
+
+  function handlePhoneChange(e) {
+    const { value } = e.target;
+    setCellNum(value.substring(0,11));
+  }
+
+  function submitPhone(e) {
+    if (
+      cellNum.substring(0, 2) !== "09" ||
+      cellNum.length !== 11
+    ) {
+      toast.error("Please follow phone format ex: 09XXXXXXXXX")
+    } else {
+      axios({
+        method: "post",
+        url: `${accountHeader}/updatePhoneDetail`,
+        headers: accAuthorization,
+        data: {
+          phone: cellNum,
+          accountId: ctx.user.accountID,
+          editorUsername: ctx.user.username,
+        },
+      })
+        .then((res) => {
+          toast.success("Phone number Updated")
+        })
+        .catch((err) => {
+          console.log(err);
+          toast.error("Unable to Update Phone Number")
+        });
+    }
+    e.preventDefault();
+  }
+
+
+  function handleChangePassword(e) {
+    const { value, name } = e.target;
+    setPassword((prev) => {
+      return {
+        ...prev,
+        [name]: value,
+      };
+    });
+  }
+
+  function submitPassword(e) {
+    if (password.password !== password.confirmPassword) {
+      console.log("password do not match");
+      toast.error("Passwords do not match")
+    } else if (password.password.length < 8 || password.password.length > 20) {
+      console.log("password length error");
+      toast.error("Password does not match required length (8-20 chars)")
+    } else {
+      axios({
+        method: "post",
+        url: `${accountHeader}/updatePassword`,
+        headers: accAuthorization,
+        data: {
+          password: password.password,
+          accountId: ctx.user.accountID,
+          editorUsername: ctx.user.username,
+        },
+      })
+        .then((res) => {
+          toast.success("Password updated successfully")
+          setPassword({password: "", confirmPassword: ""})
+          console.log(res);
+        })
+        .catch((err) => {
+          toast.error("Unable to update Password")
+          console.log(err);
+        });
+    }
+    e.preventDefault();
+  }
+
 
   return (
     <div className={`container text-light ${styles.containerAccount}`}>
@@ -86,12 +180,12 @@ function MyAccount() {
                   className="form-control"
                   name="cellNum"
                   value={cellNum}
-                  onChange={handleChange}
+                  onChange={handlePhoneChange}
                   onWheel={(e) => e.target.blur()}
                 />
               </div>
               <div className="col-md-12 text-center">
-                <button className="btn btn-color register-btn text-light">
+                <button className="btn btn-color register-btn text-light" onClick={submitPhone}>
                   Save
                 </button>
               </div>
@@ -108,6 +202,9 @@ function MyAccount() {
                     type="password"
                     className="form-control"
                     placeholder="Password"
+                    name="password"
+                    onChange={handleChangePassword}
+                    value={password.password}
                   />
                 </div>
                 <div className="col-md-6 spacing">
@@ -116,10 +213,13 @@ function MyAccount() {
                     type="password"
                     className="form-control"
                     placeholder="Confirm Password"
+                    name="confirmPassword"
+                    onChange={handleChangePassword}
+                    value={password.confirmPassword}
                   />
                 </div>
                 <div className="col-md-12 text-center">
-                  <button className="btn btn-color register-btn text-light">
+                  <button className="btn btn-color register-btn text-light" onClick={submitPassword}>
                     Save
                   </button>
                 </div>

@@ -176,7 +176,7 @@ app.post("/updateGameSettings", (req, res) => {
   const editor = req.body.editor;
 
   // Check if body is complete
-  if (!gameId || !url || !editor) {
+  if (!gameId || !url || !editor || !gameTitle || description || bannerMessage) {
     logger.warn("updateGameSettings request has missing body parameters");
     res.status(400).json({ message: "Missing body parameters" });
     return;
@@ -989,8 +989,6 @@ app.get("/getColorGameBetTotals/:gameId/:marketId", (req, res) => {
       );
       res.status(500).json({ message: "Server error" });
     } else {
-      console.log(result);
-
       // Process 2
       // Get Manipulate Values
       sqlQuery2 =
@@ -1082,8 +1080,6 @@ app.get("/getColorGameBetTotals/:gameId/:marketId", (req, res) => {
               }
             }
           });
-
-          console.log(finalTotals);
           res.status(200).json({
             message: "Bet Totals request is successful",
             data: finalTotals,

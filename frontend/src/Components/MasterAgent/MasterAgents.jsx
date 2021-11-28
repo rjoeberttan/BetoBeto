@@ -11,6 +11,8 @@ function MasterAgents() {
     "Authorization": process.env.REACT_APP_KEY_ACCOUNT,
   };
   const [agents, setAgents] = useState([]);
+  const [userSearch, setUserSearch] = useState("");
+  const [filteredAgents, setFilteredAgents] = useState([]);
 
   useEffect(() => {
     getUserList();
@@ -28,11 +30,28 @@ function MasterAgents() {
         const Agents = data.filter((x) => x.account_type === 2);
         console.log(Agents);
         setAgents(Agents);
+        setFilteredAgents(Agents)
       })
       .catch((err) => {
         console.log(err);
       });
   }
+
+  function handleChange(e){
+    const searchVal = e.target.value
+    setUserSearch(searchVal)
+
+    let filtered = []
+   
+    agents.map((x) => {
+      let username = x.username
+      if (username.includes(searchVal)){
+        filtered.push(x)
+      }
+    })
+    setFilteredAgents(filtered)
+  }
+
 
   return (
     <div className="container text-light container-wallet">
@@ -40,23 +59,25 @@ function MasterAgents() {
         <h1 className="display-5 small-device bold-small">Manage Agents</h1>
       </div>
       <div className="row">
-        <div className="col-sm-1">
-          <label className="label-txt">Filter Agent</label>
+        <div className="col-sm-2">
+          <label className="label-txt">Search Player</label>
         </div>
-        <div className="col-sm-2 col-10">
-          <input type="text" className="form-control" placeholder="Agent" />
-        </div>
-        <div className="col-md-2">
-          <button className="btn btn-color transaction-btn text-light col-xs-12">
-            Search
-          </button>
+        <div className="col-sm-6">
+          <div class="input-group w-50">
+            <span class="input-group-text" id="basic-addon1">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+                <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"></path>
+              </svg>
+            </span>
+            <input type="text" className="form-control" placeholder="Username" value = {userSearch} onChange={handleChange} />
+          </div>         
         </div>
       </div>
       <div className="row text-black second-box">
-        {agents.length === 0 ? (
+        {filteredAgents.length === 0 ? (
           <EmptyUsersUnder />
         ) : (
-          agents.map((x) => (
+          filteredAgents.map((x) => (
             <UserCard
               key={x.account_id}
               accountId={x.account_id}

@@ -45,13 +45,11 @@ function LiveRoom() {
     PURPLE: "0.00",
     YELLOW: "0.00",
   });
-  const [stake, setStake] = useState(0);
+  const [stake, setStake] = useState();
   const [tip, setTip] = useState(0);
   const { gameId } = useParams();
   const gameHeader = process.env.REACT_APP_HEADER_GAME;
   const betHeader = process.env.REACT_APP_HEADER_BET;
-  // process.env.REACT_APP_HEADER_BET;
-  console.log(betHeader);
   const gameAuthorization = { "Authorization": process.env.REACT_APP_KEY_GAME };
   const betAuthorization = { "Authorization": process.env.REACT_APP_KEY_BET };
 
@@ -66,7 +64,11 @@ function LiveRoom() {
   }, []);
 
   useEffect(() => {
-    getColorGameBetTotals();
+    const interval = setInterval(() => {
+      getColorGameBetTotals()
+    }, 5000);
+
+    return () => clearInterval(interval)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [marketDetails]);
 
@@ -113,9 +115,6 @@ function LiveRoom() {
   }
 
   function getColorGameBetTotals() {
-    console.log(
-      `${gameHeader}/getColorGameBetTotals/${gameId}/${marketDetails.market_id}`
-    );
     axios({
       method: "get",
       url: `${gameHeader}/getColorGameBetTotals/${gameId}/${marketDetails.market_id}`,
@@ -168,38 +167,44 @@ function LiveRoom() {
       wallet: ctx.walletBalance,
     };
 
-    console.log(data);
+    var stakeAmt= parseFloat(stake)
+    var minBet = parseFloat(gameDetails.min_bet).toFixed(2)
+    var maxBet = parseFloat(gameDetails.max_bet).toFixed(2)
 
-    axios({
-      method: "post",
-      url: `${betHeader}/placeBet`,
-      headers: betAuthorization,
-      data: data,
-    })
-      .then((res) => {
-        console.log(res);
-        const newWallet = parseFloat(ctx.walletBalance) - parseFloat(stake);
-        ctx.walletHandler(newWallet);
-
-        //Disable Button for 5 seconds
-        setPlaceBetDisabled(true);
-        setPlaceBetText("Please Wait");
-
-        setTimeout(() => {
-          console.log("disabled");
-          setPlaceBetText("Place Bet");
-          setPlaceBetDisabled(false);
-        }, 5000);
-        toast.success(
-          `Placed Bet successfully. BetId: ${res.data.data.betId}`,
-          {
-            autoClose: 2000,
-          }
-        );
+    if ((minBet > stakeAmt) || (stakeAmt > maxBet)){
+      toast.error(`Acceptable stake amount: ₱${minBet}-₱${maxBet}`)
+    } else {
+      axios({
+        method: "post",
+        url: `${betHeader}/placeBet`,
+        headers: betAuthorization,
+        data: data,
       })
-      .catch((err) => {
-        console.log(err);
-      });
+        .then((res) => {
+          console.log(res);
+          const newWallet = parseFloat(ctx.walletBalance) - parseFloat(stake);
+          ctx.walletHandler(newWallet);
+  
+          //Disable Button for 5 seconds
+          setPlaceBetDisabled(true);
+          setPlaceBetText("Please Wait");
+  
+          setTimeout(() => {
+            setPlaceBetText("Place Bet");
+            setPlaceBetDisabled(false);
+            setStake('');
+          }, 5000);
+          toast.success(
+            `Placed Bet successfully. BetId: ${res.data.data.betId}`,
+            {
+              autoClose: 2000,
+            }
+          );
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
   }
 
   function handleStakeChange(e) {
@@ -225,7 +230,6 @@ function LiveRoom() {
 
   function sendTip() {
     if (!tip) {
-      // console.log("Tip Amount cannot be empty");
       toast.error("Sorry. Tip box can't be empty.", {
         autoClose: 1500,
       });
@@ -321,6 +325,9 @@ function LiveRoom() {
                   : marketDetails.status === 1
                   ? " CLOSED"
                   : " RESULTED"}
+                <br/>
+                Min/Max Bet: ₱{parseFloat(gameDetails.min_bet).toFixed(2)} - ₱{parseFloat(gameDetails.max_bet).toFixed(2)}
+
               </p>
               <div className="row text-center">
                 <label className="col-sm-3 col-5 red-box radio-button fix-padding-left">
@@ -405,8 +412,9 @@ function LiveRoom() {
                     type="number"
                     className="form-control"
                     onWheel={(e) => e.target.blur()}
-                    placeholder="P500"
+                    placeholder={`₱${parseFloat(gameDetails.min_bet).toFixed(2)}-₱${parseFloat(gameDetails.max_bet).toFixed(2)} `}
                     onChange={handleStakeChange}
+                    value={stake}
                   />
                 </div>
               </div>
