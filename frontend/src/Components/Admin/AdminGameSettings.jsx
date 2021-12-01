@@ -200,11 +200,7 @@ function AdminGameSettings() {
           toast.success("Game settings saved");
         })
         .catch((err) => {
-          toast.error(
-            <p>
-              YouTube URL missing<br></br> Please try again
-            </p>
-          );
+          toast.error(err)
         });
     }
     e.preventDefault();
