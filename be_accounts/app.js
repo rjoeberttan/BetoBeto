@@ -35,6 +35,14 @@ const logger = createLogger({
   transports: [new transports.File({filename: '/var/log/app/accounts.log'})],
 });
 
+const getDurationInMilliseconds = (start) => {
+  const NS_PER_SEC = 1e9
+  const NS_TO_MS = 1e6
+  const diff = process.hrtime(start)
+
+  return `${((diff[0] * NS_PER_SEC + diff[1])/ NS_TO_MS).toFixed(2)}ms`
+}
+
 // Configure Database Connection
 const db = mysql.createConnection({
   user: process.env.MYSQL_USERNAME,
@@ -58,6 +66,8 @@ const saltRounds = parseInt(process.env.SALT_ROUNDS);
 //    409: Agent account type error
 //    200: Success
 app.post("/register", (req, res) => {
+  //Set Duration
+  const start = process.hrtime();
 
   // Get body
   const username = req.body.username;
@@ -65,20 +75,19 @@ app.post("/register", (req, res) => {
   const phone = req.body.phone;
   const password = req.body.password;
   const agentId = req.body.agentId;
-  logger.info(`/register request initiated, username:${username}`)
 
   const apiKey = req.header("Authorization");
 
   // Check if body is complete
   if (!username || !email || !phone || !agentId || !password) {
-    logger.error(`/register request has missing body parameters, username:${username}`)
+    logger.error(`${req.originalUrl} request has missing body parameters, username:${username}`)
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`/register request has missing/wrong apiKey, username:${username} received:${apiKey}`);
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, username:${username} received:${apiKey}`);
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -88,15 +97,15 @@ app.post("/register", (req, res) => {
   sqlQuery = "SELECT account_type FROM accounts where account_id = ?";
   db.query(sqlQuery, agentId, (err, result1) => {
     if (err) {
-      logger.error(`/register request has an error during process 1, username:${username}, error:${err}`)
+      logger.error(`${req.originalUrl}  request has an error during process 1, username:${username}, error:${err}`)
       res.status(500).json({ message: "Server error" });
     } else if (result1.length <= 0) {
-      logger.warn(`/register request warning, agentId is not found in database, received agentId:${agentId}, username:${username}`);
+      logger.warn(`${req.originalUrl} request warning, agentId is not found in database, received agentId:${agentId}, username:${username}`);
       res.status(409).json({
         message: "Agent ID is not Found. Please get valid Register Link",
       });
     } else if (result1[0].account_type === 3) {
-      logger.warn(`/register request warning, registering using an invalid agent type, received agentId:${agentId}, username:${username}`);
+      logger.warn(`${req.originalUrl} request warning, registering using an invalid agent type, received agentId:${agentId}, username:${username}`);
       res.status(409).json({
         message: "Please get valid Register Link from Agents or Master Agents",
       });
@@ -109,10 +118,10 @@ app.post("/register", (req, res) => {
         "SELECT account_id FROM accounts where username = ? OR email = ?";
       db.query(sqlQuery2, [username, email], (err, result2) => {
         if (err) {
-          logger.error(`/register request has an error during process 2, username:${username}, error:${err}`)
+          logger.error(`${req.originalUrl}  request has an error during process 2, username:${username}, error:${err}`)
           res.status(500).json({ message: "Server error" });
         } else if (result2.length > 0) {
-          logger.warn(`/register request warning, username and/or email is already used, username:${username}, email:${email}`);
+          logger.warn(`${req.originalUrl}  request warning, username and/or email is already used, username:${username}, email:${email}`);
           res
             .status(409)
             .json({ message: "Username and/or Email is already used" });
@@ -131,7 +140,7 @@ app.post("/register", (req, res) => {
           // Encrypt Password
           bcrypt.hash(password, saltRounds, (err, hash) => {
             if (err) {
-              logger.error(`/register request has an error during process 3, username:${username}, error:${err}`)
+              logger.error(`${req.originalUrl}  request has an error during process 3, username:${username}, error:${err}`)
               res.status(500).json({ message: "Server error" });
             } else {
               // Process 4:
@@ -153,15 +162,15 @@ app.post("/register", (req, res) => {
                 ],
                 (err, result3) => {
                   if (err) {
-                    logger.error(`/register request has an error during process 4, username:${username}, error:${err}`)
+                    logger.error(`${req.originalUrl}  request has an error during process 4, username:${username}, error:${err}`)
                     res.status(500).json({ message: "Server error" });
                   } else if (result3.affectedRows > 0) {
-                    logger.info(`/register request successful, accountId:${result3.insertId} username:${username}`)
+                    logger.info(`${req.originalUrl}  request successful, accountId:${result3.insertId} username:${username} duration:${getDurationInMilliseconds(start)}`)
                     res.status(200).json({
                       message: username + " Registered Successfully ",
                     });
                   } else {
-                    logger.error(`/register requested but nothing was inserted, username:${username}`)
+                    logger.error(`${req.originalUrl} requested but nothing was inserted, username:${username} duration:${getDurationInMilliseconds(start)}`)
                     res.status(500).json({ message: "Server error" });
                   }
                 }
@@ -184,24 +193,23 @@ app.post("/register", (req, res) => {
 //    409: Wrong Password
 //    200: Success
 app.post("/login", (req, res) => {
+  const start = process.hrtime()
   // Get body
   const username = req.body.username;
   const password = req.body.password;
-
-  logger.info(`/login request initiated, username:${username}`)
 
   const apiKey = req.header("Authorization");
 
   // Check if body is complete
   if (!username || !password) {
-    logger.error(`/login request has missing body parameters, username:${username}`)
+    logger.error(`${req.originalUrl} request has missing body parameters, username:${username}`)
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`/login request has missing/wrong apiKey, username:${username} received:${apiKey}`);
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, username:${username} received:${apiKey}`);
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -211,20 +219,20 @@ app.post("/login", (req, res) => {
   sqlQuery = "SELECT * FROM accounts WHERE username = ?";
   db.query(sqlQuery, [username], (err, result) => {
     if (err) {
-      logger.error(`/login request has an error during process 1, username:${username}, error:${err}`)
+      logger.error(`${req.originalUrl} request has an error during process 1, username:${username}, error:${err}`)
       res.status(500).json({ message: "Server error" });
     } else if (result.length <= 0) {
-      logger.warn(`/login request warning, username is not found in database, username:${username}`);
+      logger.warn(`${req.originalUrl} request warning, username is not found in database, username:${username}`);
       res.status(409).json({ message: "Username not found" });
     } else {
       // Process 2
       // Compare password encrypted
       bcrypt.compare(password, result[0].password, (err, response) => {
         if (err) {
-          logger.error(`/login request has an error during process 2, username:${username}, error:${err}`)
+          logger.error(`${req.originalUrl} request has an error during process 2, username:${username}, error:${err}`)
           res.status(500).json({ message: "Server error" });
         } else if (!response) {
-          logger.warn(`/login request warning, wrong password entered, username:${username}`)
+          logger.warn(`${req.originalUrl} request warning, wrong password entered, username:${username}`)
           res.status(409).json({ message: "Wrong Password" });
         } else {
           // Process 3
@@ -242,7 +250,9 @@ app.post("/login", (req, res) => {
             process.env.JWT_SECRET,
             { expiresIn: "2h" }
           );
-          logger.info(`/login request successful, username:${username}`)
+
+          const duration = getDurationInMilliseconds(start)
+          logger.info(`${req.originalUrl} request successful, username:${username} duration:${duration}`)
           res.status(200).json({
             message: "Login Successful",
             accountId: accountId,
@@ -260,7 +270,7 @@ app.post("/login", (req, res) => {
             "UPDATE accounts SET lastlogin_date = NOW() WHERE account_id = ?";
           db.query(sqlQuery, [accountId], (err, result) => {
             if (err) {
-              logger.error(`/login request has an error during process 4, username:${username}, error:${err}`)
+              logger.error(`${req.originalUrl} request has an error during process 4, username:${username}, error:${err}`)
             }
           });
         }
@@ -278,32 +288,33 @@ app.post("/login", (req, res) => {
 //    500: Server error
 //    200: Success
 app.get("/isUserAuth", (req, res) => {
+  const start = process.hrtime()
   const token = req.headers["x-access-token"];
   const apiKey = req.header("Authorization");
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`/isUserAuth request has missing/wrong apiKey, received:${apiKey}`);
+    logger.warn(`${req.originalUrl}  request has missing/wrong apiKey, received:${apiKey}`);
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
   // Check if token submitted exists
   else if (!token) {
-    logger.warn(`/isUserAuth request has no token`);
+    logger.warn(`${req.originalUrl} request has no token`);
     res.status(401).json({ message: "Token not found" });
     return;
   } else {
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
       if (err) {
         if (err.message === "TokenExpiredError") {
-          logger.warn(`/isUserAuth request has expired token, accountId:${decoded.accountId} username:${decoded.username}`);
+          logger.warn(`${req.originalUrl} request has expired token, accountId:${decoded.accountId} username:${decoded.username}`);
           res.status(401).json({ message: "Token Expired" });
         } else {
-          logger.error(`/isUserAuth request has an error during process 1, accountId:${decoded.accountId} username:${decoded.username} error:${err}`)
+          logger.error(`${req.originalUrl}  request has an error during process 1, error:${err}`)
           res.status(500).json({ message: "Server error" });
         }
       } else {
-        logger.info(`/isUserAuth request successful, accountId:${decoded.accountId} username:${decoded.username}`)
+        logger.info(`${req.originalUrl} request successful, accountId:${decoded.accountId} username:${decoded.username} duration:${getDurationInMilliseconds(start)} `)
         res.status(200).json({
           message: "User is authenticated. Token still valid",
           accountId: decoded.accountId,
@@ -326,23 +337,21 @@ app.get("/isUserAuth", (req, res) => {
 //        409 - Account not found
 //        200 - Success
 app.get("/getUserDetails/:accountId", (req, res) => {
-  //http://localhost:4003/getUserDetails/16
+  const start = process.hrtime()
   // Get body
   const accountId = req.params.accountId;
   const apiKey = req.header("Authorization");
 
-  logger.info(`/getUserDetails request initiated, accountId:${accountId}`)
-
   // Check if body is complete
   if (!accountId) {
-    logger.warn(`/getUserDetails request has missing body parameters, accountId:${accountId}`)
+    logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`/getUserDetails request has missing/wrong apiKey, received:${apiKey}`);
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -353,13 +362,13 @@ app.get("/getUserDetails/:accountId", (req, res) => {
     "SELECT username, account_type, commission, agent_id, email, phone_num FROM accounts where account_id = ?";
   db.query(sqlQuery, [accountId], (err, result) => {
     if (err) {
-      logger.error(`/getUserDetails request has an error during process 1, accountId:${accountId}, error:${err}`)
+      logger.error(`${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`)
       res.status(500).json({ message: "Server error" });
     } else if (result.length <= 0) {
-      logger.warn(`/getUserDetails request warning, account is not found in database, accountId:${accountId}`);
+      logger.warn(`${req.originalUrl} request warning, account is not found in database, accountId:${accountId}`);
       res.status(409).json({ message: "Account not found" });
     } else {
-      logger.info(`/getUserDetails request successful, accountId:${accountId}`)
+      logger.info(`${req.originalUrl} request successful, accountId:${accountId} duration:${getDurationInMilliseconds(start)}`)
       res.status(200).json({ message: "Request successful", data: result[0] });
     }
   });
@@ -374,21 +383,21 @@ app.get("/getUserDetails/:accountId", (req, res) => {
 //        409 - Account not found
 //        200 - Success
 app.get("/getWalletBalance/:accountId", (req, res) => {
+  const start = process.hrtime()
   // Get body
   const accountId = req.params.accountId;
   const apiKey = req.header("Authorization");
-  logger.info(`/getWalletBalance request initiated, accountId:${accountId}`)
 
   // Check if body is complete
   if (!accountId) {
-    logger.warn(`/getWalletBalance request has missing body parameters, accountId:${accountId}`)
+    logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`/getWalletBalance request has missing/wrong apiKey, received:${apiKey}`);
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -398,13 +407,13 @@ app.get("/getWalletBalance/:accountId", (req, res) => {
   sqlQuery = "SELECT wallet FROM accounts where account_id = ?";
   db.query(sqlQuery, [accountId], (err, result) => {
     if (err) {
-      logger.error(`/getWalletBalance request has an error during process 1, accountId:${accountId}, error:${err}`)
+      logger.error(`${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`)
       res.status(500).json({ message: "Server error" });
     } else if (result.length <= 0) {
-      logger.warn(`/getWalletBalance request warning, account is not found in database, accountId:${accountId}`);
+      logger.warn(`${req.originalUrl} request warning, account is not found in database, accountId:${accountId}`);
       res.status(409).json({ message: "Account not found" });
     } else {
-      logger.info(`/getWalletBalance request successful, accountId:${accountId}`)
+      logger.info(`${req.originalUrl} request successful, accountId:${accountId} duration:${getDurationInMilliseconds(start)}`)
       res.status(200).json({
         message: "Request successful",
         accountId: accountId,
@@ -423,24 +432,23 @@ app.get("/getWalletBalance/:accountId", (req, res) => {
 //      409 - Account ID not found, update not successful
 //      200 - Successful
 app.post("/updatePhoneDetail", (req, res) => {
+  const start = process.hrtime()
   // Get body
   const accountId = req.body.accountId;
   const phone = req.body.phone;
   const editorUsername = req.body.editorUsername;
   const apiKey = req.header("Authorization");
 
-  logger.info(`/updatePhoneDetail request initiated, accountId:${accountId}`)
-
   // Check if body is complete
   if (!accountId || !phone || !editorUsername) {
-    logger.warn(`/updatePhoneDetail request has missing body parameters, accountId:${accountId}`)
+    logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`/updatePhoneDetail request has missing/wrong apiKey, received:${apiKey}`);
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -451,15 +459,15 @@ app.post("/updatePhoneDetail", (req, res) => {
     "UPDATE accounts SET phone_num = ?, lastedit_date = NOW(), edited_by = ? WHERE account_id = ?";
   db.query(sqlQuery, [phone, editorUsername, accountId], (err, result) => {
     if (err) {
-      logger.error(`/updatePhoneDetail request has an error during process 1, accountId:${accountId}, error:${err}`)
+      logger.error(`${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`)
       res.status(500).json({ message: "Server error" });
     } else if (result.affectedRows === 0) {
-      logger.warn(`/updatePhoneDetail request warning, account is not found in database, accountId:${accountId}`);
+      logger.warn(`${req.originalUrl} request warning, account is not found in database, accountId:${accountId}`);
       res
         .status(409)
         .json({ message: "Account ID not found. Update unsuccessful" });
     } else {
-      logger.info(`/updatePhoneDetail request successful, accountId:${accountId} editor:${editorUsername} phoneNum:${phone}`)
+      logger.info(`${req.originalUrl} request successful, accountId:${accountId} editor:${editorUsername} phoneNum:${phone} duration:${getDurationInMilliseconds(start)}`)
       res.status(200).json({ message: "Phone Number updated Successfully" });
     }
   });
@@ -474,25 +482,23 @@ app.post("/updatePhoneDetail", (req, res) => {
 //      409 - Account ID not found, update not successful
 //      200 - Successful
 app.post("/updatePassword", (req, res) => {
+  const start = process.hrtime()
   // Get body
   const accountId = req.body.accountId;
   const password = req.body.password;
   const editorUsername = req.body.editorUsername;
   const apiKey = req.header("Authorization");
 
-  logger.info(`/updatePassword request initiated, accountId:${accountId}`)
-
-
   // Check if body is complete
   if (!accountId || !password || !editorUsername) {
-    logger.warn(`/updatePassword request has missing body parameters, accountId:${accountId}`)
+    logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`/updatePassword request has missing/wrong apiKey, received:${apiKey}`);
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -501,7 +507,7 @@ app.post("/updatePassword", (req, res) => {
   // Encrypt the password
   bcrypt.hash(password, saltRounds, (err, hash) => {
     if (err) {
-      logger.error(`/updatePassword request has an error during process 1, accountId:${accountId}, error:${err}`)
+      logger.error(`${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`)
       res.status(500).json({ message: "Server error" });
     } else {
       // Process 2:
@@ -510,15 +516,15 @@ app.post("/updatePassword", (req, res) => {
         "UPDATE accounts SET password = ?, lastedit_date = NOW(), edited_by = ? WHERE account_id = ?";
       db.query(sqlQuery, [hash, editorUsername, accountId], (err, result) => {
         if (err) {
-          logger.error(`/updatePassword request has an error during process 2, accountId:${accountId}, error:${err}`)
+          logger.error(`${req.originalUrl} request has an error during process 2, accountId:${accountId}, error:${err}`)
           res.status(500).json({ message: "Server error" });
         } else if (result.affectedRows === 0) {
-          logger.warn(`/updatePassword request warning, nothing updated, accountId:${accountId}`);
+          logger.warn(`${req.originalUrl} request warning, nothing updated, accountId:${accountId}`);
           res
             .status(409)
             .json({ message: "Account ID not found. Update unsuccessful" });
         } else {
-          logger.info(`/updatePassword request successful, accountId:${accountId} editor:${editorUsername}`)
+          logger.info(`${req.originalUrl} request successful, accountId:${accountId} editor:${editorUsername} duration:${getDurationInMilliseconds(start)}`)
           res.status(200).json({ message: "Password updated successfully" });
         }
       });
@@ -535,25 +541,23 @@ app.post("/updatePassword", (req, res) => {
 //      409 - Account ID not found, update not successful
 //      200 - Successful
 app.post("/changeAccountStatus", (req, res) => {
+  const start = process.hrtime()
   // Get body
   const accountId = req.body.accountId;
   const currentStatus = req.body.status;
   const editorUsername = req.body.editorUsername;
   const apiKey = req.header("Authorization");
 
-  logger.info(`/changeAccountStatus request initiated, accountId:${accountId}`)
-
-
   // Check if body is complete
   if (!accountId || !currentStatus || !editorUsername) {
-    logger.warn(`/changeAccountStatus request has missing body parameters, accountId:${accountId}`)
+    logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`/changeAccountStatus request has missing/wrong apiKey, received:${apiKey}`);
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -565,15 +569,15 @@ app.post("/changeAccountStatus", (req, res) => {
     "UPDATE accounts SET account_status = ?, lastedit_date = NOW(), edited_by = ? WHERE account_id = ?";
   db.query(sqlQuery, [newStatus, editorUsername, accountId], (err, result) => {
     if (err) {
-      logger.error(`/changeAccountStatus request has an error during process 1, accountId:${accountId}, error:${err}`)
+      logger.error(`${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`)
       res.status(500).json({ message: "Server error" });
     } else if (result.affectedRows === 0) {
-      logger.warn(`/changeAccountStatus request warning, account is not found in database, accountId:${accountId}`);
+      logger.warn(`${req.originalUrl} request warning, account is not found in database, accountId:${accountId}`);
       res
         .status(409)
         .json({ message: "Account ID not found. Update unsuccessful" });
     } else {
-      logger.info(`/changeAccountStatus request successful, accountId:${accountId} editor:${editorUsername} accountStatus:${newStatus}`)
+      logger.info(`${req.originalUrl} request successful, accountId:${accountId} editor:${editorUsername} accountStatus:${newStatus} duration:${getDurationInMilliseconds(start)}`)
       res.status(200).json({
         message: "Account Status updated Successfully",
         accountId: accountId,
@@ -592,24 +596,23 @@ app.post("/changeAccountStatus", (req, res) => {
 //      409 - Account ID not found, update not successful
 //      200 - Successful
 app.post("/updateCommission", (req, res) => {
+  const start = process.hrtime()
   // Get body
   const accountId = req.body.accountId;
   const commission = req.body.commission;
   const editorUsername = req.body.editorUsername;
   const apiKey = req.header("Authorization");
 
-  logger.info(`/updateCommission request initiated, accountId:${accountId}`)
-
   // Check if body is complete
   if (!accountId || !commission || !editorUsername) {
-    logger.warn(`/updateCommission request has missing body parameters, accountId:${accountId}`)
+    logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`/updateCommission request has missing/wrong apiKey, received:${apiKey}`);
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -620,15 +623,15 @@ app.post("/updateCommission", (req, res) => {
     "UPDATE accounts SET commission = ?, lastedit_date = NOW(), edited_by = ? WHERE account_id = ?";
   db.query(sqlQuery, [commission, editorUsername, accountId], (err, result) => {
     if (err) {
-      logger.error(`/updateCommission request has an error during process 1, accountId:${accountId}, error:${err}`)
+      logger.error(`${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`)
       res.status(500).json({ message: "Server error" });
     } else if (result.affectedRows === 0) {
-      logger.warn(`/updateCommission request warning, account is not found in database, accountId:${accountId}`);
+      logger.warn(`${req.originalUrl} request warning, account is not found in database, accountId:${accountId}`);
       res
         .status(409)
         .json({ message: "Account ID not found. Update unsuccessful" });
     } else {
-      logger.info(`/updateCommission request successful, accountId:${accountId} editor:${editorUsername} commission:${commission}`)
+      logger.info(`${req.originalUrl} request successful, accountId:${accountId} editor:${editorUsername} commission:${commission} duration:${getDurationInMilliseconds(start)}`)
       res.status(200).json({
         message: "Commission updated Successfully",
         data: { accountId: accountId, commission: commission },
@@ -638,24 +641,22 @@ app.post("/updateCommission", (req, res) => {
 });
 
 app.get("/getAccountList/:accountId/:accountType", (req, res) => {
+  const start = process.hrtime()
   // Get body
   const accountId = req.params.accountId;
   const accountType = req.params.accountType;
   const apiKey = req.header("Authorization");
 
-  logger.info(`/getAccountList request initiated, accountId:${accountId}`)
-
-
   // Check if body is complete
   if (!accountId || !accountType) {
-    logger.warn(`/getAccountList request has missing body parameters, accountId:${accountId}`)
+    logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`/getAccountList request has missing/wrong apiKey, received:${apiKey}`);
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -666,31 +667,28 @@ app.get("/getAccountList/:accountId/:accountType", (req, res) => {
     // Administrator
     sqlQuery = "SELECT * FROM accounts;";
     sqlQuery = db.format(sqlQuery);
-    console.log(sqlQuery);
   } else if (accountType === "1") {
     // Master Agent
     sqlQuery =
       "select * from accounts where agent_id = ? OR agent_id in (select account_id from accounts where agent_id = ?);";
     sqlQuery = db.format(sqlQuery, [accountId, accountId]);
-    console.log(sqlQuery);
   } else if (accountType === "2") {
     // Agent Agent
     sqlQuery = "SELECT * FROM accounts WHERE agent_id = ?";
     sqlQuery = db.format(sqlQuery, [accountId]);
-    console.log(sqlQuery);
   }
 
   if (sqlQuery !== "") {
     db.query(sqlQuery, (err, result) => {
       if (err) {
-        logger.error(`/getAccountList request has an error during process 1, accountId:${accountId}, error:${err}`)
+        logger.error(`${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`)
       } else {
-        logger.info(`/getAccountList request successful, accountId:${accountId}`)
+        logger.info(`${req.originalUrl} request successful, accountId:${accountId} duration:${getDurationInMilliseconds(start)}`)
         res.status(200).json({ message: "Request Successful", data: result });
       }
     });
   } else {
-    logger.warn(`/getAccountList request warning, account is not allowed to request the accountType, accountId:${accountId} accountType:${accountType}`);
+    logger.warn(`${req.originalUrl} request warning, account is not allowed to request the accountType, accountId:${accountId} accountType:${accountType}`);
     res
       .status(401)
       .json({ message: "User type is not authorized to ask this request" });
@@ -699,22 +697,21 @@ app.get("/getAccountList/:accountId/:accountType", (req, res) => {
 
 
 app.get("/getCountUnderUser/:accountId", (req, res) => {
+  const start = process.hrtime()
   // Get body
   const accountId = req.params.accountId;
   const apiKey = req.header("Authorization");
 
-  logger.info(`/getCountUnderUser request initiated, accountId:${accountId}`)
-
   // Check if body is complete
   if (!accountId) {
-    logger.warn(`/getCountUnderUser request has missing body parameters, accountId:${accountId}`)
+    logger.warn(`${req.originalUrl}request has missing body parameters, accountId:${accountId}`)
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`/getCountUnderUser request has missing/wrong apiKey, received:${apiKey}`);
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -724,10 +721,10 @@ app.get("/getCountUnderUser/:accountId", (req, res) => {
   sqlQuery = "SELECT count(*) as userCount FROM accounts where agent_id = ?";
   db.query(sqlQuery, [accountId], (err, result) => {
     if (err) {
-      logger.error(`/getCountUnderUser request has an error during process 1, accountId:${accountId}, error:${err}`)
+      logger.error(`${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`)
       res.status(500).json({ message: "Server error" });
     } else {
-      logger.info(`/getCountUnderUser request successful, accountId:${accountId}`)
+      logger.info(`${req.originalUrl} request successful, accountId:${accountId} duration:${getDurationInMilliseconds(start)}`)
       res.status(200).json({
         message: "Request successful",
         accountId: accountId,
@@ -738,23 +735,21 @@ app.get("/getCountUnderUser/:accountId", (req, res) => {
 });
 
 app.get("/getCountPlayer/:accountId", (req, res) => {
+  const start = process.hrtime()
   // Get body
   const accountId = req.params.accountId;
   const apiKey = req.header("Authorization");
 
-  logger.info(`/getCountPlayer request initiated, accountId:${accountId}`)
-
-
   // Check if body is complete
   if (!accountId) {
-    logger.warn(`/getCountPlayer request has missing body parameters, accountId:${accountId}`)
+    logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`/getCountPlayer request has missing/wrong apiKey, received:${apiKey}`);
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -765,10 +760,10 @@ app.get("/getCountPlayer/:accountId", (req, res) => {
     "select count(*) as userCount from accounts where agent_id in (select account_id from accounts where agent_id = ?);";
   db.query(sqlQuery, [accountId], (err, result) => {
     if (err) {
-      logger.error(`/getCountPlayer request has an error during process 1, accountId:${accountId}, error:${err}`)
+      logger.error(`${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`)
       res.status(500).json({ message: "Server error" });
     } else {
-      logger.info(`/getCountPlayer request successful, accountId:${accountId}`)
+      logger.info(`${req.originalUrl} request successful, accountId:${accountId} duration:${getDurationInMilliseconds(start)}`)
       res.status(200).json({
         message: "Request successful",
         accountId: accountId,
@@ -780,22 +775,21 @@ app.get("/getCountPlayer/:accountId", (req, res) => {
 
 
 app.get("/getAgentName/:accountId", (req, res) => {
+  const start = process.hrtime()
   // Get body
   const accountId = req.params.accountId;
   const apiKey = req.header("Authorization");
 
-  logger.info(`/getAgentName request initiated, accountId:${accountId}`)
-
   // Check if body is complete
   if (!accountId) {
-    logger.warn(`/getAgentName request has missing body parameters, accountId:${accountId}`)
+    logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`/getAgentName request has missing/wrong apiKey, received:${apiKey}`);
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -806,10 +800,10 @@ app.get("/getAgentName/:accountId", (req, res) => {
     "select username from accounts where account_id in (select agent_id from accounts where account_id = ?);";
   db.query(sqlQuery, [accountId], (err, result) => {
     if (err) {
-      logger.error(`/getAgentName request has an error during process 1, accountId:${accountId}, error:${err}`)
+      logger.error(`${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`)
       res.status(500).json({ message: "Server error" });
     } else {
-      logger.info(`/getAgentName request successful, accountId:${accountId}`)
+      logger.info(`${req.originalUrl} request successful, accountId:${accountId} duration:${getDurationInMilliseconds(start)}`)
       res.status(200).json({
         message: "Request successful",
         agentName: result[0].username,

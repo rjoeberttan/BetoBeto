@@ -24,18 +24,21 @@ app.use(express.urlencoded({ extended: true }));
 // For this environment it sends to console first
 const logger = createLogger({
   format: format.combine(
-    format.timestamp({ format: "YYYY-MM-DDTHH:mm:ss.ms" }),
+    format.timestamp({ format: "MMM-DD-YYYY HH:mm:ss" }),
     format.printf(
-      (info) =>
-        `${JSON.stringify({
-          timestamp: info.timestamp,
-          level: info.level,
-          message: info.message,
-        })}`
+      (info) => `${info.timestamp} -- ${(info.level).toUpperCase()} -- ${info.message}`
     )
   ),
-  transports: [new transports.Console()],
+  transports: [new transports.File({filename: '/var/log/app/bankmanager.log'})],
 });
+
+const getDurationInMilliseconds = (start) => {
+  const NS_PER_SEC = 1e9
+  const NS_TO_MS = 1e6
+  const diff = process.hrtime(start)
+
+  return `${((diff[0] * NS_PER_SEC + diff[1])/ NS_TO_MS).toFixed(2)}ms`
+}
 
 // Configure Database Connection
 const db = mysql.createConnection({
@@ -48,21 +51,23 @@ const db = mysql.createConnection({
 });
 
 app.post("/requestDeposit", (req, res) => {
+  const start = process.hrtime();
+
   const apiKey = req.header("Authorization");
   const accountId = req.body.accountId;
   const amount = req.body.amount;
-  console.log(accountId, amount);
+
 
   // Check if body is complete
   if (!accountId || !amount) {
-    logger.warn("requestDeposit request has missing body parameters");
+    logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn("requestDeposit request has missing/wrong API_KEY");
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -74,26 +79,13 @@ app.post("/requestDeposit", (req, res) => {
     "INSERT INTO transactions (description, account_id, transaction_type, amount, status, placement_date) VALUES (?, ?, 0, ?, 0, NOW());";
   db.query(sqlQuery, [description, accountId, amount], (err, result) => {
     if (err) {
-      logger.error(
-        "Process 1: Error in requestDeposit request. for accountId:" +
-          accountId +
-          " " +
-          err
-      );
+      logger.error(`${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`)
       res.status(500).json({ message: "Server error" });
     } else if (result.affectedRows <= 0) {
-      logger.warn(
-        "Warn in requestDeposit request, request not successful for accountId:" +
-          accountId
-      );
-      res.status(409).json({ message: "Deposit request no successful" });
+      logger.warn(`${req.originalUrl} request warning, request was not inserted into database, accountId:${accountId}`);
+      res.status(409).json({ message: "Deposit request not successful" });
     } else {
-      logger.info(
-        "Successful requestDeposit request from accountId:" +
-          accountId +
-          " amount:" +
-          amount
-      );
+      logger.info(`${req.originalUrl} request successful, accountId:${accountId} amount:${amount} transactionId:${result.insertId} duration:${getDurationInMilliseconds(start)}`)
       res.status(200).json({
         message: "Deposit Request Successful",
         data: { transactionId: result.insertId },
@@ -103,6 +95,8 @@ app.post("/requestDeposit", (req, res) => {
 });
 
 app.post("/acceptDeposit", (req, res) => {
+  const start = process.hrtime();
+
   const apiKey = req.header("Authorization");
   const transactionId = req.body.transactionId;
   const accountId = req.body.accountId;
@@ -118,14 +112,14 @@ app.post("/acceptDeposit", (req, res) => {
     !accepterAccountId ||
     !accepterUsername
   ) {
-    logger.warn("acceptDeposit request has missing body parameters");
+    logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn("acceptDeposit request has missing/wrong API_KEY");
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -136,27 +130,16 @@ app.post("/acceptDeposit", (req, res) => {
   sqlQuery1 = "SELECT status FROM transactions WHERE transaction_id = ?";
   db.query(sqlQuery1, [transactionId], (err, result1) => {
     if (err) {
-      logger.error(
-        "Error in acceptDeposit request for transactionId:" +
-          transactionId +
-          " " +
-          err
-      );
+      logger.error(`${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`)
       res.status(500).json({ message: "Server error" });
     } else if (result1.length <= 0) {
-      logger.warn(
-        "Warn in accept deposit. Transaction id not found, transactionId: " +
-          transactionId
-      );
+      logger.warn(`${req.originalUrl} request warning, transaction not found in database, transactionId:${transactionId}`);
       res.status(409).json({
         message: "Transaction ID cannot be found",
         data: { transactionId: transactionId },
       });
     } else if (result1[0].status != 0) {
-      logger.warn(
-        "Warn in accept deposit. Transaction is already settled, transactionId: " +
-          transactionId
-      );
+      logger.warn(`${req.originalUrl} request warning, transaction is already settled, transactionId:${transactionId}`);
       res.status(409).json({
         message: "Transaction is already settled",
         data: { transactionId: transactionId },
@@ -167,24 +150,13 @@ app.post("/acceptDeposit", (req, res) => {
       sqlQuery2 = "SELECT wallet FROM accounts WHERE account_id = ?";
       db.query(sqlQuery2, [accepterAccountId], (err, result2) => {
         if (err) {
-          logger.error(
-            "Error in acceptDeposit request for transactionId:" +
-              transactionId +
-              " " +
-              err
-          );
+          logger.error(`/${req.originalUrl} request has an error during process 2, transactionId:${transactionId}, error:${err}`)
         } else if (result2.length <= 0) {
-          logger.warn(
-            "Warn in accept deposit. accepter account_id not found, accountId: " +
-              accepterAccountId
-          );
-          res.status(409).json({ message: "Accepter account_id not found" });
+          logger.warn(`${req.originalUrl} request warning, accepter wallet not found in database, transactionId:${transactionId} accepter:${accepterAccountId}`);
+          res.status(409).json({ message: "Accepter accountId not found in database" });
           successful = false;
         } else if (result2[0].wallet < amount) {
-          logger.warn(
-            "Warn in accept deposit. accepter does not have enough funds to process transaction, transactionId:" +
-              transactionId
-          );
+          logger.warn(`${req.originalUrl} request warning, accepter does not have enough funds to accept transaction, transactionId:${transactionId} accepter:${accepterAccountId}`);
           res.status(409).json({
             message:
               "You dont have enough funds to continue with this transaction",
@@ -200,24 +172,13 @@ app.post("/acceptDeposit", (req, res) => {
             [amount, accepterUsername, accountId],
             (err, result3) => {
               if (err) {
-                logger.error(
-                  "Process 3: Error in acceptDeposit request for transactionId:" +
-                    transactionId +
-                    " " +
-                    err
-                );
+                logger.error(`${req.originalUrl} request has an error during process 3, transactionId:${transactionId}, error:${err}`)
                 successful = false;
               } else if (result3.affectedRows <= 0) {
-                logger.warn(
-                  "Warn in acceptDeposit request during increasing requester wallet, request not found, transactionId:" +
-                    transactionId
-                );
+                logger.warn(`${req.originalUrl} request warning during increasing requester wallet, can't find requester wallet, transactionId:${transactionId} requester:${accountId}`);
                 successful = false;
               } else {
-                logger.info(
-                  "Increased requester account wallet thru acceptDeposit request, transactionId:" +
-                    transactionId
-                );
+                logger.info(`${req.originalUrl} increased requester wallet thru acceptDeposit, accountId:${accountId} amount:${amount} transactionId:${transactionId} editor:${accepterUsername}`)
 
                 // Process 4
                 // Decrease Accepter Wallet
@@ -229,25 +190,14 @@ app.post("/acceptDeposit", (req, res) => {
                   [decreasedAmount, accepterUsername, accepterAccountId],
                   (err, result4) => {
                     if (err) {
-                      logger.error(
-                        "Process 4: Error in acceptDeposit request for transactionId:" +
-                          transactionId +
-                          " " +
-                          err
-                      );
+                      logger.error(`${req.originalUrl} request has an error during process 4, transactionId:${transactionId}, error:${err}`)
                       successful = false;
                     } else if (result4.affectedRows <= 0) {
-                      logger.warn(
-                        "Warn in acceptDeposit request during decreasing accepter wallet, accepter not found, transactionId:" +
-                          transactionId
-                      );
+                      logger.warn(`${req.originalUrl} request warning during decreasing accepter wallet, can't find requester wallet, transactionId:${transactionId} accountId:${accepterAccountId}`);
                       successful = false;
                     } else {
-                      logger.info(
-                        "Decreased accepter account wallet thru acceptDeposit request, transactionId:" +
-                          transactionId
-                      );
-
+                      logger.info(`${req.originalUrl} decreased accepter wallet thru acceptDeposit, accountId:${accepterAccountId} amount:${amount} transactionId:${transactionId} editor:${accepterUsername}`)
+                      
                       // Process 5
                       // Insert acceptDeposit to the transactions table
                       sqlQuery5 =
@@ -263,20 +213,10 @@ app.post("/acceptDeposit", (req, res) => {
                         ],
                         (err, result5) => {
                           if (err) {
-                            logger.error(
-                              "Process 5: Error in acceptDeposit request for transactionId:" +
-                                transactionId +
-                                " " +
-                                err
-                            );
+                            logger.error(`${req.originalUrl} request has an error during process 5, transactionId:${transactionId}, error:${err}`)
                             successful = false;
                           } else {
-                            logger.info(
-                              "Inserted transactions table for acceptedDeposited Request, transactionId:" +
-                                transactionId +
-                                " inserted transactionId:" +
-                                result5.insertId
-                            );
+                            logger.info(`${req.originalUrl} inserted acceptDeposit into transactions, accountId:${accountId} amount:${amount} transactionId:${transactionId} editor:${accepterUsername}`)
                           }
                         }
                       );
@@ -293,18 +233,10 @@ app.post("/acceptDeposit", (req, res) => {
                   [accountId, accepterUsername, transactionId],
                   (err, result6) => {
                     if (err) {
-                      logger.error(
-                        "Process 6: Error in acceptDeposit request for transactionId:" +
-                          transactionId +
-                          " " +
-                          err
-                      );
+                      logger.error(`${req.originalUrl} request has an error during process 6, transactionId:${transactionId}, error:${err}`)
                       successful = false;
                     } else {
-                      logger.info(
-                        "Updated transactions table for acceptedDeposited Request, transactionId:" +
-                          transactionId
-                      );
+                      logger.info(`${req.originalUrl} updated transactions, accountId:${accountId} amount:${amount} transactionId:${transactionId} editor:${accepterUsername} duration:${getDurationInMilliseconds(start)}`)
                       res.status(200).json({
                         message: "Successful Request, deposit settled",
                         data: { transactionId: transactionId },
@@ -326,20 +258,22 @@ app.post("/acceptDeposit", (req, res) => {
 });
 
 app.post("/requestWithdrawal", (req, res) => {
+  const start = process.hrtime()
+
   const apiKey = req.header("Authorization");
   const accountId = req.body.accountId;
   const amount = req.body.amount;
 
   // Check if body is complete
   if (!accountId || !amount) {
-    logger.warn("requestWithdrawal request has missing body parameters");
+    logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn("requestWithdrawal request has missing/wrong API_KEY");
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -351,26 +285,13 @@ app.post("/requestWithdrawal", (req, res) => {
     "INSERT INTO transactions (description, account_id, transaction_type, amount, status, placement_date) VALUES (?, ?, 2, ?, 0, NOW());";
   db.query(sqlQuery, [description, accountId, amount], (err, result) => {
     if (err) {
-      logger.error(
-        "Process 1: Error in requestWithdrawal request. for accountId:" +
-          accountId +
-          " " +
-          err
-      );
+      logger.error(`${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`)
       res.status(500).json({ message: "Server error" });
     } else if (result.affectedRows <= 0) {
-      logger.warn(
-        "Warn in requestWithdrawal request, request not successful for accountId:" +
-          accountId
-      );
+      logger.warn(`${req.originalUrl} request warning, transaction was not inserted into database, accountId:${accountId}`);
       res.status(409).json({ message: "Withdrawal request not successful" });
     } else {
-      logger.info(
-        "Successful requestWithdrawal request from accountId:" +
-          accountId +
-          " amount:" +
-          amount
-      );
+      logger.info(`${req.originalUrl} request successful, accountId:${accountId} transactionId:${result.insertId} amount:${amount} duration:${getDurationInMilliseconds(start)} `)
       res.status(200).json({
         message: "Withdrawal Request Successful",
         data: { transactionId: result.insertId },
@@ -382,6 +303,8 @@ app.post("/requestWithdrawal", (req, res) => {
 
 
 app.post("/cancelTransaction", (req, res) => {
+  const start = process.hrtime();
+
   const apiKey = req.header("Authorization");
   const transactionId = req.body.transactionId;
   const accountId = req.body.accountId;
@@ -389,14 +312,14 @@ app.post("/cancelTransaction", (req, res) => {
 
   // Check if body is complete
   if (!transactionId || !accountId || !cancellerUsername) {
-    logger.warn("cancelTransaction request has missing body parameters");
+    logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn("cancelTransaction request has missing/wrong API_KEY");
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -404,16 +327,16 @@ app.post("/cancelTransaction", (req, res) => {
   sqlQuery1 = "SELECT status FROM transactions WHERE transaction_id = ?"
   db.query(sqlQuery1, [transactionId], (err, result1) => {
     if (err) {
-      logger.error("Error in cancelTransaction request for transactionId:" + transactionId + " " + err );
+      logger.error(`${req.originalUrl} request has an error during process 1, transactionId:${transactionId}, error:${err}`)
       res.status(500).json({ message: "Server error" });
     } else if (result1.length <= 0) {
-      logger.warn("Warn in cancel Transaction. Transaction id not found, transactionId: " + transactionId);
+      logger.warn(`${req.originalUrl} request warning, transaction not found in database, transactionId:${transactionId}`);
       res.status(409).json({
         message: "Transaction ID cannot be found",
         data: { transactionId: transactionId },
       });
     } else if (result1[0].status != 0) {
-      logger.warn("Warn in cancel transaction. Transaction is already settled, transactionId: " + transactionId);
+      logger.warn(`${req.originalUrl} request warning, transaction already settled/cancelled, transactionId:${transactionId}`);
       res.status(409).json({
         message: "Transaction is already settled/cancelled",
         data: { transactionId: transactionId },
@@ -423,10 +346,10 @@ app.post("/cancelTransaction", (req, res) => {
         sqlQuery2 = "UPDATE transactions SET status = 2, cummulative=(SELECT wallet FROM accounts WHERE account_id=?), settled_date = NOW(), settled_by = ? WHERE transaction_id=?;";
         db.query(sqlQuery2, [accountId, cancellerUsername, transactionId],(err, result2) => {
             if (err) {
-              logger.error("Process 2: Error in cancelTransaction request for transactionId:" + transactionId + " " + err );
+              logger.error(`${req.originalUrl} request has an error during process 2, transactionId:${transactionId}, error:${err}`)
               successful = false;
             } else {
-              logger.info("Updated transactions table for cancelTransaction Request, transactionId:" + transactionId );
+              logger.info(`${req.originalUrl} request successful, transactionId:${transactionId} duration:${getDurationInMilliseconds(start)}`)
               res.status(200).json({
                 message: "Transaction Cancelled",
                 data: { transactionId: transactionId },
@@ -440,6 +363,8 @@ app.post("/cancelTransaction", (req, res) => {
 })
 
 app.post("/acceptWithdrawal", (req, res) => {
+  const start = process.hrtime();
+
   const apiKey = req.header("Authorization");
   const transactionId = req.body.transactionId;
   const accountId = req.body.accountId;
@@ -455,14 +380,14 @@ app.post("/acceptWithdrawal", (req, res) => {
     !accepterAccountId ||
     !accepterUsername
   ) {
-    logger.warn("acceptWithdrawal request has missing body parameters");
+    logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn("acceptWithdrawal request has missing/wrong API_KEY");
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -473,27 +398,16 @@ app.post("/acceptWithdrawal", (req, res) => {
   sqlQuery1 = "SELECT status FROM transactions WHERE transaction_id = ?";
   db.query(sqlQuery1, [transactionId], (err, result1) => {
     if (err) {
-      logger.error(
-        "Error in acceptWithdrawal request for transactionId:" +
-          transactionId +
-          " " +
-          err
-      );
+      logger.error(`${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`)
       res.status(500).json({ message: "Server error" });
     } else if (result1.length <= 0) {
-      logger.warn(
-        "Warn in accept withdrawal. Transaction id not found, transactionId: " +
-          transactionId
-      );
+      logger.warn(`${req.originalUrl} request warning, transaction not found in database, transactionId:${transactionId}`);
       res.status(409).json({
         message: "Transaction ID cannot be found",
         data: { transactionId: transactionId },
       });
     } else if (result1[0].status != 0) {
-      logger.warn(
-        "Warn in accept withdrawal. Transaction is already settled, transactionId: " +
-          transactionId
-      );
+      logger.warn(`${req.originalUrl} request warning, transaction is already settled, transactionId:${transactionId}`);
       res.status(409).json({
         message: "Transaction is already settled",
         data: { transactionId: transactionId },
@@ -504,24 +418,13 @@ app.post("/acceptWithdrawal", (req, res) => {
       sqlQuery2 = "SELECT wallet FROM accounts WHERE account_id = ?";
       db.query(sqlQuery2, [accountId], (err, result2) => {
         if (err) {
-          logger.error(
-            "Error in acceptWithdrawal request for transactionId:" +
-              transactionId +
-              " " +
-              err
-          );
+          logger.error(`/${req.originalUrl} request has an error during process 2, transactionId:${transactionId}, error:${err}`)
         } else if (result2.length <= 0) {
-          logger.warn(
-            "Warn in accept withdrawal. requester account_id not found, accountId: " +
-              accepterAccountId
-          );
+          logger.warn(`${req.originalUrl} request warning, requester wallet not found in database, transactionId:${transactionId} requester:${accountId}`);
           res.status(409).json({ message: "Requester account_id not found" });
           successful = false;
         } else if (result2[0].wallet < amount) {
-          logger.warn(
-            "Warn in accept withdrawal. Requester does not have enough funds to process transaction, transactionId:" +
-              transactionId
-          );
+          logger.warn(`${req.originalUrl} request warning, request does not have enough funds to continue transaction, transactionId:${transactionId} requester:${acountId}`);
           res.status(409).json({
             message:
               "Requester doesn't have enough funds to continue with this transaction",
@@ -538,25 +441,13 @@ app.post("/acceptWithdrawal", (req, res) => {
             [decreasedAmount, accepterUsername, accountId],
             (err, result3) => {
               if (err) {
-                logger.error(
-                  "Process 3: Error in acceptWithdrawal request for transactionId:" +
-                    transactionId +
-                    " " +
-                    err
-                );
+                logger.error(`${req.originalUrl} request has an error during process 3, transactionId:${transactionId}, error:${err}`)
                 successful = false;
               } else if (result3.affectedRows <= 0) {
-                logger.warn(
-                  "Warn in acceptWithdrawal request during decreasing requester wallet, request not found, transactionId:" +
-                    transactionId
-                );
+                logger.warn(`${req.originalUrl} request warning during decreasing requester wallet, can't find requester wallet, transactionId:${transactionId} requester:${accountId}`);
                 successful = false;
               } else {
-                logger.info(
-                  "Decreased requester account wallet thru acceptWithdrawal request, transactionId:" +
-                    transactionId
-                );
-
+                logger.info(`${req.originalUrl} decreased requester wallet thru acceptWithdrawal, accountId:${accountId} amount:${amount} transactionId:${transactionId} editor:${accepterUsername}`)
                 // Process 4
                 // Increase Accepter Wallet
                 sqlQuery4 =
@@ -566,24 +457,13 @@ app.post("/acceptWithdrawal", (req, res) => {
                   [amount, accepterUsername, accepterAccountId],
                   (err, result4) => {
                     if (err) {
-                      logger.error(
-                        "Process 4: Error in acceptWithdrawal request for transactionId:" +
-                          transactionId +
-                          " " +
-                          err
-                      );
+                      logger.error(`${req.originalUrl} request has an error during process 4, transactionId:${transactionId}, error:${err}`)
                       successful = false;
                     } else if (result4.affectedRows <= 0) {
-                      logger.warn(
-                        "Warn in acceptWithdrawal request during increasing accepter wallet, accepter not found, transactionId:" +
-                          transactionId
-                      );
+                      logger.warn(`${req.originalUrl} request warning during increasing accepter wallet, can't find accepter wallet, transactionId:${transactionId} accepter:${accepterAccountId}`);
                       successful = false;
                     } else {
-                      logger.info(
-                        "Increased accepter account wallet thru acceptWithdrawal request, transactionId:" +
-                          transactionId
-                      );
+                      logger.info(`${req.originalUrl} increased accepter wallet thru acceptWithdrawal, accountId:${accountId} amount:${amount} transactionId:${transactionId} editor:${accepterAccountId}`)
 
                       // Process 5
                       // Insert acceptWithdrawal to the transactions table
@@ -603,20 +483,10 @@ app.post("/acceptWithdrawal", (req, res) => {
                         ],
                         (err, result5) => {
                           if (err) {
-                            logger.error(
-                              "Process 5: Error in acceptWithdrawal request for transactionId:" +
-                                transactionId +
-                                " " +
-                                err
-                            );
+                            logger.error(`${req.originalUrl} request has an error during process 5, transactionId:${transactionId}, error:${err}`)
                             successful = false;
                           } else {
-                            logger.info(
-                              "Inserted transactions table for acceptWithdrawal Request, transactionId:" +
-                                transactionId +
-                                " inserted transactionId:" +
-                                result5.insertId
-                            );
+                            logger.info(`${req.originalUrl} inserted acceptedWithdrawal into transactions, accountId:${accountId} amount:${amount} transactionId:${transactionId} editor:${accepterUsername}`)
                           }
                         }
                       );
@@ -633,18 +503,10 @@ app.post("/acceptWithdrawal", (req, res) => {
                   [accountId, accepterUsername, transactionId],
                   (err, result6) => {
                     if (err) {
-                      logger.error(
-                        "Process 6: Error in acceptWithdrawal request for transactionId:" +
-                          transactionId +
-                          " " +
-                          err
-                      );
+                      logger.error(`${req.originalUrl} request has an error during process 6, transactionId:${transactionId}, error:${err}`)
                       successful = false;
                     } else {
-                      logger.info(
-                        "Updated transactions table for acceptWithdrawal Request, transactionId:" +
-                          transactionId
-                      );
+                      logger.info(`${req.originalUrl} updated transactions, accountId:${accountId} amount:${amount} transactionId:${transactionId} editor:${accepterUsername} duration:${getDurationInMilliseconds(start)}`)
                       res.status(200).json({
                         message: "Successful Request, withdrawal settled",
                         data: { transactionId: transactionId },
@@ -666,13 +528,16 @@ app.post("/acceptWithdrawal", (req, res) => {
 });
 
 app.post("/transferFunds", (req, res) => {
+  const start = process.hrtime()
+
   const apiKey = req.header("Authorization");
   const fromAccountId = req.body.fromAccountId;
   const fromUsername = req.body.fromUsername;
   const toAccountId = req.body.toAccountId;
   const toUsername = req.body.toUsername;
   const amount = req.body.amount;
-  console.log(apiKey);
+
+
   // Check if body is complete
   if (
     !fromAccountId ||
@@ -681,14 +546,14 @@ app.post("/transferFunds", (req, res) => {
     !toUsername ||
     !toAccountId
   ) {
-    logger.warn("transferFunds request has missing body parameters");
+    logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn("transferFunds request has missing/wrong API_KEY");
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -699,26 +564,13 @@ app.post("/transferFunds", (req, res) => {
     "SELECT wallet FROM accounts where account_id = ? OR account_id = ? ORDER BY account_type ASC";
   db.query(sqlQuery1, [fromAccountId, toAccountId], (err, result1) => {
     if (err) {
-      logger.error(
-        " Process 1: Error in transferFunds request from accountId:" +
-          fromAccountId
-      );
+      logger.error(`${req.originalUrl} request has an error during process 1, accountId:${fromAccountId}, error:${err}`)
     } else if (result1.length <= 1) {
-      logger.warn(
-        "Warn in transfer funds. Accounts not found, accountIds:" +
-          fromAccountId +
-          "," +
-          toAccountId
-      );
+      logger.warn(`${req.originalUrl} accounts not found, from:${fromAccountId} to:${toAccountId}`)
       res.status(409).json({ message: "Requester account_id not found" });
       successful = false;
     } else if (result1[0].wallet < amount) {
-      logger.warn(
-        "Warn in transfer funds. Requester does not have enough funds to process transfer of amount:" +
-          amount +
-          ". Requester accountId:" +
-          fromAccountId
-      );
+      logger.warn(`${req.originalUrl} request warning, requester does not have enough funds to transfer, from:${fromAccountId}`);
       res.status(409).json({
         message:
           "Requester doesn't have enough funds to continue with this transaction",
@@ -739,14 +591,10 @@ app.post("/transferFunds", (req, res) => {
         fromUsername,
         toAccountId,
       ]);
-      console.log(sqlQueryFormatted);
+
       db.query(sqlQueryFormatted, (err, result2) => {
         if (err) {
-          logger.error(
-            "Process 2: Error in transferFunds request from accountId:" +
-              fromAccountId +
-              err
-          );
+          logger.error(`${req.originalUrl} request has an error during process 2, error:${err}`)
           res.status(500).json({ message: "Server Error" });
         } else {
           // Process 3
@@ -765,16 +613,10 @@ app.post("/transferFunds", (req, res) => {
             ],
             (err, result3) => {
               if (err) {
-                logger.error(
-                  "Process 3: Error in transferFunds request from accountId:" +
-                    fromAccountId
-                );
+                logger.error(`${req.originalUrl} request has an error during process 3, error:${err}`)
                 successful = false;
               } else {
-                logger.info(
-                  "Inserted transactions table for transferFunds Request,  inserted transactionId:" +
-                    result3.insertId
-                );
+                logger.info(`${req.originalUrl} request has been inserted into transactions, from:${fromAccountId} transactionId:${result3.insertId}`)
               }
             }
           );
@@ -795,20 +637,14 @@ app.post("/transferFunds", (req, res) => {
             ],
             (err, result4) => {
               if (err) {
-                logger.error(
-                  "Process 4: Error in transferFunds request from accountId:" +
-                    fromAccountId
-                );
+                logger.error(`${req.originalUrl} request has an error during process 4, error:${err}`)
                 successful = false;
               } else {
-                logger.info(
-                  "Inserted transactions table for transferFunds Request,  inserted transactionId:" +
-                    result4.insertId
-                );
+                logger.info(`${req.originalUrl} request has been inserted into transactions, to:${toAccountId} transactionId:${result3.insertId}`)
               }
             }
           );
-
+          logger.info(`${req.originalUrl} request completed, duration:${getDurationInMilliseconds(start)}`)
           res.status(200).json({ message: "Fund transfer successful" });
         }
       });
@@ -816,9 +652,9 @@ app.post("/transferFunds", (req, res) => {
   });
 });
 
-app.get(
-  "/getUnsettledRequest/:accountId/:accountType/:transactionType",
-  (req, res) => {
+app.get("/getUnsettledRequest/:accountId/:accountType/:transactionType",(req, res) => {
+    const start = process.hrtime();
+
     const apiKey = req.header("Authorization");
     const accountId = req.params.accountId;
     const accountType = req.params.accountType;
@@ -826,14 +662,14 @@ app.get(
 
     // Check if body is complete
     if (!accountType || !accountId || !transactionType) {
-      logger.warn("transferFunds request has missing body parameters");
+      logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
       res.status(400).json({ message: "Missing body parameters" });
       return;
     }
 
     // Check if apiKey is correct
     if (!apiKey || apiKey !== process.env.API_KEY) {
-      logger.warn("transferFunds request has missing/wrong API_KEY");
+      logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
       res.status(401).json({ message: "Unauthorized Request" });
       return;
     }
@@ -845,33 +681,30 @@ app.get(
       sqlQuery =
         "SELECT tr.transaction_id, ac.account_id, ac.username, ac.phone_num, ac.account_type, tr.amount, tr.placement_date FROM transactions tr JOIN accounts ac on tr.account_id=ac.account_id WHERE tr.transaction_type=? and tr.status=0;";
       sqlQuery = db.format(sqlQuery, [transactionType]);
-      console.log(sqlQuery);
     } else if (accountType === "1") {
       // Master Agent
       sqlQuery =
         "SELECT tr.transaction_id, ac.account_id,  tr.description, ac.username, ac.phone_num, ac.account_type, tr.amount, tr.placement_date FROM transactions tr JOIN accounts ac on tr.account_id=ac.account_id WHERE tr.transaction_type = ? and tr.status = 0 and ac.account_id in (select account_id from accounts where agent_id = ? OR agent_id in (SELECT account_id from accounts where agent_id = ?));";
       sqlQuery = db.format(sqlQuery, [transactionType, accountId, accountId]);
-      console.log(sqlQuery);
     } else if (accountType === "2") {
       // Agent Agent
       sqlQuery =
         "SELECT tr.transaction_id, ac.account_id,  tr.description, ac.username, ac.phone_num, ac.account_type, tr.amount, tr.placement_date FROM transactions tr JOIN accounts ac on tr.account_id=ac.account_id WHERE tr.transaction_type = ? and tr.status = 0 and ac.account_id in (select account_id from accounts where agent_id = ?);";
       sqlQuery = db.format(sqlQuery, [transactionType, accountId]);
-      console.log(sqlQuery);
     }
 
     if (sqlQuery !== "") {
       db.query(sqlQuery, (err, result) => {
         if (err) {
-          logger.error(
-            " Process 1: Error in getUnsettledRequest request from accountId:" +
-              accountId
-          );
+          logger.error(`${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`)
+          res.status(500).json({message: "Error in Request"})
         } else {
+          logger.info(`${req.originalUrl} request successful, accountId:${accountId} duration:${getDurationInMilliseconds(start)}`)
           res.status(200).json({ message: "Request Successful", data: result });
         }
       });
     } else {
+      logger.warn(`${req.originalUrl} request warning, account is not authorized to request, accountId:${accountId}`)
       res
         .status(401)
         .json({ message: "User type is not authorized to ask this request" });
@@ -880,6 +713,8 @@ app.get(
 );
 
 app.get("/getTransactionHistory/:accountId/:dateFrom/:dateTo", (req, res) => {
+  const start = process.hrtime()
+
   const apiKey = req.header("Authorization");
   const accountId = req.params.accountId;
   const dateFrom = req.params.dateFrom;
@@ -887,14 +722,14 @@ app.get("/getTransactionHistory/:accountId/:dateFrom/:dateTo", (req, res) => {
 
   // Check if body is complete
   if (!accountId) {
-    logger.warn("transferFunds request has missing body parameters");
+    logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn("transferFunds request has missing/wrong API_KEY");
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -903,11 +738,9 @@ app.get("/getTransactionHistory/:accountId/:dateFrom/:dateTo", (req, res) => {
     "SELECT * from transactions WHERE account_id = ? AND placement_date BETWEEN ? AND ?;";
   db.query(sqlQuery, [accountId, dateFrom, dateTo], (err, result) => {
     if (err) {
-      logger.error(
-        " Process 1: Error in getTransactionHistory request from accountId:" +
-          accountId
-      );
+      logger.error(`${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`)
     } else {
+      logger.info(`${req.originalUrl} request successful, accountId:${accountId} duration:${getDurationInMilliseconds(start)}`)
       res.status(200).json({ message: "Request Successful", data: result });
     }
   });
@@ -915,6 +748,8 @@ app.get("/getTransactionHistory/:accountId/:dateFrom/:dateTo", (req, res) => {
 
 
 app.get("/getBetCommissionEarnings/:dateFrom/:dateTo", (req, res) => {
+  const start = process.hrtime();
+
   const apiKey = req.header("Authorization");
   const dateFrom = req.params.dateFrom;
   const dateTo = req.params.dateTo;
@@ -923,9 +758,16 @@ app.get("/getBetCommissionEarnings/:dateFrom/:dateTo", (req, res) => {
   var winnings = 0
   var commissions = 0
 
+  // Check if body is complete
+  if (!dateFrom || !dateTo) {
+    logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn("getBetCommissionEarnings request has missing/wrong API_KEY");
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -934,9 +776,7 @@ app.get("/getBetCommissionEarnings/:dateFrom/:dateTo", (req, res) => {
     "SELECT SUM(stake) as stake, SUM(winnings) as winnings from bets where placement_date AND placement_date BETWEEN ? AND ?;";
   db.query(sqlQuery, [dateFrom, dateTo], (err, result) => {
     if (err) {
-      logger.error(
-        " Process 1: Error in getBetCommissionEarnings request from accountId:" + err
-      );
+      logger.error(`${req.originalUrl} request has an error during process 1, error:${err}`)
     } else {
       // res.status(200).json({ message: "Request Successful", data: result });
       stake = result[0].stake
@@ -945,80 +785,16 @@ app.get("/getBetCommissionEarnings/:dateFrom/:dateTo", (req, res) => {
       sqlQuery2 = "SELECT SUM(amount) as commission from transactions where  placement_date BETWEEN ? AND ? AND transaction_type = 6;";
       db.query(sqlQuery2, [dateFrom, dateTo], (err, result2) => {
       if (err) {
-        logger.error(
-          " Process 1: Error in getBetCommissionEarnings request from accountId:" + err
-        );
+        logger.error(`${req.originalUrl} request has an error during process 2, error:${err}`)
       } else {
         commissions = result2[0].commission
+        logger.info(`${req.originalUrl} request successful, duration:${getDurationInMilliseconds(start)}`)
         res.status(200).json({ message: "Request Successful", data: {stake: stake, winnings: winnings, commissions: commissions} });        
       }
       })
     }
   });
 });
-
-
-
-
-// app.get("/getAcceptedDeposits/:accountId/:dateFrom/:dateTo", (req, res) => {
-//   const apiKey = req.header("Authorization");
-//   const accountId = req.params.accountId;
-//   const dateFrom = req.params.dateFrom;
-//   const dateTo = req.params.dateTo;
-
-//   // Check if body is complete
-//   if (!accountId) {
-//     logger.warn("getAcceptedDeposits request has missing body parameters");
-//     res.status(400).json({ message: "Missing body parameters" });
-//     return;
-//   }
-
-//   // Check if apiKey is correct
-//   if (!apiKey || apiKey !== process.env.API_KEY) {
-//     logger.warn("getAcceptedDeposits request has missing/wrong API_KEY");
-//     res.status(401).json({ message: "Unauthorized Request" });
-//     return;
-//   }
-
-//   sqlQuery =
-//     "SELECT * from transactions WHERE account_id = ? AND transaction_type = 1 A ND placement_date BETWEEN ? AND ?;";
-//   db.query(sqlQuery, [accountId, dateFrom, dateTo], (err, result) => {
-//     if (err) {
-//       logger.error(
-//         " Process 1: Error in getAcceptedDeposits request from accountId:" +
-//           accountId
-//       );
-//     } else {
-//       res.status(200).json({ message: "Request Successful", data: result });
-//     }
-//   });
-
-// })
-
-// app.get("/getAcceptedWithdrawals/:accountId/:dateFrom/:dateTo", (req, res) => {
-  
-// })
-
-// app.get("/getFundTransfersGiven/:accountId/:dateFrom/:dateTo", (req, res) => {
-  
-// })
-
-// app.get("/getFundTransfersReceived/:accountId/:dateFrom/:dateTo", (req, res) => {
-  
-// })
-
-// app.get("/getRequestedWithdrawals/:accountId/:dateFrom/:dateTo", (req, res) => {
-  
-// })
-
-// app.get("/getTotalCommissions/:accountId/:dateFrom/:dateTo", (req, res) => {
-  
-// })
-
-
-
-
-
 
 
 app.listen(4006, () => {
