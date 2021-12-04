@@ -1,0 +1,320 @@
+.radio-button {
+  position: relative;
+  cursor: pointer;
+}
+
+.radio-button:hover {
+  box-shadow: 0 3px #666;
+  transform: translateY(1px);
+}
+
+.radio-card {
+  visibility: hidden;
+}
+
+.color-name {
+display:block;
+position: absolute;
+bottom: 0px;
+width: 100%;
+font-size: 100%;
+margin: auto;
+}
+
+.fix-padding-left {
+  padding-left: 0px !important;
+}
+
+.red-box {
+  background-color: #db2828;
+  height: 100px;
+  border-radius: 10px;
+  margin-left: 25px;
+  margin-right: 10px;
+  margin-bottom: 5px;
+}
+
+.blue-box {
+  background-color: #2185d0;
+  height: 100px;
+  border-radius: 10px;
+  margin-right: 10px;
+  margin-bottom: 5px;
+}
+
+.green-box {
+  background-color: #21ba45;
+  height: 100px;
+  border-radius: 10px;
+  margin-right: 10px;
+  margin-bottom: 5px;
+}
+
+.yellow-box {
+  background-color: #fbbd08;
+  height: 100px;
+  border-radius: 10px;
+  margin-left: 25px;
+  margin-right: 10px;
+  margin-bottom: 5px;
+}
+
+.white-box {
+  background-color: aliceblue;
+  height: 100px;
+  border-radius: 10px;
+  margin-right: 10px;
+  margin-bottom: 5px;
+}
+
+.purple-box {
+  background-color: #a333c8;
+  height: 100px;
+  border-radius: 10px;
+  margin-right: 10px;
+  margin-bottom: 5px;
+}
+
+.stake-box {
+  height: 40px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  margin-left: 15px;
+  text-align: center;
+  line-height: 35px;
+  font-weight: bold;
+}
+
+.input-box {
+  margin-left: 15px;
+}
+
+.wallet-box {
+  padding-left: 12px;
+  padding-right: 40px;
+}
+
+.banner-message {
+  font-size: 50px;
+}
+
+.game-btn {
+  width: 50% !important;
+  border-radius: 25px !important;
+}
+
+.total-bet-number {
+  margin-left: 14px;
+  margin-top: 10px;
+}
+
+
+@media (min-width: 320px) and (max-width: 1199px) {
+  .stake-box {
+    margin-left: 18px;
+    width: 100%;
+  }
+  .wallet-box {
+    padding-bottom: 0px;
+  }
+  .input-box {
+    margin-left: 4px;
+  }
+  .red-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .blue-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .green-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .yellow-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .white-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .purple-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .live-room-colorbox {
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
+  }
+  .wallet-box {
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+}
+
+@media (min-width: 320px) and (max-width: 991px) {
+  .stake-box {
+    margin-left: 18px;
+    width: 100%;
+  }
+  .wallet-box {
+    padding-bottom: 0px;
+  }
+  .input-box {
+    margin-left: 4px;
+  }
+  .red-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .blue-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .green-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .yellow-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .white-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .purple-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .live-room-colorbox {
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
+  }
+}
+
+@media (min-width: 320px) and (max-width: 720px) {
+  .stake-box {
+    margin-left: 18px;
+    width: 100%;
+  }
+  .wallet-box {
+    padding-bottom: 0px;
+  }
+  .input-box {
+    margin-left: 4px;
+  }
+  .red-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .blue-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .green-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .yellow-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .white-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .purple-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .live-room-colorbox {
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
+  }
+}
+
+@media (min-width: 320px) and (max-width: 767px) {
+  .stake-box {
+    margin-left: 18px;
+    width: 100%;
+  }
+  .wallet-box {
+    padding-bottom: 0px;
+  }
+  .input-box {
+    margin-left: 4px;
+  }
+  .red-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .blue-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .green-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .yellow-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .white-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .purple-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .live-room-colorbox {
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
+  }
+}
+
+/* TEXT ADJUSMENT */
+@media (min-width: 320px) and (max-width: 440px) {
+  .stake-box {
+    margin-left: 18px;
+    width: 100%;
+  }
+  .wallet-box {
+    padding-bottom: 0px;
+  }
+  .input-box {
+    margin-left: 4px;
+  }
+  .red-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .blue-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .green-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .yellow-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .white-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .purple-box {
+    margin-left: 15px;
+    margin-right: 0px;
+  }
+  .live-room-colorbox {
+    margin-top: 10px !important;
+    margin-bottom: 10px !important;
+  }
+}

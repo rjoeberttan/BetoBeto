@@ -1,0 +1,55 @@
+.label-margin {
+  margin-top: 5px !important;
+}
+
+.card-margin-bottom {
+  margin-bottom: 10px;
+}
+
+.RED-boxx {
+  background-color: #db2828;
+  height: 100px;
+  border-radius: 10px;
+  margin-right: 10px;
+  margin-bottom: 5px;
+}
+
+.BLUE-boxx {
+  background-color: #2185d0;
+  height: 100px;
+  border-radius: 10px;
+  margin-right: 10px;
+  margin-bottom: 5px;
+}
+
+.GREEN-boxx {
+  background-color: #21ba45;
+  height: 100px;
+  border-radius: 10px;
+  margin-right: 10px;
+  margin-bottom: 5px;
+}
+
+.YELLOW-boxx {
+  background-color: #fbbd08;
+  height: 100px;
+  border-radius: 10px;
+  margin-right: 10px;
+  margin-bottom: 5px;
+}
+
+.WHITE-boxx {
+  background-color: aliceblue;
+  height: 100px;
+  border-radius: 10px;
+  margin-right: 10px;
+  margin-bottom: 5px;
+}
+
+.PURPLE-boxx {
+  background-color: #a333c8;
+  height: 100px;
+  border-radius: 10px;
+  margin-right: 10px;
+  margin-bottom: 5px;
+}

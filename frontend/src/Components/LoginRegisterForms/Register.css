@@ -1,0 +1,84 @@
+.heading-text {
+  margin-bottom: 30px;
+}
+
+
+.register-btn {
+  width: 50% !important;
+  border-radius: 25px !important;
+}
+
+.spacing {
+  margin-bottom: 15px;
+}
+
+.center {
+  padding-top: 50px !important;
+  padding-left: 300px !important;
+  padding-right: 300px !important;
+}
+
+.txt-black {
+  color: #191a19;
+}
+
+.btn-color {
+  background-color: #1e5128 !important;
+}
+
+.custom-toast{
+  background: brown;
+  color: black;
+}
+
+
+img {
+  height: 400px;
+}
+
+
+
+@media (min-width: 320px) and (max-width: 1199px) {
+  .center {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+    margin-bottom: 20px;
+  }
+}
+
+@media (min-width: 320px) and (max-width: 991px) {
+  .center {
+    padding-top: 20px !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+    margin-bottom: 20px;
+  }
+}
+
+@media (min-width: 320px) and (max-width: 720px) {
+  .center {
+    padding-top: 20px !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+    margin-bottom: 20px;
+  }
+}
+
+@media (min-width: 320px) and (max-width: 767px) {
+  .center {
+    padding-top: 20px !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+    margin-bottom: 20px;
+  }
+}
+
+/* TEXT ADJUSMENT */
+@media (min-width: 320px) and (max-width: 440px) {
+  .center {
+    padding-top: 20px !important;
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+    margin-bottom: 20px;
+  }
+}

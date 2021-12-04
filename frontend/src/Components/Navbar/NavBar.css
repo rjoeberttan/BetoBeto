@@ -1,0 +1,70 @@
+.buttons {
+  border-radius: 25px !important;
+  margin-left: 5px;
+}
+
+.dropdown-menu-center {
+  width: 200px !important;
+  left: 50% !important;
+  margin: 10px auto !important;
+  margin-left: -100px !important;
+}
+
+.drpdown-txt {
+  color: gray !important;
+}
+
+.remove-underline {
+  text-decoration: none;
+}
+
+.bg-green {
+  background-color: #1e5128;
+}
+
+.smaller-time {
+  font-size: 15px !important;
+}
+nav {
+  padding-left: 200px;
+  padding-right: 200px;
+}
+
+@media (min-width: 320px) and (max-width: 1199px) {
+  nav {
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+}
+
+@media (min-width: 320px) and (max-width: 991px) {
+  nav {
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+  .buttons {
+    margin-bottom: 15px;
+  }
+}
+
+@media (min-width: 320px) and (max-width: 720px) {
+  nav {
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+}
+
+@media (min-width: 320px) and (max-width: 767px) {
+  nav {
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+}
+
+/* TEXT ADJUSMENT */
+@media (min-width: 320px) and (max-width: 440px) {
+  nav {
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+}
