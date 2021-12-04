@@ -1,0 +1,81 @@
+version: '3'
+services:
+  nginx:
+    image: index.docker.io/mastergtech/nginx:1.5
+    depends_on:
+      - accounts
+      - frontend
+      - game
+      - bank
+      - bet
+      - websocket
+    restart: always
+    ports:
+      - "3050:80"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 250M
+  accounts:
+    image: index.docker.io/mastergtech/be_accounts:1.5
+    env_file:
+      - ../environment/staging/.env.acc.staging
+    volumes:
+      - /var/log/app/accounts:/var/log/app
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 250M
+  bet:
+    image: index.docker.io/mastergtech/be_betmngr:1.5
+    env_file:
+      - ../environment/staging/.env.bet.staging
+    volumes:
+      - /var/log/app/betmanager:/var/log/app 
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 250M
+  game:
+    image: index.docker.io/mastergtech/be_gamemngr:1.5
+    env_file:
+      - ../environment/staging/.env.game.staging
+    volumes:
+      - /var/log/app/gamemanager:/var/log/app
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 250M
+  bank:
+    image: index.docker.io/mastergtech/be_bankmngr:1.5
+    env_file:
+      - ../environment/staging/.env.bank.staging
+    volumes:
+      - /var/log/app/bankmanager:/var/log/app 
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 250M
+  websocket:
+    image: index.docker.io/mastergtech/websocket:1.5
+    ports:
+      - "3010:3010"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 250M
+  frontend:
+    image: index.docker.io/mastergtech/frontend:1.5
+    env_file:
+      - ../environment/staging/.env.frontend.staging
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G

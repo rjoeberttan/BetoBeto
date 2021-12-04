@@ -209,7 +209,7 @@ app.post("/login", (req, res) => {
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, username:${username} received:${apiKey}`);
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, username:${username} received:${apiKey} expecting:${process.env.API_KEY}`);
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }

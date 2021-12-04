@@ -1,0 +1,70 @@
+version: '3'
+services:
+  accounts:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ../../be_accounts
+    env_file:
+      - ../environment/local/.env.acc.local
+    volumes:
+      - /app/node_modules
+      - ../../be_accounts:/app
+      - /var/log/app/accounts:/var/log/app
+    ports:
+      - "4003:4003"
+  bet:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ../../be_betmngr
+    env_file:
+      - ../environment/local/.env.bet.local
+    volumes:
+      - /app/node_modules
+      - ../../be_betmngr:/app
+      - /var/log/app/betmanager:/var/log/app
+    ports:
+      - "4005:4005"
+  game:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ../../be_gamemngr
+    env_file:
+      - ../environment/local/.env.game.local
+    volumes:
+      - /app/node_modules
+      - ../../be_gamemngr:/app
+      - /var/log/app/gamemanager:/var/log/app
+    ports:
+      - "4004:4004"
+  bank:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ../../be_bankmngr
+    env_file:
+      - ../environment/local/.env.bank.local
+    volumes:
+      - /app/node_modules
+      - ../../be_bankmngr:/app
+      - /var/log/app/bankmanager:/var/log/app 
+    ports:
+      - "4006:4006"
+  websocket:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ../../websocket
+    volumes:
+      - /app/node_modules
+      - ../../websocket:/app
+    ports:
+      - "3010:3010"
+  frontend:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ../../frontend
+    env_file:
+      - ../environment/local/.env.frontend.local
+    volumes:
+      - /app/node_modules
+      - ../../frontend:/app
+    ports:
+      - "3000:3000"

@@ -1,0 +1,131 @@
+version: '3'
+services:
+  nginx:
+    depends_on:
+      - accounts
+      - frontend
+      - game
+      - bank
+      - bet
+      - websocket
+    restart: always
+    build:
+      dockerfile: Dockerfile.dev
+      context: ../../nginx
+    deploy:
+      resources:
+        limits:
+          cpus: '0.05'
+          memory: 250M
+        reservations:
+          cpus: '0.01'
+          memory: 100M
+    ports:
+      - "3050:80"
+    
+  accounts:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ../../be_accounts
+    env_file:
+      - ../environment/local-nginx/.env.acc.local.nginx
+    volumes:
+      - /app/node_modules
+      - ../../be_accounts:/app
+      - /var/log/app/accounts:/var/log/app
+    deploy:
+      resources:
+        limits:
+          cpus: '0.05'
+          memory: 250M
+        reservations:
+          cpus: '0.01'
+          memory: 100M
+  bet:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ../../be_betmngr
+    env_file:
+      - ../environment/local-nginx/.env.bet.local.nginx
+    volumes:
+      - /app/node_modules
+      - ../../be_betmngr:/app
+      - /var/log/app/betmanager:/var/log/app  
+    deploy:
+      resources:
+        limits:
+          cpus: '0.05'
+          memory: 250M
+        reservations:
+          cpus: '0.01'
+          memory: 100M
+  game:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ../../be_gamemngr
+    env_file:
+      - ../environment/local-nginx/.env.game.local.nginx
+    volumes:
+      - /app/node_modules
+      - ../../be_gamemngr:/app
+      - /var/log/app/gamemanager:/var/log/app
+    deploy:
+      resources:
+        limits:
+          cpus: '0.05'
+          memory: 250M
+        reservations:
+          cpus: '0.01'
+          memory: 100M
+  bank:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ../../be_bankmngr
+    env_file:
+      - ../environment/local-nginx/.env.bank.local.nginx
+    volumes:
+      - /app/node_modules
+      - ../../be_bankmngr:/app
+      - /var/log/app/bankmanager:/var/log/app 
+    deploy:
+      resources:
+        limits:
+          cpus: '0.05'
+          memory: 250M
+        reservations:
+          cpus: '0.01'
+          memory: 100M
+  websocket:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ../../websocket
+    volumes:
+      - /app/node_modules
+      - ../../websocket:/app
+    ports:
+      - "3010:3010"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.05'
+          memory: 250M
+        reservations:
+          cpus: '0.01'
+          memory: 100M
+  frontend:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ../../frontend
+    env_file:
+      - ../environment/local-nginx/.env.frontend.local.nginx
+    volumes:
+      - /app/node_modules
+      - ../../frontend:/app
+    deploy:
+      resources:
+        limits:
+          cpus: '0.05'
+          memory: 250M
+        reservations:
+          cpus: '0.01'
+          memory: 100M
