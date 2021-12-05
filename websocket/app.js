@@ -51,6 +51,10 @@ io.on("connection", (socket) => {
     })
 })
 
+
+app.get("/", (req, res) => {
+    res.send("hello")
+})
 server.listen(3010, () => {
     console.log("Server running at port 3010")
 })
