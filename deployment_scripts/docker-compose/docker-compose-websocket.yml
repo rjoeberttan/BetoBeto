@@ -1,0 +1,11 @@
+version: '3'
+services:
+  websocket:
+    image: index.docker.io/mastergtech/websocket:1.5
+    ports:
+      - "80:3010"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 1G
