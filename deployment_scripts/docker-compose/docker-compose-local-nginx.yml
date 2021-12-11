@@ -21,7 +21,8 @@ services:
           cpus: '0.01'
           memory: 100M
     ports:
-      - "3050:80"
+      - "80:80"
+      - "443:443"
     
   accounts:
     build:

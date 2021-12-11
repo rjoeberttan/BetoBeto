@@ -61,15 +61,6 @@ services:
         limits:
           cpus: '0.25'
           memory: 750M
-  websocket:
-    image: index.docker.io/mastergtech/websocket_prod:1.5
-    ports:
-      - "3010:3010"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.25'
-          memory: 1G
   frontend:
     image: index.docker.io/mastergtech/frontend_prod:1.5
     env_file:
