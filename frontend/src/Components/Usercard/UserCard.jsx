@@ -336,7 +336,7 @@ function UserCard({
               <div className="row">
                 <div className="col-md-4 col-4">
                   <input
-                    type="text"
+                    type="password"
                     className="form-control"
                     placeholder="Change PW"
                     name="password"
@@ -345,7 +345,7 @@ function UserCard({
                 </div>
                 <div className="col-md-4 col-4">
                   <input
-                    type="text"
+                    type="password"
                     className="form-control"
                     placeholder="Confirm PW"
                     name="confirmPassword"
