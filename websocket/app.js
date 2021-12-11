@@ -1,21 +1,14 @@
 const express = require('express');
 const http = require("http");
-const https = require("https");
 const cors  = require("cors");
 const {Server} = require("socket.io");
-const fs = require('fs')
 require("dotenv").config();
 const app = express();
 app.use(cors());
 
-const options = {
-    key: fs.readFileSync('/certs/key.pem'),
-    cert: fs.readFileSync('/certs/cert.pem')
-}
-// const httpServer = http.createServer(app);
-const httpsServer = https.createServer(options, app);
+const server = http.createServer(app);
 
-const io = new Server(httpsServer, {
+const io = new Server(server, {
     cors: {
         origin: '*',
     },
@@ -58,12 +51,6 @@ io.on("connection", (socket) => {
     })
 })
 
-
-app.get("/", (req, res) => {
-    res.send("hello")
-})
-
-
-httpsServer.listen(3010, () => {
+server.listen(3010, () => {
     console.log("Server running at port 3010")
 })
