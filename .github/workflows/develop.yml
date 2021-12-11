@@ -141,7 +141,7 @@ jobs:
       with:
         context: ./frontend
         push: true
-        file: ./frontend/Dockerfile
+        file: ./frontend/Dockerfile.dev
         tags: mastergtech/frontend:1.5
   
   build-and-deploy-websocket:
