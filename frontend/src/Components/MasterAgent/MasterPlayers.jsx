@@ -32,27 +32,26 @@ function MasterPlayers() {
         const Players = data.filter((x) => x.account_type === 3);
         console.log(Players);
         setPlayers(Players);
-        setFilteredPlayers(Players)
+        setFilteredPlayers(Players);
       })
       .catch((err) => {
         console.log(err);
       });
   }
-  function handleChange(e){
-    const searchVal = e.target.value
-    setUserSearch(searchVal)
+  function handleChange(e) {
+    const searchVal = e.target.value;
+    setUserSearch(searchVal);
 
-    let filtered = []
-   
+    let filtered = [];
+
     players.map((x) => {
-      let username = x.username
-      if (username.includes(searchVal)){
-        filtered.push(x)
+      let username = x.username;
+      if (username.includes(searchVal)) {
+        filtered.push(x);
       }
-    })
-    setFilteredPlayers(filtered)
+    });
+    setFilteredPlayers(filtered);
   }
-
 
   return (
     <div className="container text-light container-wallet">
@@ -64,14 +63,27 @@ function MasterPlayers() {
           <label className="label-txt">Search Player</label>
         </div>
         <div className="col-sm-6">
-          <div class="input-group w-50">
-            <span class="input-group-text" id="basic-addon1">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-search" viewBox="0 0 16 16">
+          <div className="input-group w-50">
+            <span className="input-group-text" id="basic-addon1">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                fill="currentColor"
+                className="bi bi-search"
+                viewBox="0 0 16 16"
+              >
                 <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"></path>
               </svg>
             </span>
-            <input type="text" className="form-control" placeholder="Username" value = {userSearch} onChange={handleChange} />
-          </div>         
+            <input
+              type="text"
+              className="form-control"
+              placeholder="Username"
+              value={userSearch}
+              onChange={handleChange}
+            />
+          </div>
         </div>
       </div>
       <div className="row text-black second-box">

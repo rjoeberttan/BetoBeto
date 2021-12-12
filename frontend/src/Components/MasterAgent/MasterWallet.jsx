@@ -372,36 +372,36 @@ function MasterWallet() {
               <div className="card-body">
                 <h5 className="card-title">Transfer Funds</h5>
                 <div className="wallet-box master-wallet">
-                  <div class="form-check form-check-inline">
+                  <div className="form-check form-check-inline">
                     <input
-                      class="form-check-input"
+                      className="form-check-input"
                       type="radio"
                       name="inlineRadioOptions"
                       value="1"
                       onChange={handleFilterChange}
                       defaultChecked
                     />
-                    <label class="form-check-label">All</label>
+                    <label className="form-check-label">All</label>
                   </div>
-                  <div class="form-check form-check-inline">
+                  <div className="form-check form-check-inline">
                     <input
-                      class="form-check-input"
+                      className="form-check-input"
                       type="radio"
                       name="inlineRadioOptions"
                       value="2"
                       onChange={handleFilterChange}
                     />
-                    <label class="form-check-label">Agents</label>
+                    <label className="form-check-label">Agents</label>
                   </div>
-                  <div class="form-check form-check-inline">
+                  <div className="form-check form-check-inline">
                     <input
-                      class="form-check-input"
+                      className="form-check-input"
                       type="radio"
                       name="inlineRadioOptions"
                       value="3"
                       onChange={handleFilterChange}
                     />
-                    <label class="form-check-label">Player</label>
+                    <label className="form-check-label">Player</label>
                   </div>
                 </div>
 
@@ -410,7 +410,7 @@ function MasterWallet() {
                     <label className="col-form-label">Username</label>
                   </div>
                   <div className="col-md-12">
-                    <select class="form-select" onChange={setActiveUser}>
+                    <select className="form-select" onChange={setActiveUser}>
                       {filteredList.map((x) => (
                         <option value={x.account_id + "-" + x.username}>
                           {x.username}{" "}
@@ -476,7 +476,7 @@ function MasterWallet() {
       <div className="row second-box">
         <div className="col-md-12">
           <h2>Deposit Request</h2>
-          <table class="table table-success table-striped">
+          <table className="table table-success table-striped">
             <thead>
               <tr>
                 <th scope="col">Username</th>
@@ -510,7 +510,7 @@ function MasterWallet() {
 
         <div className="col-md-12">
           <h2>Withdrawal Request</h2>
-          <table class="table table-success table-striped">
+          <table className="table table-success table-striped">
             <thead>
               <tr>
                 <th scope="col">Username</th>

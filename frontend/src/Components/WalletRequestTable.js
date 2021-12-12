@@ -140,7 +140,7 @@ function WalletRequestTable({
         <td>{requesterTypeStr}</td>
         <td>P {parseFloat(amount).toFixed(2)}</td>
         <td>{placementDate}</td>
-        <td className="text-center">
+        <td>
           <button className="btn btn-success me-1" onClick={confirmTransaction}>
             <FaCheckCircle />
           </button>
