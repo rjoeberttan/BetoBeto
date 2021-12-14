@@ -1,24 +1,8 @@
 version: '3'
 services:
-  nginx:
-    image: index.docker.io/mastergtech/nginx_prod:1.5
-    depends_on:
-      - accounts
-      - frontend
-      - game
-      - bank
-      - bet
-      - websocket
-    restart: always
-    ports:
-      - "3050:80"
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 1G
   accounts:
-    image: index.docker.io/mastergtech/be_accounts_prod:1.5
+    image: index.docker.io/mastergtech/be_accounts_prod:1.0
+    restart: unless-stopped
     env_file:
       - ../environment/production/.env.acc
     volumes:
@@ -29,7 +13,8 @@ services:
           cpus: '0.25'
           memory: 750M
   bet:
-    image: index.docker.io/mastergtech/be_betmngr_prod:1.5
+    image: index.docker.io/mastergtech/be_betmngr_prod:1.0
+    restart: unless-stopped
     env_file:
       - ../environment/production/.env.bet
     volumes:
@@ -40,7 +25,8 @@ services:
           cpus: '0.25'
           memory: 750M
   game:
-    image: index.docker.io/mastergtech/be_gamemngr_prod:1.5
+    image: index.docker.io/mastergtech/be_gamemngr_prod:1.0
+    restart: unless-stopped
     env_file:
       - ../environment/production/.env.game
     volumes:
@@ -51,7 +37,8 @@ services:
           cpus: '0.25'
           memory: 750M
   bank:
-    image: index.docker.io/mastergtech/be_bankmngr_prod:1.5
+    image: index.docker.io/mastergtech/be_bankmngr_prod:1.0
+    restart: unless-stopped
     env_file:
       - ../environment/production/.env.bank
     volumes:
@@ -61,8 +48,17 @@ services:
         limits:
           cpus: '0.25'
           memory: 750M
+  websocket:
+    image: index.docker.io/mastergtech/websocket_prod:1.0
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 250M
   frontend:
-    image: index.docker.io/mastergtech/frontend_prod:1.5
+    image: index.docker.io/mastergtech/frontend_prod:1.0
+    restart: unless-stopped
     env_file:
       - ../environment/production/.env.frontend
     deploy:

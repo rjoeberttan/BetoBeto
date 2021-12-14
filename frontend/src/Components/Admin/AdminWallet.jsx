@@ -510,7 +510,7 @@ function AdminWallet() {
       </form>
 
       <div className="row second-box">
-        <div className="col-md-12">
+        <div className="col-md-12 table-responsive">
           <h2>Deposit Request</h2>
           <table className="table table-success table-striped">
             <thead>
@@ -542,9 +542,15 @@ function AdminWallet() {
               ))}
             </tbody>
           </table>
+          {console.log(depositRequest.length)}
+          {depositRequest.length === 0 && (
+            <div>
+              <h5 className="no-transactions">No Deposit Requests</h5>
+            </div>
+          )}
         </div>
 
-        <div className="col-md-12">
+        <div className="col-md-12 table-responsive">
           <h2>Withdrawal Request</h2>
           <table className="table table-success table-striped">
             <thead>
@@ -576,6 +582,11 @@ function AdminWallet() {
               ))}
             </tbody>
           </table>
+          {withdrawalRequest.length === 0 && (
+            <div>
+              <h5 className="no-transactions">No Transaction Requests</h5>
+            </div>
+          )}
         </div>
       </div>
     </div>

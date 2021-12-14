@@ -84,12 +84,11 @@ function App() {
               <Redirect to="/admin/gameroom" />
             ) : null}
             <Register />
-          </Route>          
-      
+          </Route>
 
           {/* PLAYER ROUTES */}
           {token && ctx.user.accountType === "player" ? (
-            <>
+            <Switch>
               <Route path="/player/wallet" exact component={PlayerWallet} />
               <Route path="/player/gameroom" exact component={PlayerGameRoom} />
               <Route
@@ -103,12 +102,13 @@ function App() {
                 exact
                 component={PlayerLiveRoom}
               />
-            </>
+              <Route path="*" component={ErrorPage} />
+            </Switch>
           ) : null}
 
           {/* AGENT ROUTES */}
           {token && ctx.user.accountType === "agent" ? (
-            <>
+            <Switch>
               <Route path="/agent/players" exact component={AgentPlayers} />
               <Route path="/agent/wallet" exact component={AgentWallet} />
               <Route
@@ -117,12 +117,13 @@ function App() {
                 component={TransactionsPage}
               />
               <Route path="/agent/account" exact component={MyAccount} />
-            </>
+              <Route path="*" component={ErrorPage} />
+            </Switch>
           ) : null}
 
           {/* MASTERAGENT ROUTES */}
           {token && ctx.user.accountType === "masteragent" ? (
-            <>
+            <Switch>
               <Route
                 path="/masteragent/agents"
                 exact
@@ -144,12 +145,13 @@ function App() {
                 component={TransactionsPage}
               />
               <Route path="/masteragent/account" exact component={MyAccount} />
-            </>
+              <Route path="*" component={ErrorPage} />
+            </Switch>
           ) : null}
 
           {/* ADMIN ROUTES */}
           {token && ctx.user.accountType === "admin" ? (
-            <>
+            <Switch>
               <Route path="/admin/gameroom" exact component={AdminGameRoom} />
               {/* <Route
                 path="/admin/gameroom/settings"
@@ -175,12 +177,12 @@ function App() {
                 component={TransactionsPage}
               />
               <Route path="/admin/account" exact component={MyAccount} />
-            </>
+              <Route path="*" component={ErrorPage} />
+            </Switch>
           ) : null}
 
           {/* 404 ROUTES */}
-          <Route path='*'  component={ErrorPage} />
-          <Route path="/error" exact component={ErrorPage} />
+          <Route path="*" component={ErrorPage} />
         </Switch>
       </div>
     </Router>

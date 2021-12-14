@@ -56,7 +56,7 @@ function Login() {
               <div className="col-md-12 spacing">
                 <label className="form-label">Password</label>
                 <input
-                  type="text"
+                  type="password"
                   className="form-control"
                   name="password"
                   onChange={handleChange}

@@ -34,7 +34,7 @@ jobs:
         context: ./be_accounts
         push: true
         file: ./be_accounts/Dockerfile
-        tags: mastergtech/be_accounts_prod:1.5
+        tags: mastergtech/be_accounts_prod:1.0
 
   build-and-deploy-bank:
     name: Build and Deploy Backend Bank
@@ -61,7 +61,7 @@ jobs:
         context: ./be_bankmngr
         push: true
         file: ./be_bankmngr/Dockerfile
-        tags: mastergtech/be_bankmngr_prod:1.5
+        tags: mastergtech/be_bankmngr_prod:1.0
 
   build-and-deploy-bet:
     name: Build and Deploy Backend Bet
@@ -88,7 +88,7 @@ jobs:
         context: ./be_betmngr
         push: true
         file: ./be_betmngr/Dockerfile
-        tags: mastergtech/be_betmngr_prod:1.5
+        tags: mastergtech/be_betmngr_prod:1.0
 
   build-and-deploy-game:
     name: Build and Deploy Backend Game
@@ -115,7 +115,7 @@ jobs:
         context: ./be_gamemngr
         push: true
         file: ./be_gamemngr/Dockerfile
-        tags: mastergtech/be_gamemngr_prod:1.5
+        tags: mastergtech/be_gamemngr_prod:1.0
   
   build-and-deploy-frontend:
     name: Build and Deploy Frontend
@@ -142,35 +142,8 @@ jobs:
         context: ./frontend
         push: true
         file: ./frontend/Dockerfile
-        tags: mastergtech/frontend_prod:1.5
-  
-  build-and-deploy-nginx:
-    name: Build and Deploy Backend Nginx
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
-
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v1
+        tags: mastergtech/frontend_prod:1.0
     
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v1
-    
-    - name: Login to DockerHub
-      uses: docker/login-action@v1
-      with:
-        username: ${{ secrets.DOCKER_USERNAME }}
-        password: ${{ secrets.DOCKER_PASSWORD }}
-
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v2
-      with:
-        context: ./nginx
-        push: true
-        file: ./nginx/Dockerfile
-        tags: mastergtech/nginx_prod:1.5
-  
   build-and-deploy-websocket:
     name: Build and Deploy Backend Websocket
     runs-on: ubuntu-latest
@@ -196,5 +169,5 @@ jobs:
         context: ./websocket
         push: true
         file: ./websocket/Dockerfile
-        tags: mastergtech/websocket_prod:1.5
+        tags: mastergtech/websocket_prod:1.0
 

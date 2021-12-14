@@ -21,9 +21,7 @@ services:
           cpus: '0.01'
           memory: 100M
     ports:
-      - "80:80"
-      - "443:443"
-    
+      - "3050:80"
   accounts:
     build:
       dockerfile: Dockerfile.dev

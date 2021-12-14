@@ -29,19 +29,22 @@ const logger = createLogger({
   format: format.combine(
     format.timestamp({ format: "MMM-DD-YYYY HH:mm:ss" }),
     format.printf(
-      (info) => `${info.timestamp} -- ${(info.level).toUpperCase()} -- ${info.message}`
+      (info) =>
+        `${info.timestamp} -- ${info.level.toUpperCase()} -- ${info.message}`
     )
   ),
-  transports: [new transports.File({filename: '/var/log/app/gamemanager.log'})],
+  transports: [
+    new transports.File({ filename: "/var/log/app/gamemanager.log" }),
+  ],
 });
 
 const getDurationInMilliseconds = (start) => {
-  const NS_PER_SEC = 1e9
-  const NS_TO_MS = 1e6
-  const diff = process.hrtime(start)
+  const NS_PER_SEC = 1e9;
+  const NS_TO_MS = 1e6;
+  const diff = process.hrtime(start);
 
-  return `${((diff[0] * NS_PER_SEC + diff[1])/ NS_TO_MS).toFixed(2)}ms`
-}
+  return `${((diff[0] * NS_PER_SEC + diff[1]) / NS_TO_MS).toFixed(2)}ms`;
+};
 
 // Configure Database Connection
 const db = mysql.createConnection({
@@ -59,13 +62,15 @@ const db = mysql.createConnection({
 //  500 - Server Error
 //  200 - Successful
 app.get("/getGamesList", (req, res) => {
-  const start = process.hrtime()
+  const start = process.hrtime();
 
   const apiKey = req.header("Authorization");
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    logger.warn(
+      `${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`
+    );
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -74,31 +79,41 @@ app.get("/getGamesList", (req, res) => {
   var sqlQuery = "SELECT game_id, name, min_bet, max_bet, is_live FROM games";
   db.query(sqlQuery, [], (err, result) => {
     if (err) {
-      logger.error(`${req.originalUrl} request has an error during process 1, error:${err}`)
+      logger.error(
+        `${req.originalUrl} request has an error during process 1, error:${err}`
+      );
       res.status(500).json({ message: "Server Error /getGamesList" });
     } else if (result) {
-      logger.info(`${req.originalUrl} request successful, duration:${getDurationInMilliseconds(start)}`)
+      logger.info(
+        `${
+          req.originalUrl
+        } request successful, duration:${getDurationInMilliseconds(start)}`
+      );
       res.status(200).json({ message: "Request successful", data: result });
     }
   });
 });
 
 app.get("/getGameDetails/:gameId", (req, res) => {
-  const start = process.hrtime()
+  const start = process.hrtime();
 
   const apiKey = req.header("Authorization");
   const gameId = req.params.gameId;
 
   // Check if body is complete
   if (!gameId) {
-    logger.warn(`${req.originalUrl} request has missing body parameters, gameId:${gameId}`)
+    logger.warn(
+      `${req.originalUrl} request has missing body parameters, gameId:${gameId}`
+    );
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    logger.warn(
+      `${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`
+    );
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -108,13 +123,23 @@ app.get("/getGameDetails/:gameId", (req, res) => {
   sqlQuery = "SELECT * FROM games WHERE game_id = ?";
   db.query(sqlQuery, [gameId], (err, result) => {
     if (err) {
-      logger.error(`${req.originalUrl} request has an error during process 1, gameId:${gameId}, error:${err}`)
+      logger.error(
+        `${req.originalUrl} request has an error during process 1, gameId:${gameId}, error:${err}`
+      );
       res.status(500).json({ message: "Server error" });
     } else if (result.length <= 0) {
-      logger.warn(`${req.originalUrl} request warning, game is not found in database, gameId:${gameId}`);
+      logger.warn(
+        `${req.originalUrl} request warning, game is not found in database, gameId:${gameId}`
+      );
       res.status(409).json({ message: "gameId not found" });
     } else {
-      logger.info(`${req.originalUrl} request successful, gameId:${gameId} duration:${getDurationInMilliseconds(start)}`)
+      logger.info(
+        `${
+          req.originalUrl
+        } request successful, gameId:${gameId} duration:${getDurationInMilliseconds(
+          start
+        )}`
+      );
       res.status(200).json({ message: "Request successful", data: result[0] });
     }
   });
@@ -130,14 +155,18 @@ app.post("/updateLiveStatus", (req, res) => {
 
   // Check if body is complete
   if (!gameId || !status || !editor) {
-      logger.warn(`${req.originalUrl} request has missing body parameters, gameId:${gameId}`)
+    logger.warn(
+      `${req.originalUrl} request has missing body parameters, gameId:${gameId}`
+    );
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    logger.warn(
+      `${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`
+    );
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -149,15 +178,25 @@ app.post("/updateLiveStatus", (req, res) => {
     "UPDATE games set is_live = ?, lastedit_date = NOW(), edited_by = ? WHERE game_id = ?";
   db.query(sqlQuery, [newStatus, editor, gameId], (err, result) => {
     if (err) {
-      logger.error(`${req.originalUrl} request has an error during process 1, gameId:${gameId}, error:${err}`)
+      logger.error(
+        `${req.originalUrl} request has an error during process 1, gameId:${gameId}, error:${err}`
+      );
       res.status(500).json({ message: "Server error" });
     } else if (result.affectedRows <= 0) {
-      logger.warn(`${req.originalUrl} request warning, game is not found in database, gameId:${gameId}`);
+      logger.warn(
+        `${req.originalUrl} request warning, game is not found in database, gameId:${gameId}`
+      );
       res
         .status(409)
         .json({ message: "Nothing was updated, please check gameId" });
     } else {
-      logger.info(`${req.originalUrl} request successful, gameId:${gameId} duration:${getDurationInMilliseconds(start)}`)
+      logger.info(
+        `${
+          req.originalUrl
+        } request successful, gameId:${gameId} duration:${getDurationInMilliseconds(
+          start
+        )}`
+      );
       res.status(200).json({
         message: "Request successful",
         data: { gameId: gameId, status: newStatus },
@@ -178,15 +217,26 @@ app.post("/updateGameSettings", (req, res) => {
   const editor = req.body.editor;
 
   // Check if body is complete
-  if (!gameId || !url || !editor || !gameTitle || description || !bannerMessage) {
-    logger.warn(`${req.originalUrl} request has missing body parameters, gameId:${gameId}`)
+  if (
+    !gameId ||
+    !url ||
+    !editor ||
+    !gameTitle ||
+    description ||
+    !bannerMessage
+  ) {
+    logger.warn(
+      `${req.originalUrl} request has missing body parameters, gameId:${gameId}`
+    );
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    logger.warn(
+      `${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`
+    );
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -200,15 +250,25 @@ app.post("/updateGameSettings", (req, res) => {
     [url, gameTitle, description, bannerMessage, editor, gameId],
     (err, result) => {
       if (err) {
-        logger.error(`${req.originalUrl} request has an error during process 1, gameId:${gameId}, error:${err}`)
+        logger.error(
+          `${req.originalUrl} request has an error during process 1, gameId:${gameId}, error:${err}`
+        );
         res.status(500).json({ message: "Server error" });
       } else if (result.affectedRows <= 0) {
-        logger.warn(`${req.originalUrl} request warning, game is not found in database, gameId:${gameId}`);
+        logger.warn(
+          `${req.originalUrl} request warning, game is not found in database, gameId:${gameId}`
+        );
         res
           .status(409)
           .json({ message: "Nothing was updated, please check gameId" });
       } else {
-        logger.info(`${req.originalUrl} request successful, gameId:${gameId} duration:${getDurationInMilliseconds(start)}`)
+        logger.info(
+          `${
+            req.originalUrl
+          } request successful, gameId:${gameId} duration:${getDurationInMilliseconds(
+            start
+          )}`
+        );
         res.status(200).json({
           message: "Request successful",
           data: { gameId: gameId, url: url },
@@ -220,7 +280,7 @@ app.post("/updateGameSettings", (req, res) => {
 
 app.post("/updateBetThreshold", (req, res) => {
   const start = process.hrtime();
-  
+
   const apiKey = req.header("Authorization");
   const gameId = req.body.gameId;
   const min_bet = req.body.min_bet;
@@ -229,14 +289,18 @@ app.post("/updateBetThreshold", (req, res) => {
 
   // Check if body is complete
   if (!gameId || !min_bet || !max_bet) {
-    logger.warn(`${req.originalUrl} request has missing body parameters, gameId:${gameId}`)
+    logger.warn(
+      `${req.originalUrl} request has missing body parameters, gameId:${gameId}`
+    );
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    logger.warn(
+      `${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`
+    );
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -247,15 +311,25 @@ app.post("/updateBetThreshold", (req, res) => {
     "UPDATE games set min_bet = ?, max_bet=?, lastedit_date = NOW(), edited_by = ? WHERE game_id = ?";
   db.query(sqlQuery, [min_bet, max_bet, editor, gameId], (err, result) => {
     if (err) {
-      logger.error(`${req.originalUrl} request has an error during process 1, gameId:${gameId}, error:${err}`)
+      logger.error(
+        `${req.originalUrl} request has an error during process 1, gameId:${gameId}, error:${err}`
+      );
       res.status(500).json({ message: "Server error" });
     } else if (result.affectedRows <= 0) {
-      logger.warn(`${req.originalUrl} request warning, game is not found in database, gameId:${gameId}`);
+      logger.warn(
+        `${req.originalUrl} request warning, game is not found in database, gameId:${gameId}`
+      );
       res
         .status(409)
         .json({ message: "Nothing was updated, please check gameId" });
     } else {
-      logger.info(`${req.originalUrl} request successful, gameId:${gameId} duration:${getDurationInMilliseconds(start)}`)
+      logger.info(
+        `${
+          req.originalUrl
+        } request successful, gameId:${gameId} duration:${getDurationInMilliseconds(
+          start
+        )}`
+      );
       res.status(200).json({
         message: "Request successful",
         data: { gameId: gameId },
@@ -266,7 +340,7 @@ app.post("/updateBetThreshold", (req, res) => {
 
 app.post("/updateColorGameWinMultiplier", (req, res) => {
   const start = process.hrtime();
-  
+
   const apiKey = req.header("Authorization");
   const gameId = req.body.gameId;
   const winMultiplier = req.body.winMultiplier; // Current Status
@@ -274,14 +348,18 @@ app.post("/updateColorGameWinMultiplier", (req, res) => {
 
   // Check if body is complete
   if (!gameId || !winMultiplier || !editor || winMultiplier.length !== 3) {
-    logger.warn(`${req.originalUrl} request has missing body parameters, gameId:${gameId}`)
+    logger.warn(
+      `${req.originalUrl} request has missing body parameters, gameId:${gameId}`
+    );
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    logger.warn(
+      `${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`
+    );
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -290,15 +368,25 @@ app.post("/updateColorGameWinMultiplier", (req, res) => {
     "UPDATE games SET win_multip1 = ?, win_multip2 = ?, win_multip3 = ?, lastedit_date = NOW(), edited_by = ? WHERE game_id = ?";
   db.query(sqlQuery, [...winMultiplier, editor, gameId], (err, result) => {
     if (err) {
-      logger.error(`${req.originalUrl} request has an error during process 1, gameId:${gameId}, error:${err}`)
+      logger.error(
+        `${req.originalUrl} request has an error during process 1, gameId:${gameId}, error:${err}`
+      );
       res.status(500).json({ message: "Server error" });
     } else if (result.affectedRows <= 0) {
-      logger.warn(`${req.originalUrl} request warning, game is not found in database, gameId:${gameId}`);
+      logger.warn(
+        `${req.originalUrl} request warning, game is not found in database, gameId:${gameId}`
+      );
       res
         .status(409)
         .json({ message: "Nothing was updated, please check gameId" });
     } else {
-      logger.info(`${req.originalUrl} request successful, gameId:${gameId} duration:${getDurationInMilliseconds(start)}`)
+      logger.info(
+        `${
+          req.originalUrl
+        } request successful, gameId:${gameId} duration:${getDurationInMilliseconds(
+          start
+        )}`
+      );
       res.status(200).json({
         message: "Request successful",
         data: { gameId: gameId, winMultiplier: winMultiplier },
@@ -312,7 +400,7 @@ app.post("/updateColorGameWinMultiplier", (req, res) => {
 //****************************************************************
 app.post("/createColorGameMarket", (req, res) => {
   const start = process.hrtime();
-  
+
   const apiKey = req.header("Authorization");
   const gameId = req.body.gameId;
   const description = req.body.description;
@@ -320,14 +408,18 @@ app.post("/createColorGameMarket", (req, res) => {
 
   // Check if body is complete
   if (!gameId || !description || !editor) {
-    logger.warn(`${req.originalUrl} request has missing body parameters, gameId:${gameId}`)
+    logger.warn(
+      `${req.originalUrl} request has missing body parameters, gameId:${gameId}`
+    );
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    logger.warn(
+      `${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`
+    );
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -337,7 +429,9 @@ app.post("/createColorGameMarket", (req, res) => {
     "SELECT * FROM markets WHERE game_id = ? ORDER BY lastedit_date DESC LIMIT 1";
   db.query(sqlQuery, [gameId], (err, result) => {
     if (err) {
-      logger.error(`${req.originalUrl} request has an error during process 1, gameId:${gameId}, error:${err}`)
+      logger.error(
+        `${req.originalUrl} request has an error during process 1, gameId:${gameId}, error:${err}`
+      );
       res.status(500).json({ message: "Server error" });
     } else if (result.length === 0) {
       // Process 2
@@ -350,10 +444,18 @@ app.post("/createColorGameMarket", (req, res) => {
         [newMarketId, gameId, description, 0, editor],
         (err, result2) => {
           if (err) {
-            logger.error(`${req.originalUrl} request has an error during process 2, gameId:${gameId}, error:${err}`)
+            logger.error(
+              `${req.originalUrl} request has an error during process 2, gameId:${gameId}, error:${err}`
+            );
             res.status(500).json({ message: "Server Error" });
           } else if (result2.affectedRows > 0) {
-            logger.info(`${req.originalUrl} request successful, gameId:${gameId} marketId:${newMarketId} duration:${getDurationInMilliseconds(start)}`)
+            logger.info(
+              `${
+                req.originalUrl
+              } request successful, gameId:${gameId} marketId:${newMarketId} duration:${getDurationInMilliseconds(
+                start
+              )}`
+            );
             res.status(200).json({
               message: "Successfully Created New Market.",
               data: { gameID: gameId, marketID: newMarketId, status: 0 },
@@ -370,7 +472,9 @@ app.post("/createColorGameMarket", (req, res) => {
         "SELECT distinct market_id from markets ORDER BY market_id DESC LIMIT 1";
       db.query(sqlQuery, [], (err, result3) => {
         if (err) {
-          logger.error(`${req.originalUrl} request has an error during process 3, gameId:${gameId}, error:${err}`)
+          logger.error(
+            `${req.originalUrl} request has an error during process 3, gameId:${gameId}, error:${err}`
+          );
           res.status(500).json({ message: "Server Error" });
         } else {
           // Process 4
@@ -384,10 +488,18 @@ app.post("/createColorGameMarket", (req, res) => {
             [newMarketId, gameId, description, 0, editor],
             (err, result4) => {
               if (err) {
-                logger.error(`${req.originalUrl} request has an error during process 4, gameId:${gameId}, error:${err}`)
+                logger.error(
+                  `${req.originalUrl} request has an error during process 4, gameId:${gameId}, error:${err}`
+                );
                 res.status(500).json({ message: "Server Error" });
               } else if (result4.affectedRows > 0) {
-                logger.info(`${req.originalUrl} request successful, gameId:${gameId} marketId:${newMarketId} duration:${getDurationInMilliseconds(start)}`)
+                logger.info(
+                  `${
+                    req.originalUrl
+                  } request successful, gameId:${gameId} marketId:${newMarketId} duration:${getDurationInMilliseconds(
+                    start
+                  )}`
+                );
                 res.status(200).json({
                   msg: "Successfully Created New Market.",
                   data: { gameID: gameId, marketID: newMarketId, status: 0 },
@@ -405,7 +517,9 @@ app.post("/createColorGameMarket", (req, res) => {
         }
       });
     } else if (result[0].status < 2) {
-      logger.warn(`${req.originalUrl} request warning, there is an unsettled market, marketId:${result[0].market_id} gameId:${gameId}`);
+      logger.warn(
+        `${req.originalUrl} request warning, there is an unsettled market, marketId:${result[0].market_id} gameId:${gameId}`
+      );
       res.status(409).json({
         message:
           "There are still unsettled market for the game. Settle first before creating new market",
@@ -421,7 +535,7 @@ app.post("/createColorGameMarket", (req, res) => {
 
 app.post("/closeMarket", (req, res) => {
   const start = process.hrtime();
-  
+
   const apiKey = req.header("Authorization");
   const gameId = req.body.gameId;
   const marketId = req.body.marketId;
@@ -429,14 +543,18 @@ app.post("/closeMarket", (req, res) => {
 
   // Check if body is complete
   if (!gameId || !editor || !marketId) {
-    logger.warn(`${req.originalUrl} request has missing body parameters, gameId:${gameId}`)
+    logger.warn(
+      `${req.originalUrl} request has missing body parameters, gameId:${gameId}`
+    );
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    logger.warn(
+      `${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`
+    );
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -447,15 +565,21 @@ app.post("/closeMarket", (req, res) => {
     "SELECT * FROM markets WHERE game_id = ? AND market_id = ? ORDER BY lastedit_date DESC LIMIT 1";
   db.query(sqlQuery, [gameId, marketId], (err, result) => {
     if (err) {
-      logger.error(`${req.originalUrl} request has an error during process 1, marketId:${marketId} gameId:${gameId}, error:${err}`)
+      logger.error(
+        `${req.originalUrl} request has an error during process 1, marketId:${marketId} gameId:${gameId}, error:${err}`
+      );
       res.status(500).json({ message: "Server error" });
     } else if (result.length === 0) {
-      logger.warn(`${req.originalUrl} request warning, market is not found in database, marketId:${marketId} gameId:${gameId}`);
+      logger.warn(
+        `${req.originalUrl} request warning, market is not found in database, marketId:${marketId} gameId:${gameId}`
+      );
       res
         .status(409)
         .json({ message: "No market found for marketId:" + marketId });
     } else if (result[0].status != 0) {
-      logger.warn(`${req.originalUrl} request warning, market is already closed or settled, marketId:${marketId} gameId:${gameId}`);
+      logger.warn(
+        `${req.originalUrl} request warning, market is already closed or settled, marketId:${marketId} gameId:${gameId}`
+      );
       res.status(409).json({
         message: "Market is already closed or settled",
         data: { marketId: marketId, status: result[0].status },
@@ -490,10 +614,18 @@ app.post("/closeMarket", (req, res) => {
         ],
         (err, result2) => {
           if (err) {
-            logger.error(`${req.originalUrl} request has an error during process 2, marketId:${marketId} gameId:${gameId}, error:${err}`)
+            logger.error(
+              `${req.originalUrl} request has an error during process 2, marketId:${marketId} gameId:${gameId}, error:${err}`
+            );
             res.status(500).json({ message: "Server Error" });
           } else if (result2.affectedRows > 0) {
-            logger.info(`${req.originalUrl} request successful, gameId:${gameId} marketId:${marketId} duration:${getDurationInMilliseconds(start)}`)
+            logger.info(
+              `${
+                req.originalUrl
+              } request successful, gameId:${gameId} marketId:${marketId} duration:${getDurationInMilliseconds(
+                start
+              )}`
+            );
             res.status(200).json({
               message: "Market closed successfully",
               data: { gameId: gameId, marketId: marketId, status: 1 },
@@ -515,7 +647,7 @@ app.post("/closeMarket", (req, res) => {
 
 app.post("/openMarket", (req, res) => {
   const start = process.hrtime();
-  
+
   const apiKey = req.header("Authorization");
   const gameId = req.body.gameId;
   const marketId = req.body.marketId;
@@ -523,14 +655,18 @@ app.post("/openMarket", (req, res) => {
 
   // Check if body is complete
   if (!gameId || !editor || !marketId) {
-    logger.warn(`${req.originalUrl} request has missing body parameters, gameId:${gameId}`)
+    logger.warn(
+      `${req.originalUrl} request has missing body parameters, gameId:${gameId}`
+    );
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    logger.warn(
+      `${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`
+    );
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -541,15 +677,21 @@ app.post("/openMarket", (req, res) => {
     "SELECT * FROM markets WHERE game_id = ? AND market_id = ? ORDER BY lastedit_date DESC LIMIT 1";
   db.query(sqlQuery, [gameId, marketId], (err, result) => {
     if (err) {
-      logger.error(`${req.originalUrl} request has an error during process 1, marketId:${marketId} gameId:${gameId}, error:${err}`)
+      logger.error(
+        `${req.originalUrl} request has an error during process 1, marketId:${marketId} gameId:${gameId}, error:${err}`
+      );
       res.status(500).json({ message: "Server error" });
     } else if (result.length === 0) {
-      logger.warn(`${req.originalUrl} request warning, market is not found in database, marketId:${marketId} gameId:${gameId}`);
+      logger.warn(
+        `${req.originalUrl} request warning, market is not found in database, marketId:${marketId} gameId:${gameId}`
+      );
       res
         .status(409)
         .json({ message: "No market found for marketId:" + marketId });
     } else if (result[0].status != 1) {
-      logger.warn(`${req.originalUrl} request warning, market is already open or settled, marketId:${marketId} gameId:${gameId}`);
+      logger.warn(
+        `${req.originalUrl} request warning, market is already open or settled, marketId:${marketId} gameId:${gameId}`
+      );
       res.status(409).json({
         message: "Market is already open or settled",
         data: { marketId: marketId, status: result[0].status },
@@ -584,10 +726,18 @@ app.post("/openMarket", (req, res) => {
         ],
         (err, result2) => {
           if (err) {
-            logger.error(`${req.originalUrl} request has an error during process 2, marketId:${marketId} gameId:${gameId}, error:${err}`)
+            logger.error(
+              `${req.originalUrl} request has an error during process 2, marketId:${marketId} gameId:${gameId}, error:${err}`
+            );
             res.status(500).json({ message: "Server Error" });
           } else if (result2.affectedRows > 0) {
-            logger.info(`${req.originalUrl} request successful, gameId:${gameId} marketId:${marketId} duration:${getDurationInMilliseconds(start)}`)
+            logger.info(
+              `${
+                req.originalUrl
+              } request successful, gameId:${gameId} marketId:${marketId} duration:${getDurationInMilliseconds(
+                start
+              )}`
+            );
             res.status(200).json({
               message: "Market opened successfully",
               data: { gameId: gameId, marketId: marketId, status: 0 },
@@ -609,7 +759,7 @@ app.post("/openMarket", (req, res) => {
 
 app.post("/resultMarket", (req, res) => {
   const start = process.hrtime();
-  
+
   const apiKey = req.header("Authorization");
   const gameId = req.body.gameId;
   const marketId = req.body.marketId;
@@ -618,14 +768,18 @@ app.post("/resultMarket", (req, res) => {
 
   // Check if body is complete
   if (!gameId || !editor || !marketId || marketResult.length !== 3) {
-    logger.warn(`${req.originalUrl} request has missing body parameters, gameId:${gameId}`)
+    logger.warn(
+      `${req.originalUrl} request has missing body parameters, gameId:${gameId}`
+    );
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    logger.warn(
+      `${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`
+    );
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -636,15 +790,21 @@ app.post("/resultMarket", (req, res) => {
     "SELECT * FROM markets WHERE game_id = ? AND market_id = ? ORDER BY lastedit_date DESC LIMIT 1";
   db.query(sqlQuery, [gameId, marketId], (err, result) => {
     if (err) {
-      logger.error(`${req.originalUrl} request has an error during process 1, marketId:${marketId} gameId:${gameId}, error:${err}`)
+      logger.error(
+        `${req.originalUrl} request has an error during process 1, marketId:${marketId} gameId:${gameId}, error:${err}`
+      );
       res.status(500).json({ message: "Server error" });
     } else if (result.length <= 0) {
-      logger.warn(`${req.originalUrl} request warning, market is not found in database, marketId:${marketId} gameId:${gameId}`);
+      logger.warn(
+        `${req.originalUrl} request warning, market is not found in database, marketId:${marketId} gameId:${gameId}`
+      );
       res
         .status(409)
         .json({ message: "No market found for marketId:" + marketId });
     } else if (result[0].status !== 1) {
-      logger.warn(`${req.originalUrl} request warning, market is still open or already settled, marketId:${marketId} gameId:${gameId}`);
+      logger.warn(
+        `${req.originalUrl} request warning, market is still open or already settled, marketId:${marketId} gameId:${gameId}`
+      );
       res.status(409).json({
         message: "Market is still open or already settled",
         data: { marketId: marketId, status: result[0].status },
@@ -681,10 +841,18 @@ app.post("/resultMarket", (req, res) => {
         ],
         (err, result2) => {
           if (err) {
-            logger.error(`${req.originalUrl} request has an error during process 2, marketId:${marketId} gameId:${gameId}, error:${err}`)
+            logger.error(
+              `${req.originalUrl} request has an error during process 2, marketId:${marketId} gameId:${gameId}, error:${err}`
+            );
             res.status(500).json({ message: "Server Error" });
           } else if (result2.affectedRows > 0) {
-            logger.info(`${req.originalUrl} request successful, gameId:${gameId} marketId:${marketId} duration:${getDurationInMilliseconds(start)}`)
+            logger.info(
+              `${
+                req.originalUrl
+              } request successful, gameId:${gameId} marketId:${marketId} duration:${getDurationInMilliseconds(
+                start
+              )}`
+            );
             res.status(200).json({
               message: "Market resulted successfully",
               data: {
@@ -712,20 +880,24 @@ app.post("/resultMarket", (req, res) => {
 
 app.get("/getLatestMarketDetails/:gameId", (req, res) => {
   const start = process.hrtime();
-  
+
   const apiKey = req.header("Authorization");
   const gameId = req.params.gameId;
 
   // Check if body is complete
   if (!gameId) {
-    logger.warn(`${req.originalUrl} request has missing body parameters, gameId:${gameId}`)
+    logger.warn(
+      `${req.originalUrl} request has missing body parameters, gameId:${gameId}`
+    );
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    logger.warn(
+      `${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`
+    );
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -736,13 +908,23 @@ app.get("/getLatestMarketDetails/:gameId", (req, res) => {
     "SELECT market_id, game_id, description, result, status FROM markets WHERE game_id = ? ORDER BY lastedit_date DESC LIMIT 1";
   db.query(sqlQuery, [gameId], (err, result) => {
     if (err) {
-      logger.error(`${req.originalUrl} request has an error during process 1, gameId:${gameId}, error:${err}`)
+      logger.error(
+        `${req.originalUrl} request has an error during process 1, gameId:${gameId}, error:${err}`
+      );
       res.status(500).json({ message: "Server error" });
     } else if (result.length <= 0) {
-      logger.warn(`${req.originalUrl} request warning, market is not found in database, gameId:${gameId}`);
+      logger.warn(
+        `${req.originalUrl} request warning, market is not found in database, gameId:${gameId}`
+      );
       res.status(409).json({ message: "No markets found" });
     } else {
-      logger.info(`${req.originalUrl} request successful, gameId:${gameId} duration:${getDurationInMilliseconds(start)}`)
+      logger.info(
+        `${
+          req.originalUrl
+        } request successful, gameId:${gameId} duration:${getDurationInMilliseconds(
+          start
+        )}`
+      );
       res
         .status(200)
         .json({ message: "Request successful", data: { market: result[0] } });
@@ -752,7 +934,7 @@ app.get("/getLatestMarketDetails/:gameId", (req, res) => {
 
 app.post("/manipulateBetTotals", (req, res) => {
   const start = process.hrtime();
-  
+
   const apiKey = req.header("Authorization");
   const marketId = req.body.marketId;
   const editor = req.body.editor;
@@ -760,14 +942,18 @@ app.post("/manipulateBetTotals", (req, res) => {
 
   // Check if body is complete
   if (!marketId || !editor || !bb_manip || bb_manip.length !== 6) {
-    logger.warn(`${req.originalUrl} request has missing body parameters, marketId:${marketId}`)
+    logger.warn(
+      `${req.originalUrl} request has missing body parameters, marketId:${marketId}`
+    );
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    logger.warn(
+      `${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`
+    );
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -778,10 +964,14 @@ app.post("/manipulateBetTotals", (req, res) => {
     "SELECT * FROM markets where market_id = ? ORDER BY lastedit_date DESC LIMIT 1";
   db.query(sqlQuery, [marketId], (err, result) => {
     if (err) {
-      logger.error(`${req.originalUrl} request has an error during process 1, marketId:${marketId}, error:${err}`)
+      logger.error(
+        `${req.originalUrl} request has an error during process 1, marketId:${marketId}, error:${err}`
+      );
       res.status(500).json({ message: "Server error" });
     } else if (result.length <= 0) {
-      logger.warn(`${req.originalUrl} request warning, game is not found in database, marketId:${marketId}`);
+      logger.warn(
+        `${req.originalUrl} request warning, game is not found in database, marketId:${marketId}`
+      );
       res.status(409).json({ message: "No markets found" });
     } else {
       // Process 2
@@ -791,13 +981,23 @@ app.post("/manipulateBetTotals", (req, res) => {
         "UPDATE markets SET bb_manip_blue = ?, bb_manip_yellow = ?, bb_manip_red = ?, bb_manip_white = ?, bb_manip_green = ?, bb_manip_purple = ? WHERE id = ?";
       db.query(sqlQuery, [...bb_manip, rowId], (err, result2) => {
         if (err) {
-          logger.error(`${req.originalUrl} request has an error during process 2, marketId:${marketId}, error:${err}`)
+          logger.error(
+            `${req.originalUrl} request has an error during process 2, marketId:${marketId}, error:${err}`
+          );
           res.status(500).json({ message: "Server error" });
         } else if (result.affectedRows <= 0) {
-          logger.warn(`${req.originalUrl} request warning, market is not found in database, marketId:${marketId}`);
+          logger.warn(
+            `${req.originalUrl} request warning, market is not found in database, marketId:${marketId}`
+          );
           res.status(409).json({ message: "Update not Successful" });
         } else {
-          logger.info(`${req.originalUrl} request successful, marketId:${marketId} duration:${getDurationInMilliseconds(start)}`)
+          logger.info(
+            `${
+              req.originalUrl
+            } request successful, marketId:${marketId} duration:${getDurationInMilliseconds(
+              start
+            )}`
+          );
           res.status(200).json({
             message: "Successful manipulateBetTotals request",
             data: { bb_manip_values: bb_manip },
@@ -810,21 +1010,25 @@ app.post("/manipulateBetTotals", (req, res) => {
 
 app.get("/getManipulateValues/:gameId/:marketId", (req, res) => {
   const start = process.hrtime();
-  
+
   const apiKey = req.header("Authorization");
   const gameId = req.params.gameId;
   const marketId = req.params.marketId;
 
   // Check if body is complete
   if (!gameId || !marketId) {
-    logger.warn(`${req.originalUrl} request has missing body parameters, gameId:${gameId}`)
+    logger.warn(
+      `${req.originalUrl} request has missing body parameters, gameId:${gameId}`
+    );
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    logger.warn(
+      `${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`
+    );
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -835,13 +1039,23 @@ app.get("/getManipulateValues/:gameId/:marketId", (req, res) => {
     "SELECT bb_manip_blue, bb_manip_yellow, bb_manip_red, bb_manip_white, bb_manip_green, bb_manip_purple FROM markets WHERE game_id = ? AND market_id = ? ORDER BY lastedit_date DESC LIMIT 1";
   db.query(sqlQuery, [gameId, marketId], (err, result) => {
     if (err) {
-      logger.error(`${req.originalUrl} request has an error during process 1, gameId:${gameId} marketId:${marketId}, error:${err}`)
+      logger.error(
+        `${req.originalUrl} request has an error during process 1, gameId:${gameId} marketId:${marketId}, error:${err}`
+      );
       res.status(500).json({ message: "Server error" });
     } else if (result.length <= 0) {
-      logger.warn(`${req.originalUrl} request warning, market is not found in database, marketId:${marketId} gameId:${gameId}`);
+      logger.warn(
+        `${req.originalUrl} request warning, market is not found in database, marketId:${marketId} gameId:${gameId}`
+      );
       res.status(409).json({ message: "No markets found" });
     } else {
-      logger.info(`${req.originalUrl} request successful, gameId:${gameId} marketId:${marketId} duration:${getDurationInMilliseconds(start)}`)
+      logger.info(
+        `${
+          req.originalUrl
+        } request successful, gameId:${gameId} marketId:${marketId} duration:${getDurationInMilliseconds(
+          start
+        )}`
+      );
       res
         .status(200)
         .json({ message: "Request successful", data: { market: result[0] } });
@@ -851,22 +1065,26 @@ app.get("/getManipulateValues/:gameId/:marketId", (req, res) => {
 
 app.get("/getColorGameBetTotals/:gameId/:marketId", (req, res) => {
   const start = process.hrtime();
-  
+
   const apiKey = req.header("Authorization");
   const gameId = req.params.gameId;
   const marketId = req.params.marketId;
 
-  logger.info("started getColorGameBetTotals")
+  logger.info("started getColorGameBetTotals");
   // Check if body is complete
   if (!gameId || !marketId) {
-    logger.warn(`${req.originalUrl} request has missing body parameters, gameId:${gameId}`)
+    logger.warn(
+      `${req.originalUrl} request has missing body parameters, gameId:${gameId}`
+    );
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
 
   // Check if apiKey is correct
   if (!apiKey || apiKey !== process.env.API_KEY) {
-    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    logger.warn(
+      `${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`
+    );
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
@@ -877,7 +1095,9 @@ app.get("/getColorGameBetTotals/:gameId/:marketId", (req, res) => {
     "SELECT REPLACE(description, 'Color Game - ', '') as color, SUM(stake) as total FROM bets where market_id = ? GROUP BY description;";
   db.query(sqlQuery, [marketId], (err, result) => {
     if (err) {
-      logger.error(`${req.originalUrl} request has an error during process 1, gameId:${gameId} marketId:${marketId}, error:${err}`)
+      logger.error(
+        `${req.originalUrl} request has an error during process 1, gameId:${gameId} marketId:${marketId}, error:${err}`
+      );
       res.status(500).json({ message: "Server error" });
     } else {
       // Process 2
@@ -886,10 +1106,14 @@ app.get("/getColorGameBetTotals/:gameId/:marketId", (req, res) => {
         "SELECT bb_manip_blue, bb_manip_yellow, bb_manip_red, bb_manip_white, bb_manip_green, bb_manip_purple FROM markets WHERE game_id = ? AND market_id = ? ORDER BY lastedit_date DESC LIMIT 1";
       db.query(sqlQuery2, [gameId, marketId], (err, result2) => {
         if (err) {
-          logger.error(`${req.originalUrl} request has an error during process 2, gameId:${gameId} marketId:${marketId}, error:${err}`)
+          logger.error(
+            `${req.originalUrl} request has an error during process 2, gameId:${gameId} marketId:${marketId}, error:${err}`
+          );
           res.status(500).json({ message: "Server error" });
-        } else if (result.length <= 0) {
-          logger.warn(`${req.originalUrl} request warning, market is not found in database, marketId:${marketId} gameId:${gameId}`);
+        } else if (result2.length <= 0) {
+          logger.warn(
+            `${req.originalUrl} request warning, market is not found in database, marketId:${marketId} gameId:${gameId}`
+          );
           res.status(409).json({
             message: "Cannot calculate bet totals. market not found",
             data: { gameId: gameId },
@@ -964,7 +1188,13 @@ app.get("/getColorGameBetTotals/:gameId/:marketId", (req, res) => {
               }
             }
           });
-          logger.info(`${req.originalUrl} request successful, gameId:${gameId} marketId:${marketId} duration:${getDurationInMilliseconds(start)}`) 
+          logger.info(
+            `${
+              req.originalUrl
+            } request successful, gameId:${gameId} marketId:${marketId} duration:${getDurationInMilliseconds(
+              start
+            )}`
+          );
           res.status(200).json({
             message: "Bet Totals request is successful",
             data: finalTotals,

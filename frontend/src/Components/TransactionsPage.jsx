@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { AuthContext } from "../store/auth-context";
 import { toast } from "react-toastify";
+import "./TransactionsPage.css";
 
 export default function TransactionsPage() {
   const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT;
@@ -302,7 +303,7 @@ export default function TransactionsPage() {
     if (value) {
       return (
         <div>
-          <h3>No Transactions within Time Range</h3>
+          <h5 className="no-transactions">No Transactions within Time Range</h5>
         </div>
       );
     } else {
@@ -386,73 +387,77 @@ export default function TransactionsPage() {
         {renderChoices()}
         {renderUserFilter()}
       </form>
-      <table className="table table-success table-striped">
-        <thead>
-          <tr>
-            <th scope="col">Date</th>
-            <th scope="col">Transaction ID</th>
-            <th scope="col">Description</th>
-            <th scope="col">Amount</th>
-            <th scope="col">Cummulative</th>
-            <th scope="col">Status</th>
-            <th scope="col">Settled by</th>
-          </tr>
-        </thead>
-        <tbody>
-          {transactionsList.map((x) => (
+      <div className="table-responsive">
+        <table className="table table-success table-striped transaction-page-spacing">
+          <thead>
             <tr>
-              <td>{x.placement_date}</td>
-              <td>{x.transaction_id}</td>
-              <td>{x.description}</td>
-              <td>₱ {x.amount.toFixed(2)}</td>
-              <td>₱ {x.cummulative ? x.cummulative.toFixed(2) : "-"}</td>
-              <td>
-                {x.status === 1
-                  ? "Settled"
-                  : x.status === 2
-                  ? "Cancelled"
-                  : "Pending"}
-              </td>
-              <td>{x.settled_by}</td>
+              <th scope="col">Date</th>
+              <th scope="col">Transaction ID</th>
+              <th scope="col">Description</th>
+              <th scope="col">Amount</th>
+              <th scope="col">Cummulative</th>
+              <th scope="col">Status</th>
+              <th scope="col">Settled by</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {transactionsList.map((x) => (
+              <tr key={Math.random()}>
+                <td>{x.placement_date}</td>
+                <td>{x.transaction_id}</td>
+                <td>{x.description}</td>
+                <td>₱ {x.amount.toFixed(2)}</td>
+                <td>₱ {x.cummulative ? x.cummulative.toFixed(2) : "-"}</td>
+                <td>
+                  {x.status === 1
+                    ? "Settled"
+                    : x.status === 2
+                    ? "Cancelled"
+                    : "Pending"}
+                </td>
+                <td>{x.settled_by}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       {transactionsList.length === 0
         ? renderEmptyTable(true)
         : renderEmptyTable(false)}
 
       {userFilter === "3" || ctx.user.accountType === "player" ? (
-        <table className="table table-success table-striped">
-          <thead>
-            <tr>
-              <th scope="col">Date</th>
-              <th scope="col">Bet ID</th>
-              <th scope="col">Market ID</th>
-              <th scope="col">Description</th>
-              <th scope="col">Stake</th>
-              <th scope="col">Cummulative</th>
-              <th scope="col">Status</th>
-              <th scope="col">Result</th>
-              <th scope="col">Settled Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {betList.map((x) => (
+        <div className="table-responsive">
+          <table className="table table-success table-striped">
+            <thead>
               <tr>
-                <td>{x.placement_date.substring(0, 10)}</td>
-                <td>{x.bet_id}</td>
-                <td>{x.market_id}</td>
-                <td>{x.description}</td>
-                <td>₱ {x.stake.toFixed(2)}</td>
-                <td>₱ {x.cummulative ? x.cummulative.toFixed(2) : "-"}</td>
-                <td>{x.status === 1 ? "Settled" : "Pending"}</td>
-                <td>{x.result}</td>
-                <td>{x.settled_date}</td>
+                <th scope="col">Date</th>
+                <th scope="col">Bet ID</th>
+                <th scope="col">Market ID</th>
+                <th scope="col">Description</th>
+                <th scope="col">Stake</th>
+                <th scope="col">Cummulative</th>
+                <th scope="col">Status</th>
+                <th scope="col">Result</th>
+                <th scope="col">Settled Date</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {betList.map((x) => (
+                <tr key={Math.random()}>
+                  <td>{x.placement_date.substring(0, 10)}</td>
+                  <td>{x.bet_id}</td>
+                  <td>{x.market_id}</td>
+                  <td>{x.description}</td>
+                  <td>₱ {x.stake.toFixed(2)}</td>
+                  <td>₱ {x.cummulative ? x.cummulative.toFixed(2) : "-"}</td>
+                  <td>{x.status === 1 ? "Settled" : "Pending"}</td>
+                  <td>{x.result}</td>
+                  <td>{x.settled_date}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : null}
       {transactionsList.length === 0 && userFilter === "3"
         ? renderEmptyTable(true)
