@@ -71,7 +71,7 @@ services:
           cpus: '0.25'
           memory: 250M
   frontend:
-    image: index.docker.io/mastergtech/frontend_prod:1.0
+    image: index.docker.io/mastergtech/frontend:1.5
     env_file:
       - ../environment/staging/.env.frontend.staging
     deploy:

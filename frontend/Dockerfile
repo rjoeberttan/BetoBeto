@@ -15,7 +15,6 @@ ENV REACT_APP_HEADER_GAME=/game
 ENV REACT_APP_HEADER_BET=/bet
 ENV REACT_APP_HEADER_BANK=/bank
 
-
 RUN npm run build
 RUN npm install -g serve
 CMD ["serve", "-s", "build"]
