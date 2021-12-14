@@ -141,8 +141,19 @@ jobs:
       with:
         context: ./frontend
         push: true
-        file: ./frontend/Dockerfile.dev
+        file: ./frontend/Dockerfile
         tags: mastergtech/frontend:1.5
+        build-args: 
+          - ARG_REACT_APP_DOMAIN=mastergambler.live 
+          - ARG_REACT_APP_KEY_ACCOUNT=JyHB2gWaAmQRGdW8 
+          - ARG_REACT_APP_KEY_GAME=Q@kjLc-3CCK3Fc% 
+          - ARG_REACT_APP_KEY_BET=yaZG9zjqWEt6fMy4 
+          - ARG_REACT_APP_KEY_BANK=[9@kw7L>F86_P](p
+          - ARG_REACT_APP_HEADER_WEBSOCKET=/socket.io 
+          - ARG_REACT_APP_HEADER_ACCOUNT=/accounts 
+          - ARG_REACT_APP_HEADER_GAME=/game 
+          - ARG_REACT_APP_HEADER_BET=/bet 
+          - ARG_REACT_APP_HEADER_BANK=/bank 
   
   build-and-deploy-websocket:
     name: Build and Deploy Backend Websocket
