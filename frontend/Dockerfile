@@ -3,6 +3,18 @@ WORKDIR /app
 COPY ./package.json ./
 RUN npm install
 COPY . .
+
+ENV REACT_APP_DOMAIN=mastergambler.live
+ENV REACT_APP_KEY_ACCOUNT=JyHB2gWaAmQRGdW8
+ENV REACT_APP_KEY_GAME=Q@k=jLc-3CCK3Fc%
+ENV REACT_APP_KEY_BET=yaZG9zjqWEt6fMy4
+ENV REACT_APP_KEY_BANK=[9@kw7L>F86_P](p
+ENV REACT_APP_HEADER_WEBSOCKET=/socket.io
+ENV REACT_APP_HEADER_ACCOUNT=/accounts
+ENV REACT_APP_HEADER_GAME=/game
+ENV REACT_APP_HEADER_BET=/bet
+ENV REACT_APP_HEADER_BANK=/bank
+
 RUN npm run build
 RUN npm install -g serve
 CMD ["serve", "-s", "build"]

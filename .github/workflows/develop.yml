@@ -141,9 +141,9 @@ jobs:
       with:
         context: ./frontend
         push: true
-        file: ./frontend/Dockerfile.dev
+        file: ./frontend/Dockerfile
         tags: mastergtech/frontend:1.5
-  
+        
   build-and-deploy-websocket:
     name: Build and Deploy Backend Websocket
     runs-on: ubuntu-latest

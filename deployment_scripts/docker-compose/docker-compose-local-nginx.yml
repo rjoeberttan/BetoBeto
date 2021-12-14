@@ -113,7 +113,7 @@ services:
           memory: 100M
   frontend:
     build:
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
       context: ../../frontend
     env_file:
       - ../environment/local-nginx/.env.frontend.local.nginx

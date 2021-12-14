@@ -58,9 +58,7 @@ services:
     ports:
       - "3010:3010"
   frontend:
-    build:
-      dockerfile: Dockerfile.dev
-      context: ../../frontend
+    image: index.docker.io/mastergtech/frontend_prod:1.0
     env_file:
       - ../environment/local/.env.frontend.local
     volumes:
