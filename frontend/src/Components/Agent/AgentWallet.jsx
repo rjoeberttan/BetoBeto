@@ -219,8 +219,10 @@ function AgentWallet() {
 
   function submitTransfer(e) {
     const senderWallet = parseFloat(ctx.walletBalance).toFixed(2);
-
-    if (senderWallet < parseFloat(amount)) {
+    if (amount <= 0){
+      toast.error("Invalid Amount")
+    }
+    else if (senderWallet < parseFloat(amount)) {
       toast.error("Wallet balance is bigger than to send");
     } else {
       const data = {

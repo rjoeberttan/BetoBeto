@@ -15,7 +15,9 @@ function Register() {
     phone: "",
     username: "",
     password: "",
+    confirmPass: ""
   });
+  const [conPassMsg, setConPassMsg] = useState("")
 
   let { agentid } = useParams();
   agentid = agentid.replace("agentid=", "");
@@ -28,11 +30,22 @@ function Register() {
         [name]: value,
       };
     });
+
+    if (e.target.name === "confirmPass") {
+      if (user.password !== e.target.value) {
+        setConPassMsg("Passwords do not Match")
+      } else {
+        setConPassMsg("")
+      }
+    }
   }
 
   function handleSubmit(e) {
     const phone = user.phone;
-    if (phone.substring(0, 2) !== "09" || phone.length !== 11) {
+    if (conPassMsg !== ""){
+      toast.error("Passwords do not match")
+    }
+    else if (phone.substring(0, 2) !== "09" || phone.length !== 11) {
       toast.error("Invalid phone number (ex. 09xxxxxxxxx)");
     } else if (
       user.password.length === 0 ||
@@ -131,6 +144,16 @@ function Register() {
                   onChange={handleChange}
                 />
                 <div className="form-text">Must be 8-20 characters long.</div>
+              </div>
+              <div className="col-md-12 spacing">
+                <label className="form-label">Confirm Password</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  name="confirmPass"
+                  onChange={handleChange}
+                />
+                <div className="form-text">{conPassMsg}</div>
               </div>
               {/* <div className="col-md-12 spacing">
                 <label className="form-label">Confirm Password</label>

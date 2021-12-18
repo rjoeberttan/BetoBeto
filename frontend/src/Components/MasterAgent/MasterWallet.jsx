@@ -6,6 +6,7 @@ import "./MasterWallet.css";
 import WithdrawalReq from "../WithdrawalReq";
 import DepositRequest from "../DepositRequest";
 import { toast, ToastContainer } from "react-toastify";
+import { to } from "@react-spring/core";
 
 function MasterWallet() {
   //============================================
@@ -139,7 +140,10 @@ function MasterWallet() {
   function submitTransfer(e) {
     const senderWallet = parseFloat(ctx.walletBalance).toFixed(2);
 
-    if (senderWallet < parseFloat(amount)) {
+    if (amount <= 0){
+      toast.error("Invalid Amount")
+    }
+    else if (senderWallet < parseFloat(amount)) {
       toast.error("Wallet balance is bigger than to send");
     } else {
       const data = {
@@ -264,6 +268,11 @@ function MasterWallet() {
       });
 
     e.preventDefault();
+  }
+
+  function handleAmountChange(e){
+    const amount = parseFloat(e.target.value).toFixed(2);
+    setAmount(e.target.value)
   }
 
   //=====================================================
@@ -427,6 +436,7 @@ function MasterWallet() {
                     <input
                       type="number"
                       className="form-control"
+                      onChange={handleAmountChange}
                       onWheel={(e) => e.target.blur()}
                       placeholder="0.00"
                     />

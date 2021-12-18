@@ -2,7 +2,7 @@ version: '3'
 services:
   accounts:
     build:
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
       context: ../../be_accounts
     env_file:
       - ../environment/local/.env.acc.local
@@ -58,7 +58,9 @@ services:
     ports:
       - "3010:3010"
   frontend:
-    image: index.docker.io/mastergtech/frontend_prod:1.0
+    build:
+      dockerfile: Dockerfile.dev
+      context: ../../frontend
     env_file:
       - ../environment/local/.env.frontend.local
     volumes:

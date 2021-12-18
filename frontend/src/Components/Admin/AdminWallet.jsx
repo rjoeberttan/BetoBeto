@@ -141,7 +141,10 @@ function AdminWallet() {
 
     if (senderWallet < parseFloat(amount)) {
       toast.error("Wallet balance is bigger than to send");
-    } else {
+    } else if (amount <= 0){
+      toast.error("Invalid amount")
+    } 
+    else {
       const data = {
         fromAccountId: ctx.user.accountID,
         fromUsername: ctx.user.username,

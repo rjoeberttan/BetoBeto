@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { toast } from "react-toastify";
+import { toast, ToastContainer } from "react-toastify";
 
 const axios = require("axios").default;
 
@@ -13,28 +13,32 @@ export default function DepositRequest(props) {
   }
 
   function submitDeposit(e) {
-    console.log(dpAmount, props.accId);
-    axios({
-      method: "post",
-      url: `${bankHeader}/requestDeposit`,
-      headers: bankAuthorization,
-      data: {
-        amount: dpAmount,
-        accountId: props.accId,
-      },
-    })
-      .then((res) => {
-        console.log(res);
-        toast.success(res.data.message);
-        setDpAmount("");
+    if (dpAmount <= 0){
+      toast.error("Invalid Amount")
+    } else {
+      axios({
+        method: "post",
+        url: `${bankHeader}/requestDeposit`,
+        headers: bankAuthorization,
+        data: {
+          amount: dpAmount,
+          accountId: props.accId,
+        },
       })
-      .catch((err) => {
-        console.log(err);
-        toast.error("Error requesting deposit", {
-          autoClose: 1500,
+        .then((res) => {
+          console.log(res);
+          toast.success(res.data.message);
+          setDpAmount("");
+        })
+        .catch((err) => {
+          console.log(err);
+          toast.error("Error requesting deposit", {
+            autoClose: 1500,
+          });
+          setDpAmount("");
         });
-        setDpAmount("");
-      });
+    }
+    
 
     e.preventDefault();
   }

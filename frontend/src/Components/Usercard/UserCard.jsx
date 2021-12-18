@@ -26,8 +26,8 @@ function UserCard({
   const bankAuthorization = { "Authorization": process.env.REACT_APP_KEY_BANK };
 
   const ctx = useContext(AuthContext);
-  const [numAgents, setNumAgents] = useState(0);
-  const [numPlayers, setNumPlayers] = useState(0);
+  const [numUsersUnder, setNumUsersUnder] = useState(0);
+  const [numUsersUnderUnder, setNumUsersUnderUnder] = useState(0);
   const [commissionNew, setCommission] = useState(0);
   const [topUpAmount, setTopUpAmount] = useState(0);
   const [currentWallet, setCurrentWallet] = useState(walletBalance);
@@ -43,36 +43,37 @@ function UserCard({
   // Use Effect and helper Functions
   //=============================================
   useEffect(() => {
-    getNumberOfAgents();
-    getNumberOfPlayers();
-    getAgentName();
+    getNumUsersUnder()
+    getNumUsersUnderUnder()
 
+    getAgentName();
     if (status === "LOCKED") {
       setLockStatusText("UNLOCK ACCOUNT");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function getNumberOfAgents() {
+
+  function getNumUsersUnder() {
     axios({
       method: "get",
       url: `${accountHeader}/getCountUnderUser/${accountId}`,
       headers: accAuthorization,
     })
       .then((res) => {
-        setNumAgents(res.data.count);
+        setNumUsersUnder(res.data.count);
       })
       .catch((err) => {});
   }
 
-  function getNumberOfPlayers() {
+  function getNumUsersUnderUnder() {
     axios({
       method: "get",
       url: `${accountHeader}/getCountPlayer/${accountId}`,
       headers: accAuthorization,
     })
       .then((res) => {
-        setNumPlayers(res.data.count);
+        setNumUsersUnderUnder(res.data.count);
       })
       .catch((err) => {});
   }
@@ -123,7 +124,7 @@ function UserCard({
             autoClose: 1500,
           });
         })
-        .catch((err) => {});
+        .catch((err) => {toast.error(err.message)});
     }
 
     e.preventDefault();
@@ -137,6 +138,7 @@ function UserCard({
       data: {
         commission: commissionNew,
         accountId: accountId,
+        accountType: accountType,
         editorUsername: editor,
       },
     })
@@ -148,37 +150,44 @@ function UserCard({
           }
         );
       })
-      .catch((err) => {});
+      .catch((err) => {
+        toast.error(err.response.data.message)
+      });
     e.preventDefault();
   }
 
   function submitTopUp(e) {
-    axios({
-      method: "post",
-      url: `${bankHeader}/transferFunds`,
-      headers: bankAuthorization,
-      data: {
-        fromAccountId: editorId,
-        fromUsername: editor,
-        toAccountId: accountId,
-        toUsername: username,
-        amount: parseFloat(topUpAmount).toFixed(2),
-      },
-    })
-      .then((res) => {
-        let newWallet = parseFloat(ctx.walletBalance) - parseFloat(topUpAmount);
-        ctx.walletHandler(newWallet);
-
-        newWallet = parseFloat(currentWallet) + parseFloat(topUpAmount);
-        setCurrentWallet(newWallet);
-        toast.success(res.data.message, {
-          autoClose: 1500,
-        });
+    if (topUpAmount <= 0){
+      toast.error("Invalid Amount")
+    } else {
+      axios({
+        method: "post",
+        url: `${bankHeader}/transferFunds`,
+        headers: bankAuthorization,
+        data: {
+          fromAccountId: editorId,
+          fromUsername: editor,
+          toAccountId: accountId,
+          toUsername: username,
+          amount: parseFloat(topUpAmount).toFixed(2),
+        },
       })
-      .catch((err) => {
-        toast.error("Failed fund transfer");
-      });
-    // e.preventDefault();
+        .then((res) => {
+          let newWallet = parseFloat(ctx.walletBalance) - parseFloat(topUpAmount);
+          ctx.walletHandler(newWallet);
+  
+          newWallet = parseFloat(currentWallet) + parseFloat(topUpAmount);
+          setCurrentWallet(newWallet);
+          toast.success(res.data.message, {
+            autoClose: 1500,
+          });
+        })
+        .catch((err) => {
+          toast.error("Failed fund transfer");
+        });
+      // e.preventDefault();
+    }
+    
   }
 
   function changeAccountStatus(e) {
@@ -222,7 +231,7 @@ function UserCard({
     if (accountType === "1") {
       return (
         <div className="col-md-12 text-spacing">
-          <b>No. of Agents:</b> {numAgents}
+          <b>No. of Agents:</b> {numUsersUnder}
         </div>
       );
     } else {
@@ -231,13 +240,20 @@ function UserCard({
   }
 
   function renderNoOfPlayers(accountType) {
-    if (accountType === "1" || accountType === "2") {
+    if (accountType === "1") {
       return (
         <div className="col-md-12  text-spacing">
-          <b>No. of Players:</b> {numPlayers}
+          <b>No. of Players:</b> {numUsersUnderUnder}
         </div>
       );
-    } else {
+    } else if (accountType === "2") {
+      return (
+        <div className="col-md-12  text-spacing">
+          <b>No. of Players:</b> {numUsersUnder}
+        </div>
+      ); 
+    }
+    else {
       return;
     }
   }
