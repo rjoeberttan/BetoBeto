@@ -177,13 +177,14 @@ function Register() {
                   onChange={handleChange}
                   type={stateConfirm ? 'text' : 'password'}
                 />
+                {/* <div className="form-text con-pass-msg">{conPassMsg}</div> */}
                 <button 
                     type='button'
                     className="input-group-text col-2 button-show-password-register-confirm"
                     onClick={toggleBtnConfirm}
                 >
                   {stateConfirm ? <AiOutlineEyeInvisible/> : <AiOutlineEye /> } </button>
-                <div className="form-text">{conPassMsg}</div>
+                  <div className="form-text con-pass-msg">{conPassMsg}</div>
               </div>
               {/* <div className="col-md-12 spacing">
                 <label className="form-label">Confirm Password</label>

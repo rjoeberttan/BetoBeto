@@ -18,6 +18,10 @@
     padding: 10px !important;
 }
 
+.password-text-myaccount {
+    padding-left: 3px !important;
+}
+
 /* Android */
 @media (min-width: 320px) and (max-width: 365px) {
     .button-show-password-myaccount {

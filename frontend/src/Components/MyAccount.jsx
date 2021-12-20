@@ -213,7 +213,7 @@ function MyAccount() {
               </h1>
               <div className="row password-confirmpassword-div"> 
                 <div className="col-sm-6 spacing row div-password">
-                  <label className="form-label">Password</label>
+                  <label className="form-label password-text-myaccount">Password</label>
                   <input
                     className="form-control"
                     placeholder="Password"
@@ -230,7 +230,7 @@ function MyAccount() {
                   {state ? <AiOutlineEyeInvisible/> : <AiOutlineEye /> } </button>
                 </div>
                 <div className="col-sm-6 spacing row confirm-password">
-                  <label className="form-label">Confirm Password</label>
+                  <label className="form-label password-text-myaccount">Confirm Password</label>
                   <input
                     className="form-control"
                     placeholder="Confirm Password"
