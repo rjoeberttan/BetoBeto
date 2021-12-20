@@ -1,0 +1,17 @@
+.button-show-password {
+    position: relative !important;  
+    right: 50px !important;
+    border: none !important;
+    outline: none !important;
+    background-color: transparent !important;
+    margin: 2px 0 !important;
+}
+
+.password-confirmpassword-div {
+    margin: 0 !important;
+}
+
+.div-password, .confirm-password {
+    margin: 0 !important;
+    padding: 10px !important;
+}

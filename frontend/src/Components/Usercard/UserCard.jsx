@@ -2,6 +2,8 @@ import React, { useEffect, useState, useContext } from "react";
 import { AuthContext } from "../../store/auth-context";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
+import  { AiOutlineEyeInvisible, AiOutlineEye} from 'react-icons/ai';
+import './UserCardstyles.css';
 
 function UserCard({
   accountId,
@@ -302,6 +304,21 @@ function UserCard({
     }
   }
 
+  const [state, setstate] = useState(false);
+  const [stateConfirm, setstateConfirm] = useState(false);
+
+  const toggleBtn = () => {
+
+    setstate(prevState => !prevState);
+
+  }
+
+  const toggleBtnConfirm = () => {
+
+    setstateConfirm(prevState => !prevState);
+
+  }
+
   return (
     <div className="col-sm-4 wallet-card">
       <ToastContainer />
@@ -350,23 +367,37 @@ function UserCard({
             </div>
             <div className="col-md-12 text-spacing">
               <div className="row">
-                <div className="col-md-4 col-4">
+                <div className="col row change-password">
                   <input
                     type="password"
-                    className="form-control"
+                    className="form-control input-change-password col"
                     placeholder="Change PW"
                     name="password"
                     onChange={handleChangePassword}
+                    type={state ? 'text' : 'password'}
                   />
+                  <button 
+                    type='button'
+                    className="input-group-text col-2 button-show-password-card"
+                    onClick={toggleBtn}
+                  >
+                    {state ? <AiOutlineEyeInvisible/> : <AiOutlineEye /> }</button>                     
                 </div>
-                <div className="col-md-4 col-4">
+                <div className="col row confirm-password-card">
                   <input
                     type="password"
-                    className="form-control"
+                    className="form-control input-change-password col"
                     placeholder="Confirm PW"
                     name="confirmPassword"
                     onChange={handleChangePassword}
+                    type={stateConfirm ? 'text' : 'password'}
                   />
+                  <button 
+                    type='button'
+                    className="input-group-text col-2 button-show-password-card"
+                    onClick={toggleBtnConfirm}
+                  >
+                    {stateConfirm ? <AiOutlineEyeInvisible/> : <AiOutlineEye /> }</button>
                 </div>
                 <div className="col-md-4 col-4">
                   <button

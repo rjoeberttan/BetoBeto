@@ -8,6 +8,19 @@
   border-radius: 25px !important;
 }
 
+.button-show-password-register {
+  position: relative !important;  
+  right: 40px !important;
+  border: none !important;
+  outline: none !important;
+  background-color: transparent !important;
+  margin: 2px 0;
+}
+
+.div-show-password-register {
+  margin: 0 !important;
+}
+
 .spacing {
   margin-bottom: 15px;
 }

@@ -3,6 +3,7 @@ import "./Register.css";
 import { Link, useParams } from "react-router-dom";
 import logo from "./loginimg.jpg";
 import { toast, ToastContainer } from "react-toastify";
+import  { AiOutlineEyeInvisible, AiOutlineEye} from 'react-icons/ai';
 const axios = require("axios").default;
 
 function Register() {
@@ -88,6 +89,21 @@ function Register() {
     e.preventDefault();
   }
 
+  const [state, setstate] = useState(false);
+  const [stateConfirm, setstateConfirm] = useState(false);
+
+  const toggleBtn = () => {
+
+    setstate(prevState => !prevState);
+
+  }
+
+  const toggleBtnConfirm = () => {
+
+    setstateConfirm(prevState => !prevState);
+
+  }
+
   return (
     <div className="container center txt-black">
       <ToastContainer />
@@ -135,24 +151,40 @@ function Register() {
                   onChange={handleChange}
                 />
               </div>
-              <div className="col-md-12 spacing">
+              <div className="col-md-12 spacing row div-show-password-register">
                 <label className="form-label">Password</label>
                 <input
                   type="password"
                   className="form-control"
                   name="password"
                   onChange={handleChange}
+                  type={state ? 'text' : 'password'}
+                  className="col"
                 />
+                <button 
+                    type='button'
+                    className="input-group-text col-2 button-show-password-register"
+                    onClick={toggleBtn}
+                  >
+                  {state ? <AiOutlineEyeInvisible/> : <AiOutlineEye /> } </button>
                 <div className="form-text">Must be 8-20 characters long.</div>
               </div>
-              <div className="col-md-12 spacing">
+              <div className="col-md-12 spacing row div-show-password-register">
                 <label className="form-label">Confirm Password</label>
                 <input
                   type="password"
                   className="form-control"
                   name="confirmPass"
                   onChange={handleChange}
+                  type={stateConfirm ? 'text' : 'password'}
+                  className="col-10"
                 />
+                <button 
+                    type='button'
+                    className="input-group-text col button-show-password-register"
+                    onClick={toggleBtnConfirm}
+                >
+                  {stateConfirm ? <AiOutlineEyeInvisible/> : <AiOutlineEye /> } </button>
                 <div className="form-text">{conPassMsg}</div>
               </div>
               {/* <div className="col-md-12 spacing">
