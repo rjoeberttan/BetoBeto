@@ -221,30 +221,27 @@ function MyAccount() {
                     onChange={handleChangePassword}
                     type={state ? 'text' : 'password'}
                     value={password.password}
-                    className="col"
                   />
                   <button 
                     type='button'
-                    className="input-group-text col-2 button-show-password-register"
+                    className="input-group-text col-2 button-show-password-myaccount"
                     onClick={toggleBtn}
                   >
                   {state ? <AiOutlineEyeInvisible/> : <AiOutlineEye /> } </button>
                 </div>
-                <div className="col-md-6 spacing row confirm-password">
+                <div className="col-sm-6 spacing row confirm-password">
                   <label className="form-label">Confirm Password</label>
                   <input
-                    
                     className="form-control"
                     placeholder="Confirm Password"
                     name="confirmPassword"
                     onChange={handleChangePassword}
                     type={stateConfirm ? 'text' : 'password'}
                     value={password.confirmPassword}
-                    className="col"
                   />
                   <button 
                     type='button'
-                    className="input-group-text col-2  button-show-password-register"
+                    className="input-group-text button-show-password-myaccount"
                     onClick={toggleBtnConfirm}
                   >
                   {stateConfirm ? <AiOutlineEyeInvisible/> : <AiOutlineEye /> }</button>

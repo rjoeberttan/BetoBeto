@@ -2,6 +2,8 @@ import React, { useContext, useState } from "react";
 import logo from "./loginimg.jpg";
 import { AuthContext } from "../../store/auth-context";
 import { ToastContainer } from "react-toastify";
+import  { AiOutlineEyeInvisible, AiOutlineEye} from 'react-icons/ai';
+import './Login.css';
 import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/dist/ReactToastify.min.css";
 
@@ -31,6 +33,15 @@ function Login() {
     width: "18 rem",
   };
 
+  const [state, setstate] = useState(false);
+
+  const toggleBtn = () => {
+
+    setstate(prevState => !prevState);
+
+  }
+
+
   return (
     <div className="container center txt-black">
       <ToastContainer />
@@ -53,15 +64,22 @@ function Login() {
                   value={user.username}
                 />
               </div>
-              <div className="col-md-12 spacing">
-                <label className="form-label">Password</label>
+              <div className="col-md-12 spacing row div-login-password">
+                <label className="form-label password-text">Password</label>
                 <input
                   type="password"
                   className="form-control"
                   name="password"
                   onChange={handleChange}
                   value={user.password}
+                  type={state ? 'text' : 'password'}
                 />
+                <button 
+                    type='button'
+                    className="input-group-text col-2 button-show-password-login"
+                    onClick={toggleBtn}
+                >
+                {state ? <AiOutlineEyeInvisible/> : <AiOutlineEye /> } </button>
               </div>
               <div className="col-md-12 text-center">
                 <button className="btn btn-color register-btn text-light">

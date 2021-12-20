@@ -151,37 +151,35 @@ function Register() {
                   onChange={handleChange}
                 />
               </div>
-              <div className="col-md-12 spacing row div-show-password-register">
-                <label className="form-label">Password</label>
+              <div className="col-md-12 spacing row div-register-password">
+                <label className="form-label password-text">Password</label>
                 <input
                   type="password"
                   className="form-control"
                   name="password"
                   onChange={handleChange}
                   type={state ? 'text' : 'password'}
-                  className="col"
                 />
+                <div className="form-text eight-to-twenty">Must be 8-20 characters long.</div>
                 <button 
                     type='button'
                     className="input-group-text col-2 button-show-password-register"
                     onClick={toggleBtn}
                   >
                   {state ? <AiOutlineEyeInvisible/> : <AiOutlineEye /> } </button>
-                <div className="form-text">Must be 8-20 characters long.</div>
               </div>
-              <div className="col-md-12 spacing row div-show-password-register">
-                <label className="form-label">Confirm Password</label>
+              <div className="col-md-12 spacing row div-register-password-confirm">
+                <label className="form-label password-text">Confirm Password</label>
                 <input
                   type="password"
                   className="form-control"
                   name="confirmPass"
                   onChange={handleChange}
                   type={stateConfirm ? 'text' : 'password'}
-                  className="col-10"
                 />
                 <button 
                     type='button'
-                    className="input-group-text col button-show-password-register"
+                    className="input-group-text col-2 button-show-password-register-confirm"
                     onClick={toggleBtnConfirm}
                 >
                   {stateConfirm ? <AiOutlineEyeInvisible/> : <AiOutlineEye /> } </button>
@@ -191,17 +189,19 @@ function Register() {
                 <label className="form-label">Confirm Password</label>
                 <input type="password" className="form-control" onChange={handleChange}/> 
               </div> */}
-              <div className="col-md-12 text-center">
-                <button
-                  type="submit"
-                  className="btn btn-color register-btn text-light"
-                >
-                  Register
-                </button>
+              <div className="div-footer-register text-center">
+                <div className="col-md-12 text-center">
+                  <button
+                    type="submit"
+                    className="btn btn-color register-btn text-light button-register"
+                  >
+                    Register
+                  </button>
+                </div>
+                <span className="text-center">
+                  Already have an account? <Link to="/"> Sign In </Link>
+                </span>
               </div>
-              <span className="text-center">
-                Already have an account? <Link to="/"> Sign In </Link>
-              </span>
             </div>
           </form>
         </div>
