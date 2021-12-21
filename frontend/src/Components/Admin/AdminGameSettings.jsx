@@ -207,59 +207,71 @@ function AdminGameSettings() {
   }
 
   function handleWinSettingsClick(e) {
-    axios({
-      method: "post",
-      url: `${gameHeader}/updateColorGameWinMultiplier`,
-      headers: {
-        "Authorization": process.env.REACT_APP_KEY_GAME,
-      },
-      data: {
-        gameId: gameid,
-        editor: ctx.user.username,
-        winMultiplier: [
-          gameDetails.win_multip1,
-          gameDetails.win_multip2,
-          gameDetails.win_multip3,
-        ],
-      },
-    })
-      .then((res) => {
-        toast.success("Win settings saved");
+    if ((gameDetails.win_multip1 <= 0) || (gameDetails.win_multip2 <= 0) || (gameDetails.win_multip3 <= 0)){
+      toast.error("Invalid Win Multiplier Settings")
+    } else {
+      axios({
+        method: "post",
+        url: `${gameHeader}/updateColorGameWinMultiplier`,
+        headers: {
+          "Authorization": process.env.REACT_APP_KEY_GAME,
+        },
+        data: {
+          gameId: gameid,
+          editor: ctx.user.username,
+          winMultiplier: [
+            gameDetails.win_multip1,
+            gameDetails.win_multip2,
+            gameDetails.win_multip3,
+          ],
+        },
       })
-      .catch((err) => {
-        toast.error(
-          <p>
-            Incomplete Multipliers <br></br> Please try again
-          </p>
-        );
-      });
+        .then((res) => {
+          toast.success("Win settings saved");
+        })
+        .catch((err) => {
+          toast.error(
+            <p>
+              Incomplete Multipliers <br></br> Please try again
+            </p>
+          );
+        });
+    }
+    
     e.preventDefault();
   }
 
   function handleBetThresholdsClick(e) {
-    axios({
-      method: "post",
-      url: `${gameHeader}/updateBetThreshold`,
-      headers: {
-        "Authorization": process.env.REACT_APP_KEY_GAME,
-      },
-      data: {
-        gameId: gameid,
-        editor: ctx.user.username,
-        min_bet: gameDetails.min_bet,
-        max_bet: gameDetails.max_bet,
-      },
-    })
-      .then((res) => {
-        toast.success("Bet tresholds saved");
+    console.log(gameDetails.max_bet, gameDetails.min_bet)
+    if ((parseFloat(gameDetails.min_bet) <= 0) || (parseFloat(gameDetails.max_bet) <= 0)|| (parseFloat(gameDetails.max_bet) <= parseFloat(gameDetails.min_bet))){
+      console.log(gameDetails.max_bet, gameDetails.min_bet)
+      toast.error("Invalid Bet Threshold values")
+    } else{
+      axios({
+        method: "post",
+        url: `${gameHeader}/updateBetThreshold`,
+        headers: {
+          "Authorization": process.env.REACT_APP_KEY_GAME,
+        },
+        data: {
+          gameId: gameid,
+          editor: ctx.user.username,
+          min_bet: gameDetails.min_bet,
+          max_bet: gameDetails.max_bet,
+        },
       })
-      .catch((err) => {
-        toast.error(
-          <p>
-            Incomplete bet tresholds <br></br> Please try again
-          </p>
-        );
-      });
+        .then((res) => {
+          toast.success("Bet thresholds saved");
+        })
+        .catch((err) => {
+          toast.error(
+            <p>
+              Incomplete bet tresholds <br></br> Please try again
+            </p>
+          );
+        });
+    }
+    
     e.preventDefault();
   }
 
@@ -480,25 +492,32 @@ function AdminGameSettings() {
   }
 
   function handleManipulateBetClick(e) {
-    e.preventDefault();
-    axios({
-      method: "post",
-      url: `${gameHeader}/manipulateBetTotals`,
-      headers: {
-        "Authorization": process.env.REACT_APP_KEY_GAME,
-      },
-      data: {
-        marketId: marketDetails.market_id,
-        editor: ctx.user.username,
-        bb_manip: Object.values(manipulateColors),
-      },
-    })
-      .then((res) => {
-        toast.success("Bets Manipulated Success");
+    if (Object.values(manipulateColors).some(el => el < 0)){
+      toast.error("Invalid Manipulate Values")
+    } else {
+      axios({
+        method: "post",
+        url: `${gameHeader}/manipulateBetTotals`,
+        headers: {
+          "Authorization": process.env.REACT_APP_KEY_GAME,
+        },
+        data: {
+          marketId: marketDetails.market_id,
+          editor: ctx.user.username,
+          bb_manip: Object.values(manipulateColors),
+        },
       })
-      .catch((err) => {
-        toast.error("Incomplete Bet Manipulation");
-      });
+        .then((res) => {
+          toast.success("Bets Manipulated Success");
+        })
+        .catch((err) => {
+          toast.error("Incomplete Bet Manipulation");
+        });
+    }
+    
+    
+    
+    e.preventDefault();
   }
 
   function getBetList(marketId) {
@@ -675,7 +694,7 @@ function AdminGameSettings() {
                 </h6>
                 <input
                   className="form-control"
-                  type="text"
+                  type="number"
                   name="min_bet"
                   value={gameDetails.min_bet}
                   onChange={handleGameChange}
@@ -685,7 +704,7 @@ function AdminGameSettings() {
                 </h6>
                 <input
                   className="form-control"
-                  type="text"
+                  type="number"
                   name="max_bet"
                   value={gameDetails.max_bet}
                   onChange={handleGameChange}
@@ -711,6 +730,7 @@ function AdminGameSettings() {
                       <input
                         className="form-control"
                         name="win_multip1"
+                        type="number"
                         value={gameDetails.win_multip1}
                         onChange={handleGameChange}
                       ></input>
@@ -724,6 +744,7 @@ function AdminGameSettings() {
                       <input
                         className="form-control"
                         name="win_multip2"
+                        type="number"
                         value={gameDetails.win_multip2}
                         onChange={handleGameChange}
                       ></input>
@@ -737,6 +758,7 @@ function AdminGameSettings() {
                       <input
                         className="form-control"
                         name="win_multip3"
+                        type="number"
                         value={gameDetails.win_multip3}
                         onChange={handleGameChange}
                       ></input>
