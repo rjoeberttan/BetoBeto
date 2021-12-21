@@ -537,16 +537,9 @@ app.post("/transferFunds", (req, res) => {
   const toUsername = req.body.toUsername;
   const amount = req.body.amount;
 
-
   // Check if body is complete
-  if (
-    !fromAccountId ||
-    !fromUsername ||
-    !amount ||
-    !toUsername ||
-    !toAccountId
-  ) {
-    logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
+  if (!fromAccountId || !fromUsername || !toAccountId || !toUsername || !amount) {
+    logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${toAccountId}`)
     res.status(400).json({ message: "Missing body parameters" });
     return;
   }
@@ -640,7 +633,7 @@ app.post("/transferFunds", (req, res) => {
                 logger.error(`${req.originalUrl} request has an error during process 4, error:${err}`)
                 successful = false;
               } else {
-                logger.info(`${req.originalUrl} request has been inserted into transactions, to:${toAccountId} transactionId:${result3.insertId}`)
+                logger.info(`${req.originalUrl} request has been inserted into transactions, to:${toAccountId} transactionId:${result4.insertId}`)
               }
             }
           );

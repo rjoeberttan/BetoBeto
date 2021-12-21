@@ -1,0 +1,25 @@
+.change-password {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 10px !important;
+    padding-right: 0 !important;
+}
+
+.input-change-password {
+    padding: 0 !important;
+}
+
+.button-show-password-card {
+    position: relative !important;
+    top: 1px !important;  
+    right: 25px !important;
+    border: none !important;
+    outline: none !important;
+    background-color: white !important;
+    padding: 0 0 0 6px !important;
+    margin: 2px 0;
+}
+
+.confirm-password-card {
+    padding: 0 !important;
+}

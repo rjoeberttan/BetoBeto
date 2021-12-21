@@ -1,0 +1,40 @@
+.button-show-password-myaccount {
+    width: 38px !important;
+    position: relative !important;
+    bottom: 35px !important;  
+    left: 248px !important;
+    border: none !important;
+    outline: none !important;
+    background-color: white !important;
+    margin: 1px 0 !important;
+}
+
+.password-confirmpassword-div {
+    margin: 0 !important;
+}
+
+.div-password, .confirm-password {
+    margin: 0 !important;
+    padding: 10px !important;
+}
+
+.password-text-myaccount {
+    padding-left: 3px !important;
+}
+
+/* Android */
+@media (min-width: 320px) and (max-width: 365px) {
+    .button-show-password-myaccount {
+        left: 205px !important;
+    }
+
+}
+
+/* iPhone */
+@media (min-width: 366px) and (max-width: 380px) {
+    .button-show-password-myaccount {
+        left: 220px !important;
+    }
+
+}
+

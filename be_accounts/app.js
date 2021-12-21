@@ -599,12 +599,13 @@ app.post("/updateCommission", (req, res) => {
   const start = process.hrtime()
   // Get body
   const accountId = req.body.accountId;
+  const accountType = req.body.accountType
   const commission = req.body.commission;
   const editorUsername = req.body.editorUsername;
   const apiKey = req.header("Authorization");
 
   // Check if body is complete
-  if (!accountId || !commission || !editorUsername) {
+  if (!accountId || !commission || !editorUsername || !accountType) {
     logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
     res.status(400).json({ message: "Missing body parameters" });
     return;
@@ -616,28 +617,64 @@ app.post("/updateCommission", (req, res) => {
     res.status(401).json({ message: "Unauthorized Request" });
     return;
   }
-
-  // Process 1
-  // Update the entry
-  sqlQuery =
+  var masterAgentCommission = 0
+  if (accountType === "2") {
+    // Check commission of master agent Process 4
+    sqlQuery4 = "SELECT commission from accounts WHERE account_id in (SELECT agent_id from accounts WHERE account_id = ?)"
+    db.query(sqlQuery4, [accountId], (err4, result4) => {
+      if (err4) {
+        logger.error(`${req.originalUrl} request has an error during process 4, accountId:${accountId}, error:${err}`)
+        res.status(500).json({ message: "Server error" });
+      } else {
+        masterAgentCommission = result4[0].commission;
+        if (masterAgentCommission <= commission) {
+          res.status(409).json({ message: "Commission cannot be greater or equal to master agent" });
+        } else {
+          sqlQuery =
+          "UPDATE accounts SET commission = ?, lastedit_date = NOW(), edited_by = ? WHERE account_id = ?";
+          db.query(sqlQuery, [commission, editorUsername, accountId], (err, result) => {
+            if (err) {
+              logger.error(`${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`)
+              res.status(500).json({ message: "Server error" });
+            } else if (result.affectedRows === 0) {
+              logger.warn(`${req.originalUrl} request warning, account is not found in database, accountId:${accountId}`);
+              res
+                .status(409)
+                .json({ message: "Account ID not found. Update unsuccessful" });
+            } else {
+              logger.info(`${req.originalUrl} request successful, accountId:${accountId} editor:${editorUsername} commission:${commission} duration:${getDurationInMilliseconds(start)}`)
+              res.status(200).json({
+                message: "Commission updated Successfully",
+                data: { accountId: accountId, commission: commission },
+              });
+            }
+          });
+        }
+      }
+    })
+  } else {
+    sqlQuery =
     "UPDATE accounts SET commission = ?, lastedit_date = NOW(), edited_by = ? WHERE account_id = ?";
-  db.query(sqlQuery, [commission, editorUsername, accountId], (err, result) => {
-    if (err) {
-      logger.error(`${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`)
-      res.status(500).json({ message: "Server error" });
-    } else if (result.affectedRows === 0) {
-      logger.warn(`${req.originalUrl} request warning, account is not found in database, accountId:${accountId}`);
-      res
-        .status(409)
-        .json({ message: "Account ID not found. Update unsuccessful" });
-    } else {
-      logger.info(`${req.originalUrl} request successful, accountId:${accountId} editor:${editorUsername} commission:${commission} duration:${getDurationInMilliseconds(start)}`)
-      res.status(200).json({
-        message: "Commission updated Successfully",
-        data: { accountId: accountId, commission: commission },
-      });
-    }
-  });
+    db.query(sqlQuery, [commission, editorUsername, accountId], (err, result) => {
+      if (err) {
+        logger.error(`${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`)
+        res.status(500).json({ message: "Server error" });
+      } else if (result.affectedRows === 0) {
+        logger.warn(`${req.originalUrl} request warning, account is not found in database, accountId:${accountId}`);
+        res
+          .status(409)
+          .json({ message: "Account ID not found. Update unsuccessful" });
+      } else {
+        logger.info(`${req.originalUrl} request successful, accountId:${accountId} editor:${editorUsername} commission:${commission} duration:${getDurationInMilliseconds(start)}`)
+        res.status(200).json({
+          message: "Commission updated Successfully",
+          data: { accountId: accountId, commission: commission },
+        });
+      }
+    });
+  }
+
+ 
 });
 
 app.get("/getAccountList/:accountId/:accountType", (req, res) => {

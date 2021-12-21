@@ -3,6 +3,7 @@ import "./Register.css";
 import { Link, useParams } from "react-router-dom";
 import logo from "./loginimg.jpg";
 import { toast, ToastContainer } from "react-toastify";
+import  { AiOutlineEyeInvisible, AiOutlineEye} from 'react-icons/ai';
 const axios = require("axios").default;
 
 function Register() {
@@ -15,7 +16,9 @@ function Register() {
     phone: "",
     username: "",
     password: "",
+    confirmPass: ""
   });
+  const [conPassMsg, setConPassMsg] = useState("")
 
   let { agentid } = useParams();
   agentid = agentid.replace("agentid=", "");
@@ -28,11 +31,22 @@ function Register() {
         [name]: value,
       };
     });
+
+    if (e.target.name === "confirmPass") {
+      if (user.password !== e.target.value) {
+        setConPassMsg("Passwords do not Match")
+      } else {
+        setConPassMsg("")
+      }
+    }
   }
 
   function handleSubmit(e) {
     const phone = user.phone;
-    if (phone.substring(0, 2) !== "09" || phone.length !== 11) {
+    if (conPassMsg !== ""){
+      toast.error("Passwords do not match")
+    }
+    else if (phone.substring(0, 2) !== "09" || phone.length !== 11) {
       toast.error("Invalid phone number (ex. 09xxxxxxxxx)");
     } else if (
       user.password.length === 0 ||
@@ -73,6 +87,21 @@ function Register() {
         });
     }
     e.preventDefault();
+  }
+
+  const [state, setstate] = useState(false);
+  const [stateConfirm, setstateConfirm] = useState(false);
+
+  const toggleBtn = () => {
+
+    setstate(prevState => !prevState);
+
+  }
+
+  const toggleBtnConfirm = () => {
+
+    setstateConfirm(prevState => !prevState);
+
   }
 
   return (
@@ -122,31 +151,58 @@ function Register() {
                   onChange={handleChange}
                 />
               </div>
-              <div className="col-md-12 spacing">
-                <label className="form-label">Password</label>
+              <div className="col-md-12 spacing row div-register-password">
+                <label className="form-label password-text">Password</label>
                 <input
                   type="password"
                   className="form-control"
                   name="password"
                   onChange={handleChange}
+                  type={state ? 'text' : 'password'}
                 />
-                <div className="form-text">Must be 8-20 characters long.</div>
+                <div className="form-text eight-to-twenty">Must be 8-20 characters long.</div>
+                <button 
+                    type='button'
+                    className="input-group-text col-2 button-show-password-register"
+                    onClick={toggleBtn}
+                  >
+                  {state ? <AiOutlineEyeInvisible/> : <AiOutlineEye /> } </button>
+              </div>
+              <div className="col-md-12 spacing row div-register-password-confirm">
+                <label className="form-label password-text">Confirm Password</label>
+                <input
+                  type="password"
+                  className="form-control"
+                  name="confirmPass"
+                  onChange={handleChange}
+                  type={stateConfirm ? 'text' : 'password'}
+                />
+                {/* <div className="form-text con-pass-msg">{conPassMsg}</div> */}
+                <button 
+                    type='button'
+                    className="input-group-text col-2 button-show-password-register-confirm"
+                    onClick={toggleBtnConfirm}
+                >
+                  {stateConfirm ? <AiOutlineEyeInvisible/> : <AiOutlineEye /> } </button>
+                  <div className="form-text con-pass-msg">{conPassMsg}</div>
               </div>
               {/* <div className="col-md-12 spacing">
                 <label className="form-label">Confirm Password</label>
                 <input type="password" className="form-control" onChange={handleChange}/> 
               </div> */}
-              <div className="col-md-12 text-center">
-                <button
-                  type="submit"
-                  className="btn btn-color register-btn text-light"
-                >
-                  Register
-                </button>
+              <div className="div-footer-register text-center">
+                <div className="col-md-12 text-center">
+                  <button
+                    type="submit"
+                    className="btn btn-color register-btn text-light button-register"
+                  >
+                    Register
+                  </button>
+                </div>
+                <span className="text-center">
+                  Already have an account? <Link to="/"> Sign In </Link>
+                </span>
               </div>
-              <span className="text-center">
-                Already have an account? <Link to="/"> Sign In </Link>
-              </span>
             </div>
           </form>
         </div>

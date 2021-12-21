@@ -8,6 +8,56 @@
   border-radius: 25px !important;
 }
 
+.button-show-password-register-confirm {
+  width: 38px !important;
+  position: relative !important; 
+  bottom: 32px !important; 
+  left: 645px !important;
+  border: none !important;
+  outline: none !important;
+  background-color: white !important;
+  margin: 2px 0;
+}
+
+.button-show-password-register {
+  width: 38px !important;
+  position: relative !important; 
+  bottom: 58px !important; 
+  left: 645px !important;
+  border: none !important;
+  outline: none !important;
+  background-color: white !important;
+  margin: 2px 0;
+}
+
+.password-text, .eight-to-twenty {
+  padding-left: 0px !important;
+}
+
+.con-pass-msg {
+  padding-left: 0px !important;
+  position: relative !important;
+  bottom: 25px !important;
+
+}
+
+.div-register-password {
+  margin-left: 0px !important;
+  margin-right: 0px !important;
+}
+
+.div-register-password-confirm {
+  position: relative !important;
+  bottom: 40px !important;
+  margin-left: 0px !important;
+  margin-right: 0px !important;
+}
+
+.div-footer-register {
+  position: relative !important;
+  bottom: 40px !important;
+}
+
 .spacing {
   margin-bottom: 15px;
 }
@@ -31,12 +81,9 @@
   color: black;
 }
 
-
 img {
   height: 400px;
 }
-
-
 
 @media (min-width: 320px) and (max-width: 1199px) {
   .center {
@@ -81,4 +128,30 @@ img {
     padding-right: 20px !important;
     margin-bottom: 20px;
   }
+}
+
+/* Android */
+@media (min-width: 320px) and (max-width: 365px) {
+  .button-show-password-register {
+      left: 245px !important;
+  }
+
+  .button-show-password-register-confirm {
+      left: 245px !important;
+      bottom: 35px !important;
+  }
+
+}
+
+/* iPhone */
+@media (min-width: 366px) and (max-width: 380px) {
+  .button-show-password-register {
+      left: 260px !important;
+  }
+
+  .button-show-password-register-confirm {
+      left: 260px !important;
+      /* bottom: 20px !important; */
+  }
+
 }

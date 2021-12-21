@@ -107,6 +107,7 @@ export default function AuthContextProvider(props) {
     } else if (person.password === "") {
       setErrorMessage("Password can't be empty");
     } else {
+      console.log("here")
       axios({
         method: "post",
         url: `${accountHeader}/login`,

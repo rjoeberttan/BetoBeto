@@ -4,7 +4,9 @@ import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/dist/ReactToastify.min.css";
 import { AuthContext } from "../store/auth-context";
 import styles from "./MyAccount.module.css";
+import './styles.css';
 import axios from "axios";
+import  { AiOutlineEyeInvisible, AiOutlineEye} from 'react-icons/ai';
 
 
 function MyAccount() {
@@ -24,7 +26,6 @@ function MyAccount() {
   const accAuthorization = {
     "Authorization": process.env.REACT_APP_KEY_ACCOUNT,
   };
-
 
   useEffect(() => {
     getUserDetails(ctx.user.accountID);
@@ -124,6 +125,21 @@ function MyAccount() {
     e.preventDefault();
   }
 
+  const [state, setstate] = useState(false);
+  const [stateConfirm, setstateConfirm] = useState(false);
+
+  const toggleBtn = () => {
+
+    setstate(prevState => !prevState);
+
+  }
+
+  const toggleBtnConfirm = () => {
+
+    setstateConfirm(prevState => !prevState);
+
+  }
+  
 
   return (
     <div className={`container text-light ${styles.containerAccount}`}>
@@ -195,28 +211,40 @@ function MyAccount() {
               <h1 className="display-6 small-device bold-small">
                 Change password
               </h1>
-              <div className="row">
-                <div className="col-sm-6 spacing">
-                  <label className="form-label">Password</label>
+              <div className="row password-confirmpassword-div"> 
+                <div className="col-sm-6 spacing row div-password">
+                  <label className="form-label password-text-myaccount">Password</label>
                   <input
-                    type="password"
                     className="form-control"
                     placeholder="Password"
                     name="password"
                     onChange={handleChangePassword}
+                    type={state ? 'text' : 'password'}
                     value={password.password}
                   />
+                  <button 
+                    type='button'
+                    className="input-group-text col-2 button-show-password-myaccount"
+                    onClick={toggleBtn}
+                  >
+                  {state ? <AiOutlineEyeInvisible/> : <AiOutlineEye /> } </button>
                 </div>
-                <div className="col-md-6 spacing">
-                  <label className="form-label">Confirm Password</label>
+                <div className="col-sm-6 spacing row confirm-password">
+                  <label className="form-label password-text-myaccount">Confirm Password</label>
                   <input
-                    type="password"
                     className="form-control"
                     placeholder="Confirm Password"
                     name="confirmPassword"
                     onChange={handleChangePassword}
+                    type={stateConfirm ? 'text' : 'password'}
                     value={password.confirmPassword}
                   />
+                  <button 
+                    type='button'
+                    className="input-group-text button-show-password-myaccount"
+                    onClick={toggleBtnConfirm}
+                  >
+                  {stateConfirm ? <AiOutlineEyeInvisible/> : <AiOutlineEye /> }</button>
                 </div>
                 <div className="col-md-12 text-center">
                   <button className="btn btn-color register-btn text-light" onClick={submitPassword}>

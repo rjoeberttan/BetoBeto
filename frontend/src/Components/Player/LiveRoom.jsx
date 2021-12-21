@@ -37,6 +37,7 @@ function LiveRoom() {
     status: "",
     result: "",
   });
+  const [statusStyle, setStatusStyle] = useState({color: ""})
   const [betTotals, setBetTotals] = useState({
     RED: "0.00",
     BLUE: "0.00",
@@ -50,7 +51,9 @@ function LiveRoom() {
   const { gameId } = useParams();
   const gameHeader = process.env.REACT_APP_HEADER_GAME;
   const betHeader = process.env.REACT_APP_HEADER_BET;
+  const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT;
   const gameAuthorization = { "Authorization": process.env.REACT_APP_KEY_GAME };
+  const accAuthorization = { "Authorization": process.env.REACT_APP_KEY_ACCOUNT};
   const betAuthorization = { "Authorization": process.env.REACT_APP_KEY_BET };
 
   //===========================================
@@ -95,6 +98,16 @@ function LiveRoom() {
     });
   }
 
+  function manageStatusStyle(marketStatus){
+    if (marketStatus === 0){
+      setStatusStyle({color: "green"})
+    } else if (marketStatus === 1) {
+      setStatusStyle({color: "red"})
+    } else if (marketStatus === 2) {
+      setStatusStyle({color: "purple"})
+    } 
+  }
+
   function getLatestMarketDetails() {
     //get market details
     axios({
@@ -110,6 +123,7 @@ function LiveRoom() {
         status: market.status,
         result: market.result,
       });
+      manageStatusStyle(market.status)
       handlePlaceBetButtonStatus(market.status);
     });
   }
@@ -141,6 +155,7 @@ function LiveRoom() {
   //===========================================
   useEffect(() => {
     socket.on("received_market_update", (data) => {
+      console.log("received")
       setMarketDetails((prev) => {
         return {
           ...prev,
@@ -148,7 +163,31 @@ function LiveRoom() {
           status: data.status,
         };
       });
+      manageStatusStyle(data.status)
       handlePlaceBetButtonStatus(data.status);
+
+      var newStatus = data.status
+      // Update wallet Balance if Market is Resulted
+      if (newStatus === 2){
+        setTimeout(() => {
+          console.log("do this")
+          axios({
+            method: "get",
+            url: `${accountHeader}/getWalletBalance/${ctx.user.accountID}`,
+            headers: accAuthorization,
+          })
+            .then((res) => {
+              const walletBalance = res.data.wallet;
+              ctx.walletHandler(walletBalance)
+              toast.info("Wallet Balance Updated")
+            })
+            .catch((err) => {
+              console.log(err);
+              
+            });
+        }, 2000);
+        
+      }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket]);
@@ -315,17 +354,18 @@ function LiveRoom() {
         <div className="col-md-4 live-room-colorbox">
           <div className="card txt-black">
             <div className="card-body">
-              <h5 className="card-title">
+              <h4 className="card-title">
                 Current Market ID: {marketDetails.market_id}
-              </h5>
-              <p className="card-text">
+              </h4>
+              <h5 className="card-text" style={statusStyle}>
                 Betting Status:{" "}
-                {marketDetails.status === 0
+                  {marketDetails.status === 0
                   ? " OPEN"
                   : marketDetails.status === 1
                   ? " CLOSED"
                   : " RESULTED"}
-                <br/>
+              </h5>
+                <p className="card-text">
                 Min/Max Bet: ₱{parseFloat(gameDetails.min_bet).toFixed(2)} - ₱{parseFloat(gameDetails.max_bet).toFixed(2)}
 
               </p>

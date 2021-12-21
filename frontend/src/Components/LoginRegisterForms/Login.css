@@ -1,0 +1,32 @@
+.button-show-password-login {
+    width: 38px !important;
+    position: relative !important; 
+    bottom: 33px !important; 
+    left: 650px !important;
+    border: none !important;
+    outline: none !important;
+    background-color: transparent !important;
+    margin: 2px 0;
+}
+
+.div-login-password {
+    margin-left: 0px !important;
+    margin-right: 0px !important;
+}
+
+/* Android */
+@media (min-width: 320px) and (max-width: 365px) {
+    .button-show-password-login {
+        left: 250px !important;
+    }
+  
+  }
+  
+  /* iPhone */
+  @media (min-width: 366px) and (max-width: 380px) {
+    .button-show-password-login {
+        left: 265px !important;
+    }
+  
+  }
+  
