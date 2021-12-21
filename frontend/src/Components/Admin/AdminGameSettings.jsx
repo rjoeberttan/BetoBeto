@@ -407,60 +407,65 @@ function AdminGameSettings() {
   }
 
   function handleResultMarket(e) {
-    axios({
-      method: "post",
-      url: `${gameHeader}/resultMarket`,
-      headers: {
-        "Authorization": process.env.REACT_APP_KEY_GAME,
-      },
-      data: {
-        gameId: gameid,
-        marketId: marketDetails.market_id,
-        editor: ctx.user.username,
-        result: [boxColor.boxOne, boxColor.boxTwo, boxColor.boxThree],
-      },
-    })
-      .then((res) => {
-        setMarketDetails((prev) => {
-          return {
-            ...prev,
-            status: res.data.data.status,
-          };
-        });
-        socket.emit("color_game_market_update", {
-          marketId: res.data.data.marketId,
-          status: res.data.data.status,
-        });
-        toast.success("Success Result Market");
-        DisableSettings();
-
-        // Settle Bets
+    if (window.confirm("Are you sure to result this market?")){
         axios({
           method: "post",
-          url: `${betHeader}/settleColorGameBets`,
+          url: `${gameHeader}/resultMarket`,
           headers: {
-            "Authorization": process.env.REACT_APP_KEY_BET,
+            "Authorization": process.env.REACT_APP_KEY_GAME,
           },
           data: {
             gameId: gameid,
             marketId: marketDetails.market_id,
+            editor: ctx.user.username,
             result: [boxColor.boxOne, boxColor.boxTwo, boxColor.boxThree],
           },
         })
           .then((res) => {
-            // console.log(res);
+            setMarketDetails((prev) => {
+              return {
+                ...prev,
+                status: res.data.data.status,
+              };
+            });
+            socket.emit("color_game_market_update", {
+              marketId: res.data.data.marketId,
+              status: res.data.data.status,
+            });
+            toast.success("Success Result Market");
+            DisableSettings();
+
+            // Settle Bets
+            axios({
+              method: "post",
+              url: `${betHeader}/settleColorGameBets`,
+              headers: {
+                "Authorization": process.env.REACT_APP_KEY_BET,
+              },
+              data: {
+                gameId: gameid,
+                marketId: marketDetails.market_id,
+                result: [boxColor.boxOne, boxColor.boxTwo, boxColor.boxThree],
+              },
+            })
+              .then((res) => {
+                // console.log(res);
+              })
+              .catch((err) => {
+                // console.log(err);
+              });
           })
           .catch((err) => {
-            // console.log(err);
+            if (marketDetails.status === 2) {
+              toast.error("Market is already in Result state");
+            } else {
+              toast.error("Market is still open");
+            }
           });
-      })
-      .catch((err) => {
-        if (marketDetails.status === 2) {
-          toast.error("Market is already in Result state");
-        } else {
-          toast.error("Market is still open");
-        }
-      });
+    } else{
+      toast.info("Result Market Cancelled")
+    }
+
     e.preventDefault();
   }
 
