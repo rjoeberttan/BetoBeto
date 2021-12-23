@@ -11,7 +11,7 @@ export default function WithdrawalReq(props) {
   const bankAuthorization = { "Authorization": process.env.REACT_APP_KEY_BANK };
 
   function handleWithdrawAmt(e) {
-    setWdAmount(e.target.value);
+    setWdAmount(parseFloat(e.target.value).toFixed(0));
   }
 
   function submitWithdrawal(e) {

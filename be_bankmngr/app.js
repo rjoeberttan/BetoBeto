@@ -667,24 +667,27 @@ app.get("/getUnsettledRequest/:accountId/:accountType/:transactionType",(req, re
       return;
     }
 
-    sqlQuery = "";
-    // Create SQL query depending on the accountType
-    if (accountType === "0") {
-      // Administrator
-      sqlQuery =
-        "SELECT tr.transaction_id, ac.account_id, ac.username, ac.phone_num, ac.account_type, tr.amount, tr.placement_date FROM transactions tr JOIN accounts ac on tr.account_id=ac.account_id WHERE tr.transaction_type=? and tr.status=0;";
-      sqlQuery = db.format(sqlQuery, [transactionType]);
-    } else if (accountType === "1") {
-      // Master Agent
-      sqlQuery =
-        "SELECT tr.transaction_id, ac.account_id,  tr.description, ac.username, ac.phone_num, ac.account_type, tr.amount, tr.placement_date FROM transactions tr JOIN accounts ac on tr.account_id=ac.account_id WHERE tr.transaction_type = ? and tr.status = 0 and ac.account_id in (select account_id from accounts where agent_id = ? OR agent_id in (SELECT account_id from accounts where agent_id = ?));";
-      sqlQuery = db.format(sqlQuery, [transactionType, accountId, accountId]);
-    } else if (accountType === "2") {
-      // Agent Agent
-      sqlQuery =
-        "SELECT tr.transaction_id, ac.account_id,  tr.description, ac.username, ac.phone_num, ac.account_type, tr.amount, tr.placement_date FROM transactions tr JOIN accounts ac on tr.account_id=ac.account_id WHERE tr.transaction_type = ? and tr.status = 0 and ac.account_id in (select account_id from accounts where agent_id = ?);";
-      sqlQuery = db.format(sqlQuery, [transactionType, accountId]);
-    }
+    sqlQuery = "SELECT tr.transaction_id, ac.account_id,  tr.description, ac.username, ac.phone_num, ac.account_type, tr.amount, tr.placement_date FROM transactions tr JOIN accounts ac on tr.account_id=ac.account_id WHERE tr.transaction_type = ? and tr.status = 0 and ac.account_id in (select account_id from accounts where agent_id = ?);";
+    sqlQuery = db.format(sqlQuery, [transactionType, accountId]);
+    
+    // sqlQuery = "";
+    // // Create SQL query depending on the accountType
+    // if (accountType === "0") {
+    //   // Administrator
+    //   sqlQuery =
+    //     "SELECT tr.transaction_id, ac.account_id, ac.username, ac.phone_num, ac.account_type, tr.amount, tr.placement_date FROM transactions tr JOIN accounts ac on tr.account_id=ac.account_id WHERE tr.transaction_type=? and tr.status=0;";
+    //   sqlQuery = db.format(sqlQuery, [transactionType]);
+    // } else if (accountType === "1") {
+    //   // Master Agent
+    //   sqlQuery =
+    //     "SELECT tr.transaction_id, ac.account_id,  tr.description, ac.username, ac.phone_num, ac.account_type, tr.amount, tr.placement_date FROM transactions tr JOIN accounts ac on tr.account_id=ac.account_id WHERE tr.transaction_type = ? and tr.status = 0 and ac.account_id in (select account_id from accounts where agent_id = ? OR agent_id in (SELECT account_id from accounts where agent_id = ?));";
+    //   sqlQuery = db.format(sqlQuery, [transactionType, accountId, accountId]);
+    // } else if (accountType === "2") {
+    //   // Agent Agent
+    //   sqlQuery =
+    //     "SELECT tr.transaction_id, ac.account_id,  tr.description, ac.username, ac.phone_num, ac.account_type, tr.amount, tr.placement_date FROM transactions tr JOIN accounts ac on tr.account_id=ac.account_id WHERE tr.transaction_type = ? and tr.status = 0 and ac.account_id in (select account_id from accounts where agent_id = ?);";
+    //   sqlQuery = db.format(sqlQuery, [transactionType, accountId]);
+    // }
 
     if (sqlQuery !== "") {
       db.query(sqlQuery, (err, result) => {

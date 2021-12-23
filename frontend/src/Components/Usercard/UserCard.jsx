@@ -30,8 +30,8 @@ function UserCard({
   const ctx = useContext(AuthContext);
   const [numUsersUnder, setNumUsersUnder] = useState(0);
   const [numUsersUnderUnder, setNumUsersUnderUnder] = useState(0);
-  const [commissionNew, setCommission] = useState(0);
-  const [topUpAmount, setTopUpAmount] = useState(0);
+  const [commissionNew, setCommission] = useState();
+  const [topUpAmount, setTopUpAmount] = useState();
   const [currentWallet, setCurrentWallet] = useState(walletBalance);
   const [currentStatus, setCurrentStatus] = useState(status);
   const [agentName, setAgentName] = useState("");
@@ -260,6 +260,22 @@ function UserCard({
     }
   }
 
+  function handleCommissionChange(e){
+    const input = (e.target.value)
+    const inputNum = (e.target.value)
+
+    if (inputNum < 100){
+      if (input.indexOf('.') > 0) {
+        const decimalLength = input.length - input.indexOf('.') - 1;
+        if (decimalLength < 3){
+          setCommission(e.target.value)
+        }
+      } else {
+        setCommission(e.target.value)
+      }
+    }
+  }
+
   function renderCommission(accountType) {
     if (accountType === "1" || accountType === "2") {
       return (
@@ -273,7 +289,8 @@ function UserCard({
                 type="number"
                 className="form-control"
                 placeholder={parseFloat(commission).toFixed(2)}
-                onChange={(e) => setCommission(e.target.value)}
+                value={commissionNew}
+                onChange={handleCommissionChange}
               />
             </div>
             <div className="col-md-4 col-4">
@@ -342,14 +359,15 @@ function UserCard({
             <div className="col-md-12 text-spacing">
               <div className="row">
                 <div className="col-md-4">
-                  <b>Wallet:</b> ₱{currentWallet}
+                  <b>Wallet:</b> ₱{currentWallet.toFixed(2)}
                 </div>
                 <div className="col-md-4 col-6">
                   <input
-                    type="text"
+                    type="number"
                     className="form-control"
                     placeholder="Top Up"
-                    onChange={(e) => setTopUpAmount(e.target.value)}
+                    value={topUpAmount}
+                    onChange={(e) => setTopUpAmount(parseFloat(e.target.value).toFixed(0))}
                   />
                 </div>
                 <div className="col-md-4 col-6">

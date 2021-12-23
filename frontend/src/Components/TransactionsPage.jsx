@@ -62,8 +62,10 @@ export default function TransactionsPage() {
       accType = 1;
     } else if (accType === "agent") {
       accType = 2;
-    } else {
+    } else if (accType === "player"){
       accType = 3;
+    } else {
+      accType = 4;
     }
 
     axios({
@@ -450,7 +452,11 @@ export default function TransactionsPage() {
                   <td>{x.description}</td>
                   <td>₱ {x.stake.toFixed(2)}</td>
                   <td>₱ {x.cummulative ? x.cummulative.toFixed(2) : "-"}</td>
-                  <td>{x.status === 1 ? "Settled" : "Pending"}</td>
+                  <td>{x.status === 0
+                          ? "Pending"
+                          : x.status === 1
+                          ? "Lose"
+                          : "Win"}</td>
                   <td>{x.result}</td>
                   <td>{x.settled_date}</td>
                 </tr>

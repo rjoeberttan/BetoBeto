@@ -46,7 +46,7 @@ function NavBar(props) {
               )}
             </li>
             <li className="nav-item">
-              {(props.user === "player" || props.user === "admin") && (
+              {(props.user === "player" || props.user === "admin" || props.user === "declarator") && (
                 <Link
                   className="nav-link active"
                   aria-current="page"
@@ -95,9 +95,11 @@ function NavBar(props) {
               )}
             </li>
             <li className="nav-item">
-              <Link className="nav-link active" to={`/${props.user}/wallet`}>
-                Wallet
-              </Link>
+              {props.user !== "declarator" && (
+                <Link className="nav-link active" to={`/${props.user}/wallet`}>
+                  Wallet
+                </Link>
+              )}
             </li>
             <li className="nav-item">
               <Link

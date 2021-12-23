@@ -26,7 +26,7 @@ function AdminWallet() {
   const [userFilter, setUserFilter] = useState("0");
   const [activeUserId, setActiveUserId] = useState("");
   const [activeUsername, setActiveUsername] = useState("");
-  const [amount, setAmount] = useState(0);
+  const [amount, setAmount] = useState();
   const [dateFilter, setDateFilter] = useState({
     startDate: "",
     endDate: "",
@@ -131,9 +131,8 @@ function AdminWallet() {
   //=====================================================
   // Event Handler Functions
   //=====================================================
-  function handleAmount(e) {
-    const amount = parseFloat(e.target.value).toFixed(2);
-    setAmount(amount);
+  function handleAmount(e){
+    setAmount(parseFloat(e.target.value).toFixed(0))
   }
 
   function submitTransfer(e) {
@@ -494,6 +493,7 @@ function AdminWallet() {
                       className="form-control"
                       onWheel={(e) => e.target.blur()}
                       placeholder="P500"
+                      value={amount}
                       onChange={handleAmount}
                     />
                   </div>
