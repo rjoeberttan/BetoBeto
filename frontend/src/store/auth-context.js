@@ -67,6 +67,14 @@ export default function AuthContextProvider(props) {
               email: res.data.email,
               phoneNum: res.data.phoneNum,
             });
+          } else if (res.data.accountType === 4) {
+            setAccount({
+              username: res.data.username,
+              accountID: res.data.accountId,
+              accountType: "declarator",
+              email: res.data.email,
+              phoneNum: res.data.phoneNum,
+            });
           }
           axios({
             method: "get",
@@ -148,6 +156,14 @@ export default function AuthContextProvider(props) {
                 email: res.data.email,
                 phoneNum: res.data.phoneNum,
                 accountType: "player",
+              });
+            } else if (res.data.accountType === 4) {
+              setAccount({
+                username: res.data.username,
+                accountID: res.data.accountId,
+                accountType: "declarator",
+                email: res.data.email,
+                phoneNum: res.data.phoneNum,
               });
             }
             setAccount((prev) => {

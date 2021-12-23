@@ -1,7 +1,13 @@
-import React from "react";
+import {React, useContext} from "react";
+import { AuthContext } from "../../store/auth-context";
 import { Link } from "react-router-dom";
 
+
+
 export default function AdminGameRoomList(props) {
+
+  const ctx = useContext(AuthContext);
+
   return (
     <div className="col-md-3 txt-black">
       <div className="card game-card">
@@ -17,7 +23,7 @@ export default function AdminGameRoomList(props) {
               //     pathname: "/admin/gameroom/settings",
               //     state: { gameid: props.gameid }
               // }}
-              to={`/admin/gameroom/settings/${props.game_id}`}
+              to={`/${ctx.user.accountType}/gameroom/settings/${props.game_id}`}
               className="btn btn-color register-btn text-light"
             >
               Enter

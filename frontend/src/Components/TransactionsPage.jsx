@@ -62,8 +62,10 @@ export default function TransactionsPage() {
       accType = 1;
     } else if (accType === "agent") {
       accType = 2;
-    } else {
+    } else if (accType === "player"){
       accType = 3;
+    } else {
+      accType = 4;
     }
 
     axios({

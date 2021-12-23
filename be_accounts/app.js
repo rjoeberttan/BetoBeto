@@ -700,7 +700,7 @@ app.get("/getAccountList/:accountId/:accountType", (req, res) => {
 
   sqlQuery = "";
   // Create SQL query depending on the accountType
-  if (accountType === "0") {
+  if ((accountType === "0") || (accountType === "4")){
     // Administrator
     sqlQuery = "SELECT * FROM accounts;";
     sqlQuery = db.format(sqlQuery);

@@ -67,6 +67,9 @@ function App() {
             {token && ctx.user.accountType === "admin" ? (
               <Redirect to="/admin/gameroom" />
             ) : null}
+            {token && ctx.user.accountType === "declarator" ? (
+              <Redirect to="/declarator/gameroom" />
+            ) : null}
             <Login />
           </Route>
 
@@ -82,6 +85,9 @@ function App() {
             ) : null}
             {token && ctx.user.accountType === "admin" ? (
               <Redirect to="/admin/gameroom" />
+            ) : null}
+            {token && ctx.user.accountType === "declarator" ? (
+              <Redirect to="/declarator/gameroom" />
             ) : null}
             <Register />
           </Route>
@@ -177,6 +183,25 @@ function App() {
                 component={TransactionsPage}
               />
               <Route path="/admin/account" exact component={MyAccount} />
+              <Route path="*" component={ErrorPage} />
+            </Switch>
+          ) : null}
+
+          {/* ADMIN ROUTES */}
+          {token && ctx.user.accountType === "declarator" ? (
+            <Switch>
+              <Route path="/declarator/gameroom" exact component={AdminGameRoom} />
+              <Route
+                path="/declarator/gameroom/settings/:gameid"
+                exact
+                component={AdminGameSettings}
+              />
+              <Route
+                path="/declarator/transactions"
+                exact
+                component={TransactionsPage}
+              />
+              <Route path="/declarator/account" exact component={MyAccount} />
               <Route path="*" component={ErrorPage} />
             </Switch>
           ) : null}
