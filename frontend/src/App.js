@@ -73,6 +73,16 @@ function App() {
             <Login />
           </Route>
 
+          <Route path="/admin" exact>
+            {token && ctx.user.accountType === "admin" ? (
+              <Redirect to="/admin/gameroom" />
+            ) : null}
+            {token && ctx.user.accountType === "declarator" ? (
+              <Redirect to="/declarator/gameroom" />
+            ) : null}
+            <Login user=" Admin" />
+          </Route>
+
           <Route path="/register/:agentid" exact>
             {token && ctx.user.accountType === "player" ? (
               <Redirect to="/player/gameroom" />
@@ -190,7 +200,11 @@ function App() {
           {/* ADMIN ROUTES */}
           {token && ctx.user.accountType === "declarator" ? (
             <Switch>
-              <Route path="/declarator/gameroom" exact component={AdminGameRoom} />
+              <Route
+                path="/declarator/gameroom"
+                exact
+                component={AdminGameRoom}
+              />
               <Route
                 path="/declarator/gameroom/settings/:gameid"
                 exact

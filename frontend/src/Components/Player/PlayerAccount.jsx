@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from "react";
 import "./PlayerAccount.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import "react-toastify/dist/ReactToastify.min.css"; 
+import "react-toastify/dist/ReactToastify.min.css";
 import { AuthContext } from "../../store/auth-context";
 import axios from "axios";
 
@@ -81,11 +81,11 @@ function Account() {
         },
       })
         .then((res) => {
-          toast.success("Phone number Updated")
+          toast.success("Phone number Updated");
         })
         .catch((err) => {
           console.log(err);
-          toast.error("Unable to Update Phone Number")
+          toast.error("Unable to Update Phone Number");
         });
     }
     e.preventDefault();
@@ -120,12 +120,12 @@ function Account() {
         },
       })
         .then((res) => {
-          toast.success("Password updated successfully")
-          setPassword({password: "", confirmPassword: ""})
+          toast.success("Password updated successfully");
+          setPassword({ password: "", confirmPassword: "" });
           console.log(res);
         })
         .catch((err) => {
-          toast.error("Unable to update Password")
+          toast.error("Unable to update Password");
           console.log(err);
         });
     }
@@ -145,6 +145,11 @@ function Account() {
         <div className="card-body">
           <form>
             <div className="row">
+              <h1 className="display-6 small-device bold-small">
+                Account Details
+              </h1>
+              <br />
+              <br />
               <div className="col-sm-12 spacing">
                 <label className="form-label">Email: {userDetails.email}</label>
               </div>

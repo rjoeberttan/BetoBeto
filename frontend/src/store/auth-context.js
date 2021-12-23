@@ -109,13 +109,12 @@ export default function AuthContextProvider(props) {
   }
 
   function loginHandler(person) {
-    console.log(accountHeader)
+    console.log(accountHeader);
     if (person.username === "") {
       setErrorMessage("Username can't be empty");
     } else if (person.password === "") {
       setErrorMessage("Password can't be empty");
     } else {
-      console.log("here")
       axios({
         method: "post",
         url: `${accountHeader}/login`,
@@ -129,65 +128,95 @@ export default function AuthContextProvider(props) {
           if (res.data.accountStatus === 1) {
             const accountType = res.data.accountType;
 
-            if (accountType === 0) {
-              setAccount({
-                username: person.username,
-                email: res.data.email,
-                phoneNum: res.data.phoneNum,
-                accountType: "admin",
+            if (((accountType === 0) ||( accountType === 4)) && window.location.pathname === "/admin") {
+              console.log("ok admin && declarator");
+              if (accountType === 0) {
+                setAccount({
+                  username: person.username,
+                  email: res.data.email,
+                  phoneNum: res.data.phoneNum,
+                  accountType: "admin",
+                });
+              } else if (accountType === 4) {
+                setAccount({
+                  username: res.data.username,
+                  accountID: res.data.accountId,
+                  accountType: "declarator",
+                  email: res.data.email,
+                  phoneNum: res.data.phoneNum,
+                });
+              }
+              setAccount((prev) => {
+                return {
+                  ...prev,
+                  accountID: res.data.accountId,
+                };
               });
-            } else if (accountType === 1) {
-              setAccount({
-                username: person.username,
-                email: res.data.email,
-                phoneNum: res.data.phoneNum,
-                accountType: "masteragent",
-              });
-            } else if (accountType === 2) {
-              setAccount({
-                username: person.username,
-                email: res.data.email,
-                phoneNum: res.data.phoneNum,
-                accountType: "agent",
-              });
-            } else if (accountType === 3) {
-              setAccount({
-                username: person.username,
-                email: res.data.email,
-                phoneNum: res.data.phoneNum,
-                accountType: "player",
-              });
-            } else if (res.data.accountType === 4) {
-              setAccount({
-                username: res.data.username,
-                accountID: res.data.accountId,
-                accountType: "declarator",
-                email: res.data.email,
-                phoneNum: res.data.phoneNum,
-              });
-            }
-            setAccount((prev) => {
-              return {
-                ...prev,
-                accountID: res.data.accountId,
-              };
-            });
-            const token = res.data.token;
-            localStorage.setItem("token", token);
-            //GET WALLET BALANCE
-            axios({
-              method: "get",
-              url: `${accountHeader}/getWalletBalance/${res.data.accountId}`,
-              headers: accAuthorization,
-            })
-              .then((res2) => {
-                const walletBalance = res2.data.wallet;
-                setWalletBalance(walletBalance);
+              const token = res.data.token;
+              localStorage.setItem("token", token);
+              //GET WALLET BALANCE
+              axios({
+                method: "get",
+                url: `${accountHeader}/getWalletBalance/${res.data.accountId}`,
+                headers: accAuthorization,
               })
-              .catch((err) => {
-                console.log(err);
+                .then((res2) => {
+                  const walletBalance = res2.data.wallet;
+                  setWalletBalance(walletBalance);
+                })
+                .catch((err) => {
+                  console.log(err);
+                });
+              setIsLoggedIn(true);
+            } else if (((accountType >= 1) && (accountType <= 3)) && window.location.pathname === "/") {
+              console.log("ok agent, ma, p");
+              if (accountType === 1) {
+                setAccount({
+                  username: person.username,
+                  email: res.data.email,
+                  phoneNum: res.data.phoneNum,
+                  accountType: "masteragent",
+                });
+              } else if (accountType === 2) {
+                setAccount({
+                  username: person.username,
+                  email: res.data.email,
+                  phoneNum: res.data.phoneNum,
+                  accountType: "agent",
+                });
+              } else if (accountType === 3) {
+                setAccount({
+                  username: person.username,
+                  email: res.data.email,
+                  phoneNum: res.data.phoneNum,
+                  accountType: "player",
+                });
+              }
+              setAccount((prev) => {
+                return {
+                  ...prev,
+                  accountID: res.data.accountId,
+                };
               });
-            setIsLoggedIn(true);
+              const token = res.data.token;
+              localStorage.setItem("token", token);
+              //GET WALLET BALANCE
+              axios({
+                method: "get",
+                url: `${accountHeader}/getWalletBalance/${res.data.accountId}`,
+                headers: accAuthorization,
+              })
+                .then((res2) => {
+                  const walletBalance = res2.data.wallet;
+                  setWalletBalance(walletBalance);
+                })
+                .catch((err) => {
+                  console.log(err);
+                });
+              setIsLoggedIn(true);
+            } else {
+              toast.error("Invalid login page")
+            }
           } else {
             toast.error("Your account is locked, please contact your Agent");
           }

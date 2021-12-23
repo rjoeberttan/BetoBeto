@@ -2,12 +2,12 @@ import React, { useContext, useState } from "react";
 import logo from "./loginimg.jpg";
 import { AuthContext } from "../../store/auth-context";
 import { ToastContainer } from "react-toastify";
-import  { AiOutlineEyeInvisible, AiOutlineEye} from 'react-icons/ai';
-import './Login.css';
+import { AiOutlineEyeInvisible, AiOutlineEye } from "react-icons/ai";
+import "./Login.css";
 import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/dist/ReactToastify.min.css";
 
-function Login() {
+function Login(props) {
   const ctx = useContext(AuthContext);
   const [user, setUser] = useState({
     username: "",
@@ -36,11 +36,8 @@ function Login() {
   const [state, setstate] = useState(false);
 
   const toggleBtn = () => {
-
-    setstate(prevState => !prevState);
-
-  }
-
+    setstate((prevState) => !prevState);
+  };
 
   return (
     <div className="container center txt-black">
@@ -49,7 +46,9 @@ function Login() {
         <img src={logo} className="card-img-top" alt="..." />
         <div className="card-body">
           <div className="heading-text">
-            <h1 className="display-2 small-device bold-small">Welcome back!</h1>
+            <h1 className="display-2 small-device bold-small">
+              Welcome back{props.user}!
+            </h1>
             <h4 className="lead smaller-device">Login below to continue</h4>
           </div>
           <form onSubmit={handleClick}>
@@ -72,14 +71,15 @@ function Login() {
                   name="password"
                   onChange={handleChange}
                   value={user.password}
-                  type={state ? 'text' : 'password'}
+                  type={state ? "text" : "password"}
                 />
-                <button 
-                    type='button'
-                    className="input-group-text col-2 button-show-password-login"
-                    onClick={toggleBtn}
+                <button
+                  type="button"
+                  className="input-group-text col-2 button-show-password-login"
+                  onClick={toggleBtn}
                 >
-                {state ? <AiOutlineEyeInvisible/> : <AiOutlineEye /> } </button>
+                  {state ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}{" "}
+                </button>
               </div>
               <div className="col-md-12 text-center">
                 <button className="btn btn-color register-btn text-light">

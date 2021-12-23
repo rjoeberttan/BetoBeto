@@ -4,13 +4,13 @@ import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/dist/ReactToastify.min.css";
 import { AuthContext } from "../store/auth-context";
 import styles from "./MyAccount.module.css";
-import './styles.css';
+import "./styles.css";
 import axios from "axios";
-import  { AiOutlineEyeInvisible, AiOutlineEye} from 'react-icons/ai';
-
+import { AiOutlineEyeInvisible, AiOutlineEye } from "react-icons/ai";
 
 function MyAccount() {
   const ctx = useContext(AuthContext);
+  console.log(ctx.user.accountType);
   const style = {
     width: "18 rem",
   };
@@ -23,7 +23,7 @@ function MyAccount() {
     confirmPassword: "",
   });
 
-  const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT
+  const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT;
   const accAuthorization = {
     "Authorization": process.env.REACT_APP_KEY_ACCOUNT,
   };
@@ -39,30 +39,27 @@ function MyAccount() {
       headers: accAuthorization,
     })
       .then((res) => {
-        setCellNum(res.data.data.phone_num)
-        setCommission(res.data.data.commission)
+        setCellNum(res.data.data.phone_num);
+        setCommission(res.data.data.commission);
       })
       .catch((err) => {
-        console.log(err)
+        console.log(err);
       });
   }
 
   function handlePhoneChange(e) {
     const { value } = e.target;
-    setCellNum(value.substring(0,11));
+    setCellNum(value.substring(0, 11));
   }
 
   function handlePhoneChange(e) {
     const { value } = e.target;
-    setCellNum(value.substring(0,11));
+    setCellNum(value.substring(0, 11));
   }
 
   function submitPhone(e) {
-    if (
-      cellNum.substring(0, 2) !== "09" ||
-      cellNum.length !== 11
-    ) {
-      toast.error("Please follow phone format ex: 09XXXXXXXXX")
+    if (cellNum.substring(0, 2) !== "09" || cellNum.length !== 11) {
+      toast.error("Please follow phone format ex: 09XXXXXXXXX");
     } else {
       axios({
         method: "post",
@@ -75,16 +72,15 @@ function MyAccount() {
         },
       })
         .then((res) => {
-          toast.success("Phone number Updated")
+          toast.success("Phone number Updated");
         })
         .catch((err) => {
           console.log(err);
-          toast.error("Unable to Update Phone Number")
+          toast.error("Unable to Update Phone Number");
         });
     }
     e.preventDefault();
   }
-
 
   function handleChangePassword(e) {
     const { value, name } = e.target;
@@ -99,10 +95,10 @@ function MyAccount() {
   function submitPassword(e) {
     if (password.password !== password.confirmPassword) {
       console.log("password do not match");
-      toast.error("Passwords do not match")
+      toast.error("Passwords do not match");
     } else if (password.password.length < 8 || password.password.length > 20) {
       console.log("password length error");
-      toast.error("Password does not match required length (8-20 chars)")
+      toast.error("Password does not match required length (8-20 chars)");
     } else {
       axios({
         method: "post",
@@ -115,12 +111,12 @@ function MyAccount() {
         },
       })
         .then((res) => {
-          toast.success("Password updated successfully")
-          setPassword({password: "", confirmPassword: ""})
+          toast.success("Password updated successfully");
+          setPassword({ password: "", confirmPassword: "" });
           console.log(res);
         })
         .catch((err) => {
-          toast.error("Unable to update Password")
+          toast.error("Unable to update Password");
           console.log(err);
         });
     }
@@ -131,28 +127,25 @@ function MyAccount() {
   const [stateConfirm, setstateConfirm] = useState(false);
 
   const toggleBtn = () => {
-
-    setstate(prevState => !prevState);
-
-  }
+    setstate((prevState) => !prevState);
+  };
 
   const toggleBtnConfirm = () => {
-    setstateConfirm(prevState => !prevState);
-  }
+    setstateConfirm((prevState) => !prevState);
+  };
 
   function generateCommission() {
-    if ((ctx.user.accountType === "agent") || (ctx.user.accountType === "masteragent")){
+    if (
+      ctx.user.accountType === "agent" ||
+      ctx.user.accountType === "masteragent"
+    ) {
       return (
         <div className="col-md-12 spacing">
-          <label className="form-label">
-            Commission: {commission}%
-          </label>
+          <label className="form-label">Commission: {commission}%</label>
         </div>
-      )
+      );
     }
-
   }
-  
 
   return (
     <div className={`container text-light ${styles.containerAccount}`}>
@@ -165,28 +158,37 @@ function MyAccount() {
         style={{ style }}
       >
         <div className="card-body">
-          <div className="heading-text">
-            <h1 className="display-6 small-device bold-small">Referral Link</h1>
-            <div className="row">
-              <div className="col-sm-9 spacing">
-                <label className={styles.referralLink} ref={linkTxt}>
-                  {referralLink}
-                </label>
+          {ctx.user.accountType !== "declarator" && (
+            <>
+              <div className="heading-text">
+                <h1 className="display-6 small-device bold-small">
+                  Referral Link
+                </h1>
+                <div className="row">
+                  <div className="col-sm-9 spacing">
+                    <label className={styles.referralLink} ref={linkTxt}>
+                      {referralLink}
+                    </label>
+                  </div>
+                  <div className="col-sm-3 spacing text-center">
+                    <button
+                      className="btn btn-color register-btn text-light "
+                      onClick={() => {
+                        navigator.clipboard.writeText(
+                          linkTxt.current.textContent
+                        );
+                        toast.info("Copied to clipboard");
+                      }}
+                    >
+                      COPY
+                    </button>
+                  </div>
+                </div>
               </div>
-              <div className="col-sm-3 spacing text-center">
-                <button
-                  className="btn btn-color register-btn text-light "
-                  onClick={() => {
-                    navigator.clipboard.writeText(linkTxt.current.textContent);
-                    toast.info("Copied to clipboard");
-                  }}
-                >
-                  COPY
-                </button>
-              </div>
-            </div>
-          </div>
-          <hr />
+              <hr />
+            </>
+          )}
+
           <div className="heading-text">
             <h1 className="display-6 small-device bold-small">
               Account Details
@@ -215,7 +217,10 @@ function MyAccount() {
                 />
               </div>
               <div className="col-md-12 text-center">
-                <button className="btn btn-color register-btn text-light" onClick={submitPhone}>
+                <button
+                  className="btn btn-color register-btn text-light"
+                  onClick={submitPhone}
+                >
                   Save
                 </button>
               </div>
@@ -225,43 +230,56 @@ function MyAccount() {
               <h1 className="display-6 small-device bold-small">
                 Change password
               </h1>
-              <div className="row password-confirmpassword-div"> 
+              <div className="row password-confirmpassword-div">
                 <div className="col-sm-6 spacing row div-password">
-                  <label className="form-label password-text-myaccount">Password</label>
+                  <label className="form-label password-text-myaccount">
+                    Password
+                  </label>
                   <input
                     className="form-control"
                     placeholder="Password"
                     name="password"
                     onChange={handleChangePassword}
-                    type={state ? 'text' : 'password'}
+                    type={state ? "text" : "password"}
                     value={password.password}
                   />
-                  <button 
-                    type='button'
+                  <button
+                    type="button"
                     className="input-group-text col-2 button-show-password-myaccount"
                     onClick={toggleBtn}
                   >
-                  {state ? <AiOutlineEyeInvisible/> : <AiOutlineEye /> } </button>
+                    {state ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}{" "}
+                  </button>
                 </div>
                 <div className="col-sm-6 spacing row confirm-password">
-                  <label className="form-label password-text-myaccount">Confirm Password</label>
+                  <label className="form-label password-text-myaccount">
+                    Confirm Password
+                  </label>
                   <input
                     className="form-control"
                     placeholder="Confirm Password"
                     name="confirmPassword"
                     onChange={handleChangePassword}
-                    type={stateConfirm ? 'text' : 'password'}
+                    type={stateConfirm ? "text" : "password"}
                     value={password.confirmPassword}
                   />
-                  <button 
-                    type='button'
+                  <button
+                    type="button"
                     className="input-group-text button-show-password-myaccount"
                     onClick={toggleBtnConfirm}
                   >
-                  {stateConfirm ? <AiOutlineEyeInvisible/> : <AiOutlineEye /> }</button>
+                    {stateConfirm ? (
+                      <AiOutlineEyeInvisible />
+                    ) : (
+                      <AiOutlineEye />
+                    )}
+                  </button>
                 </div>
                 <div className="col-md-12 text-center">
-                  <button className="btn btn-color register-btn text-light" onClick={submitPassword}>
+                  <button
+                    className="btn btn-color register-btn text-light"
+                    onClick={submitPassword}
+                  >
                     Save
                   </button>
                 </div>
