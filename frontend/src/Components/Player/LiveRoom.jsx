@@ -47,7 +47,7 @@ function LiveRoom() {
     YELLOW: "0.00",
   });
   const [stake, setStake] = useState();
-  const [tip, setTip] = useState(0);
+  const [tip, setTip] = useState();
   const { gameId } = useParams();
   const gameHeader = process.env.REACT_APP_HEADER_GAME;
   const betHeader = process.env.REACT_APP_HEADER_BET;
@@ -247,15 +247,18 @@ function LiveRoom() {
   }
 
   function handleStakeChange(e) {
-    const currentStake = parseFloat(e.target.value);
+
+    const currentStake = parseFloat(e.target.value).toFixed(0);
     const walletBalance = parseFloat(ctx.walletBalance);
 
     if (currentStake > walletBalance || marketDetails.status !== 0) {
+      console.log(currentStake, walletBalance)
       console.log("Insufficient Funds");
+      setStake(parseFloat(e.target.value).toFixed(0));
       setPlaceBetDisabled(true);
     } else {
       setPlaceBetDisabled(false);
-      setStake(currentStake);
+      setStake(parseFloat(e.target.value).toFixed(0));
     }
   }
 
@@ -302,16 +305,41 @@ function LiveRoom() {
   }
 
   function handleTipChange(e) {
-    const currenttip = parseFloat(e.target.value);
-    const walletBalance = parseFloat(ctx.walletBalance);
+    const input = (e.target.value)
+    const inputNum = parseFloat(e.target.value)
 
-    if (currenttip > walletBalance) {
-      setPlaceTipDisabled(true);
-    } else {
-      setPlaceTipDisabled(false);
-      setTip(currenttip);
+    if (inputNum < 9999999999) {
+      if (input.indexOf('.') > 0) {
+        console.log("found")  
+        const decimalLength = input.length - input.indexOf('.') - 1;
+        console.log(decimalLength)
+        if (decimalLength < 3){
+          const currenttip = parseFloat(e.target.value);
+          const walletBalance = parseFloat(ctx.walletBalance);
+          if (currenttip > walletBalance) {
+            setPlaceTipDisabled(true);
+            setTip(parseFloat(e.target.value))
+          } else {
+            setPlaceTipDisabled(false);
+            setTip(parseFloat(e.target.value))
+        }
+        console.log("still in here")
+      }
+      } else {
+          const currenttip = parseFloat(e.target.value);
+          const walletBalance = parseFloat(ctx.walletBalance);
+          if (currenttip > walletBalance) {
+            setPlaceTipDisabled(true);
+            setTip(parseFloat(e.target.value))
+          } else {
+            setPlaceTipDisabled(false);
+            setTip(parseFloat(e.target.value))
+      }
     }
   }
+  }
+
+
 
   function handleChange(e) {
     const { value } = e.target;
@@ -484,6 +512,7 @@ function LiveRoom() {
                   className="form-control"
                   placeholder="P500"
                   onChange={handleTipChange}
+                  value={tip}
                 />
                 <button
                   className="btn btn-color text-light"

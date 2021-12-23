@@ -9,7 +9,7 @@ export default function DepositRequest(props) {
   const bankAuthorization = { "Authorization": process.env.REACT_APP_KEY_BANK };
 
   function handleDepositAmt(e) {
-    setDpAmount(e.target.value);
+    setDpAmount(parseFloat(e.target.value).toFixed(0));
   }
 
   function submitDeposit(e) {

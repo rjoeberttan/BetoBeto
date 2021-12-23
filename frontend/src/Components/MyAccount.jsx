@@ -17,6 +17,7 @@ function MyAccount() {
   const linkTxt = useRef(null);
   const referralLink = `${process.env.REACT_APP_DOMAIN}/register/${ctx.user.accountID}`;
   const [cellNum, setCellNum] = useState("");
+  const [commission, setCommission] = useState(0);
   const [password, setPassword] = useState({
     password: "",
     confirmPassword: "",
@@ -39,6 +40,7 @@ function MyAccount() {
     })
       .then((res) => {
         setCellNum(res.data.data.phone_num)
+        setCommission(res.data.data.commission)
       })
       .catch((err) => {
         console.log(err)
@@ -135,8 +137,19 @@ function MyAccount() {
   }
 
   const toggleBtnConfirm = () => {
-
     setstateConfirm(prevState => !prevState);
+  }
+
+  function generateCommission() {
+    if ((ctx.user.accountType === "agent") || (ctx.user.accountType === "masteragent")){
+      return (
+        <div className="col-md-12 spacing">
+          <label className="form-label">
+            Commission: {commission}%
+          </label>
+        </div>
+      )
+    }
 
   }
   
@@ -189,6 +202,7 @@ function MyAccount() {
                   Username: {ctx.user.username}{" "}
                 </label>
               </div>
+              {generateCommission()}
               <div className="col-md-12 spacing">
                 <label className="form-label">Cellphone No.</label>
                 <input

@@ -28,7 +28,7 @@ function MasterWallet() {
   const [activeUserId, setActiveUserId] = useState("");
   const [activeUsername, setActiveUsername] = useState("");
   // eslint-disable-next-line no-unused-vars
-  const [amount, setAmount] = useState(0);
+  const [amount, setAmount] = useState();
   const [dateFilter, setDateFilter] = useState({
     startDate: "",
     endDate: "",
@@ -270,9 +270,8 @@ function MasterWallet() {
     e.preventDefault();
   }
 
-  function handleAmountChange(e){
-    const amount = parseFloat(e.target.value).toFixed(2);
-    setAmount(e.target.value)
+  function handleAmount(e){
+    setAmount(parseFloat(e.target.value).toFixed(0))
   }
 
   //=====================================================
@@ -436,7 +435,8 @@ function MasterWallet() {
                     <input
                       type="number"
                       className="form-control"
-                      onChange={handleAmountChange}
+                      onChange={handleAmount}
+                      value={amount}
                       onWheel={(e) => e.target.blur()}
                       placeholder="0.00"
                     />

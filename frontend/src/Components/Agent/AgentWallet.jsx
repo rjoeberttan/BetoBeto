@@ -23,7 +23,7 @@ function AgentWallet() {
   const [usersList, setUsersList] = useState([]);
   const [activeUserId, setActiveUserId] = useState("");
   const [activeUsername, setActiveUsername] = useState("");
-  const [amount, setAmount] = useState(0);
+  const [amount, setAmount] = useState();
   const [dateFilter, setDateFilter] = useState({
     startDate: "",
     endDate: "",
@@ -131,9 +131,21 @@ function AgentWallet() {
     e.preventDefault();
   }
 
-  function handleAmount(e) {
-    const amount = parseFloat(e.target.value).toFixed(2);
-    setAmount(amount);
+  function handleAmount(e){
+    setAmount(parseFloat(e.target.value).toFixed(0))
+    // const input = (e.target.value)
+    // const inputNum = (e.target.value)
+
+    // if (inputNum < 999999999){
+    //   if (input.indexOf('.') > 0) {
+    //     const decimalLength = input.length - input.indexOf('.') - 1;
+    //     if (decimalLength < 3){
+    //       setAmount(e.target.value)
+    //     }
+    //   } else {
+    //     setAmount(e.target.value)
+    //   }
+    // }
   }
 
   function handleDateChange(e) {
@@ -381,8 +393,9 @@ function AgentWallet() {
                       type="number"
                       className="form-control"
                       onWheel={(e) => e.target.blur()}
-                      placeholder="0.00"
+                      value={amount}
                       onChange={handleAmount}
+                      placeholder="0.00"
                     />
                   </div>
                 </div>
