@@ -513,9 +513,7 @@ function AdminGameSettings() {
         .catch((err) => {
           toast.error("Incomplete Bet Manipulation");
         });
-    }
-    
-    
+    }   
     
     e.preventDefault();
   }
@@ -539,6 +537,72 @@ function AdminGameSettings() {
   function handleRefresh(e) {
     e.preventDefault();
     getBetList(marketDetails.market_id);
+  }
+
+  function renderWinMultiplierSettings(){
+    if (ctx.user.accountType === "admin"){
+      return (
+      <div>
+        <h6 className="card-subtitle mb-2 label-margin">
+          Win settings
+        </h6>
+        <div className="row">
+          <div className="col-md-12 row">
+            <div className="col-md-5 label-margin">
+              1-Hit Multiplier
+            </div>
+            <div className="col-md-6">
+              <input
+                className="form-control"
+                name="win_multip1"
+                type="number"
+                value={gameDetails.win_multip1}
+                onChange={handleGameChange}
+              ></input>
+            </div>
+          </div>
+          <div className="col-md-12 row label-margin">
+            <div className="col-md-5 label-margin">
+              2-Hit Multiplier
+            </div>
+            <div className="col-md-6">
+              <input
+                className="form-control"
+                name="win_multip2"
+                type="number"
+                value={gameDetails.win_multip2}
+                onChange={handleGameChange}
+              ></input>
+            </div>
+          </div>
+          <div className="col-md-12 row label-margin">
+            <div className="col-md-5 label-margin">
+              3-Hit Multiplier
+            </div>
+            <div className="col-md-6">
+              <input
+                className="form-control"
+                name="win_multip3"
+                type="number"
+                value={gameDetails.win_multip3}
+                onChange={handleGameChange}
+              ></input>
+            </div>
+          </div>
+        </div>
+        <div className="text-center">
+          <button
+            className="btn btn-color text-light"
+            style={{ marginTop: "15px" }}
+            onClick={handleWinSettingsClick}
+          >
+            Save Win Settings
+          </button>
+        </div>
+      </div>)
+    } else {
+      return null
+    }
   }
 
   return (
@@ -718,62 +782,7 @@ function AdminGameSettings() {
                     Save Bet Thresholds
                   </button>
                 </div>
-                <h6 className="card-subtitle mb-2 label-margin">
-                  Win settings
-                </h6>
-                <div className="row">
-                  <div className="col-md-12 row">
-                    <div className="col-md-5 label-margin">
-                      1-Hit Multiplier
-                    </div>
-                    <div className="col-md-6">
-                      <input
-                        className="form-control"
-                        name="win_multip1"
-                        type="number"
-                        value={gameDetails.win_multip1}
-                        onChange={handleGameChange}
-                      ></input>
-                    </div>
-                  </div>
-                  <div className="col-md-12 row label-margin">
-                    <div className="col-md-5 label-margin">
-                      2-Hit Multiplier
-                    </div>
-                    <div className="col-md-6">
-                      <input
-                        className="form-control"
-                        name="win_multip2"
-                        type="number"
-                        value={gameDetails.win_multip2}
-                        onChange={handleGameChange}
-                      ></input>
-                    </div>
-                  </div>
-                  <div className="col-md-12 row label-margin">
-                    <div className="col-md-5 label-margin">
-                      3-Hit Multiplier
-                    </div>
-                    <div className="col-md-6">
-                      <input
-                        className="form-control"
-                        name="win_multip3"
-                        type="number"
-                        value={gameDetails.win_multip3}
-                        onChange={handleGameChange}
-                      ></input>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-center">
-                  <button
-                    className="btn btn-color text-light"
-                    style={{ marginTop: "15px" }}
-                    onClick={handleWinSettingsClick}
-                  >
-                    Save Win Settings
-                  </button>
-                </div>
+                {renderWinMultiplierSettings()}
               </form>
             </div>
           </div>
