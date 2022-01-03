@@ -204,6 +204,7 @@ function LiveRoom() {
       choice: color.toUpperCase(),
       stake: stake,
       wallet: ctx.walletBalance,
+      maxBet: gameDetails.max_bet
     };
 
     var stakeAmt= parseFloat(stake)
@@ -241,7 +242,7 @@ function LiveRoom() {
           );
         })
         .catch((err) => {
-          console.log(err);
+          toast.error(err.response.data.message);
         });
     }
   }
