@@ -457,6 +457,7 @@ function AdminGameSettings() {
               data: {
                 gameId: gameid,
                 marketId: marketDetails.market_id,
+                gameName: gameDetails.name,
                 result: [boxColor.boxOne, boxColor.boxTwo, boxColor.boxThree],
               },
             })

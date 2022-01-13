@@ -115,7 +115,7 @@ app.post("/placeBet", (req, res) => {
 
             // Check if bet is still okay. Process 7
             // Get the totals for the markets on the bets table
-            sqlQuery = "SELECT REPLACE(description, 'Color Game - ', '') as color, SUM(stake) as total FROM bets where market_id = ? GROUP BY description;";
+            sqlQuery = `SELECT REPLACE(description, '${gameName} - ', '') as color, SUM(stake) as total FROM bets where market_id = ? GROUP BY description;`;
             db.query(sqlQuery, [marketId], (err, resultTot) => {
                 if (err) {
                     logger.error(`${req.originalUrl} request has an error during process 7, marketId:${marketId} accountId:${accountId}, error:${err}`)
@@ -287,9 +287,10 @@ app.post("/settleColorGameBets", (req, res) => {
     const gameId = req.body.gameId;
     const marketId = req.body.marketId;
     const marketResult = req.body.result;
+    const gameName = req.body.gameName;
     
     // Check if body is complete
-    if (!gameId || !marketId || marketResult.length !== 3) {
+    if (!gameId || !marketId || marketResult.length !== 3 || !gameName ) {
         logger.warn(`${req.originalUrl} request has missing body parameters, marketId:${marketId}`)
         res.status(400).json({ message: "Missing body parameters" });
         return;
@@ -334,7 +335,7 @@ app.post("/settleColorGameBets", (req, res) => {
                     const updateWalletDetailsArr = []
                     unsettledBets = result2
                     unsettledBets.forEach(bet => {                     
-                        var choice = bet.description.replace('Color Game - ', '')
+                        var choice = bet.description.replace(`${gameName} - `, '')
                         var stake = bet.stake
                         var accountId = bet.account_id
                         var occurrences = 0 
@@ -529,7 +530,7 @@ app.get("/getBetMarketList/:marketId", (req, res) => {
 
 app.listen(4005, () => {
     console.log("Backend Bet Manager listentning at port 4005");
-  });
+});
 
 
   
