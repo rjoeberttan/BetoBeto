@@ -112,7 +112,7 @@ function LiveRoom() {
     //get market details
     axios({
       method: "get",
-      url: `${gameHeader}/getLatestMarketDetails/${gameId}`,
+      url: `${gameHeader}/getLatestMarketDetails/${gameId}/${gameDetails.name}`,
       headers: gameAuthorization,
     }).then((res) => {
       //get game details
@@ -131,8 +131,10 @@ function LiveRoom() {
   function getColorGameBetTotals() {
     axios({
       method: "get",
-      url: `${gameHeader}/getColorGameBetTotals/${gameId}/${marketDetails.market_id}`,
-      headers: gameAuthorization,
+      url: `${gameHeader}/getColorGameBetTotals/${gameId}/${marketDetails.market_id}/${gameDetails.name}`,
+      headers: {
+        "Authorization": process.env.REACT_APP_KEY_GAME
+      },
     })
       .then((res) => {
         const values = res.data.data;
