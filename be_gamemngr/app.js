@@ -338,6 +338,65 @@ app.post("/updateBetThreshold", (req, res) => {
   });
 });
 
+app.post("/updateTotalistatorCommission", (req, res) => {
+  const start = process.hrtime();
+
+  const apiKey = req.header("Authorization");
+  const gameId = req.body.gameId;
+  const commission = req.body.commission;
+  const editor = req.body.editor;
+
+  // Check if body is complete
+  if (!gameId || !commission) {
+    logger.warn(
+      `${req.originalUrl} request has missing body parameters, gameId:${gameId}`
+    );
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(
+      `${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`
+    );
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  // Process 1
+  // Update the url
+  sqlQuery =
+    "UPDATE games set commission = ?, lastedit_date = NOW(), edited_by = ? WHERE game_id = ?";
+  db.query(sqlQuery, [commission, editor, gameId], (err, result) => {
+    if (err) {
+      logger.error(
+        `${req.originalUrl} request has an error during process 1, gameId:${gameId}, error:${err}`
+      );
+      res.status(500).json({ message: "Server error" });
+    } else if (result.affectedRows <= 0) {
+      logger.warn(
+        `${req.originalUrl} request warning, game is not found in database, gameId:${gameId}`
+      );
+      res
+        .status(409)
+        .json({ message: "Nothing was updated, please check gameId" });
+    } else {
+      logger.info(
+        `${
+          req.originalUrl
+        } request successful, gameId:${gameId} duration:${getDurationInMilliseconds(
+          start
+        )}`
+      );
+      res.status(200).json({
+        message: "Request successful",
+        data: { gameId: gameId },
+      });
+    }
+  });
+});
+
 app.post("/updateColorGameWinMultiplier", (req, res) => {
   const start = process.hrtime();
 
@@ -1063,12 +1122,13 @@ app.get("/getManipulateValues/:gameId/:marketId", (req, res) => {
   });
 });
 
-app.get("/getColorGameBetTotals/:gameId/:marketId", (req, res) => {
+app.get("/getColorGameBetTotals/:gameId/:marketId/:gameName", (req, res) => {
   const start = process.hrtime();
 
   const apiKey = req.header("Authorization");
   const gameId = req.params.gameId;
   const marketId = req.params.marketId;
+  const gameName = req.params.gameName;
 
   logger.info("started getColorGameBetTotals");
   // Check if body is complete
@@ -1092,7 +1152,7 @@ app.get("/getColorGameBetTotals/:gameId/:marketId", (req, res) => {
   // Process 1
   // Get the totals for the markets on the bets table
   sqlQuery =
-    "SELECT REPLACE(description, 'Color Game - ', '') as color, SUM(stake) as total FROM bets where market_id = ? GROUP BY description;";
+    `SELECT REPLACE(description, '${gameName} - ', '') as color, SUM(stake) as total FROM bets where market_id = ? GROUP BY description;`;
   db.query(sqlQuery, [marketId], (err, result) => {
     if (err) {
       logger.error(
