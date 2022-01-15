@@ -1122,13 +1122,12 @@ app.get("/getManipulateValues/:gameId/:marketId", (req, res) => {
   });
 });
 
-app.get("/getColorGameBetTotals/:gameId/:marketId/:gameName", (req, res) => {
+app.get("/getColorGameBetTotals/:gameId/:marketId", (req, res) => {
   const start = process.hrtime();
 
   const apiKey = req.header("Authorization");
   const gameId = req.params.gameId;
   const marketId = req.params.marketId;
-  const gameName = req.params.gameName;
 
   logger.info("started getColorGameBetTotals");
   // Check if body is complete
@@ -1149,120 +1148,135 @@ app.get("/getColorGameBetTotals/:gameId/:marketId/:gameName", (req, res) => {
     return;
   }
 
-  // Process 1
-  // Get the totals for the markets on the bets table
-  sqlQuery =
-    `SELECT REPLACE(description, '${gameName} - ', '') as color, SUM(stake) as total FROM bets where market_id = ? GROUP BY description;`;
-  db.query(sqlQuery, [marketId], (err, result) => {
+  // Get game title
+  sqlQueryTitle = "SELECT name from games where game_id = ? ";
+  db.query(sqlQueryTitle, [gameId], (err, resultTitle) => {
     if (err) {
       logger.error(
-        `${req.originalUrl} request has an error during process 1, gameId:${gameId} marketId:${marketId}, error:${err}`
+        `${req.originalUrl} request has an error during process getTitle, gameId:${gameId} marketId:${marketId}, error:${err}`
       );
       res.status(500).json({ message: "Server error" });
     } else {
-      // Process 2
-      // Get Manipulate Values
-      sqlQuery2 =
-        "SELECT bb_manip_blue, bb_manip_yellow, bb_manip_red, bb_manip_white, bb_manip_green, bb_manip_purple FROM markets WHERE game_id = ? AND market_id = ? ORDER BY lastedit_date DESC LIMIT 1";
-      db.query(sqlQuery2, [gameId, marketId], (err, result2) => {
-        if (err) {
-          logger.error(
-            `${req.originalUrl} request has an error during process 2, gameId:${gameId} marketId:${marketId}, error:${err}`
-          );
-          res.status(500).json({ message: "Server error" });
-        } else if (result2.length <= 0) {
-          logger.warn(
-            `${req.originalUrl} request warning, market is not found in database, marketId:${marketId} gameId:${gameId}`
-          );
-          res.status(409).json({
-            message: "Cannot calculate bet totals. market not found",
-            data: { gameId: gameId },
-          });
-        } else {
-          const colorTotal = result;
-          const manipulateValues = result2[0];
-          // const finalBetTotals = [{color, total}]
-          colors = ["BLUE", "WHITE", "RED", "GREEN", "YELLOW", "PURPLE"];
-          finalTotals = [];
-          colors.forEach((colorValue) => {
-            inserted = false;
-            colorTotal.forEach((entry) => {
-              if (colorValue === entry.color && colorValue === "RED") {
-                totalAmount = entry.total + manipulateValues.bb_manip_red;
-                finalTotals.push({ color: colorValue, total: totalAmount });
-                inserted = true;
-              } else if (colorValue === entry.color && colorValue === "GREEN") {
-                totalAmount = entry.total + manipulateValues.bb_manip_green;
-                finalTotals.push({ color: colorValue, total: totalAmount });
-                inserted = true;
-              } else if (colorValue === entry.color && colorValue === "BLUE") {
-                totalAmount = entry.total + manipulateValues.bb_manip_blue;
-                finalTotals.push({ color: colorValue, total: totalAmount });
-                inserted = true;
-              } else if (colorValue === entry.color && colorValue === "WHITE") {
-                totalAmount = entry.total + manipulateValues.bb_manip_white;
-                finalTotals.push({ color: colorValue, total: totalAmount });
-                inserted = true;
-              } else if (
-                colorValue === entry.color &&
-                colorValue === "YELLOW"
-              ) {
-                totalAmount = entry.total + manipulateValues.bb_manip_yellow;
-                finalTotals.push({ color: colorValue, total: totalAmount });
-                inserted = true;
-              } else if (
-                colorValue === entry.color &&
-                colorValue === "PURPLE"
-              ) {
-                totalAmount = entry.total + manipulateValues.bb_manip_purple;
-                finalTotals.push({ color: colorValue, total: totalAmount });
-                inserted = true;
+         gameName = resultTitle[0].name;
+
+        // Process 1
+        // Get the totals for the markets on the bets table
+        sqlQuery =
+        `SELECT REPLACE(description, '${gameName} - ', '') as color, SUM(stake) as total FROM bets where market_id = ? GROUP BY description;`;
+        db.query(sqlQuery, [marketId], (err, result) => {
+          if (err) {
+            logger.error(
+              `${req.originalUrl} request has an error during process 1, gameId:${gameId} marketId:${marketId}, error:${err}`
+            );
+            res.status(500).json({ message: "Server error" });
+          } else {
+            // Process 2
+            // Get Manipulate Values
+            sqlQuery2 =
+              "SELECT bb_manip_blue, bb_manip_yellow, bb_manip_red, bb_manip_white, bb_manip_green, bb_manip_purple FROM markets WHERE game_id = ? AND market_id = ? ORDER BY lastedit_date DESC LIMIT 1";
+            db.query(sqlQuery2, [gameId, marketId], (err, result2) => {
+              if (err) {
+                logger.error(
+                  `${req.originalUrl} request has an error during process 2, gameId:${gameId} marketId:${marketId}, error:${err}`
+                );
+                res.status(500).json({ message: "Server error" });
+              } else if (result2.length <= 0) {
+                logger.warn(
+                  `${req.originalUrl} request warning, market is not found in database, marketId:${marketId} gameId:${gameId}`
+                );
+                res.status(409).json({
+                  message: "Cannot calculate bet totals. market not found",
+                  data: { gameId: gameId },
+                });
+              } else {
+                const colorTotal = result;
+                const manipulateValues = result2[0];
+                // const finalBetTotals = [{color, total}]
+                colors = ["BLUE", "WHITE", "RED", "GREEN", "YELLOW", "PURPLE"];
+                finalTotals = [];
+                colors.forEach((colorValue) => {
+                  inserted = false;
+                  colorTotal.forEach((entry) => {
+                    if (colorValue === entry.color && colorValue === "RED") {
+                      totalAmount = entry.total + manipulateValues.bb_manip_red;
+                      finalTotals.push({ color: colorValue, total: totalAmount });
+                      inserted = true;
+                    } else if (colorValue === entry.color && colorValue === "GREEN") {
+                      totalAmount = entry.total + manipulateValues.bb_manip_green;
+                      finalTotals.push({ color: colorValue, total: totalAmount });
+                      inserted = true;
+                    } else if (colorValue === entry.color && colorValue === "BLUE") {
+                      totalAmount = entry.total + manipulateValues.bb_manip_blue;
+                      finalTotals.push({ color: colorValue, total: totalAmount });
+                      inserted = true;
+                    } else if (colorValue === entry.color && colorValue === "WHITE") {
+                      totalAmount = entry.total + manipulateValues.bb_manip_white;
+                      finalTotals.push({ color: colorValue, total: totalAmount });
+                      inserted = true;
+                    } else if (
+                      colorValue === entry.color &&
+                      colorValue === "YELLOW"
+                    ) {
+                      totalAmount = entry.total + manipulateValues.bb_manip_yellow;
+                      finalTotals.push({ color: colorValue, total: totalAmount });
+                      inserted = true;
+                    } else if (
+                      colorValue === entry.color &&
+                      colorValue === "PURPLE"
+                    ) {
+                      totalAmount = entry.total + manipulateValues.bb_manip_purple;
+                      finalTotals.push({ color: colorValue, total: totalAmount });
+                      inserted = true;
+                    }
+                  });
+
+                  if (!inserted) {
+                    if (colorValue === "RED") {
+                      totalAmount = manipulateValues.bb_manip_red;
+                      finalTotals.push({ color: colorValue, total: totalAmount });
+                      inserted = true;
+                    } else if (colorValue === "GREEN") {
+                      totalAmount = manipulateValues.bb_manip_green;
+                      finalTotals.push({ color: colorValue, total: totalAmount });
+                      inserted = true;
+                    } else if (colorValue === "BLUE") {
+                      totalAmount = manipulateValues.bb_manip_blue;
+                      finalTotals.push({ color: colorValue, total: totalAmount });
+                      inserted = true;
+                    } else if (colorValue === "WHITE") {
+                      totalAmount = manipulateValues.bb_manip_white;
+                      finalTotals.push({ color: colorValue, total: totalAmount });
+                      inserted = true;
+                    } else if (colorValue === "YELLOW") {
+                      totalAmount = manipulateValues.bb_manip_yellow;
+                      finalTotals.push({ color: colorValue, total: totalAmount });
+                      inserted = true;
+                    } else if (colorValue === "PURPLE") {
+                      totalAmount = manipulateValues.bb_manip_purple;
+                      finalTotals.push({ color: colorValue, total: totalAmount });
+                      inserted = true;
+                    }
+                  }
+                });
+                logger.info(
+                  `${
+                    req.originalUrl
+                  } request successful, gameId:${gameId} marketId:${marketId} duration:${getDurationInMilliseconds(
+                    start
+                  )}`
+                );
+                res.status(200).json({
+                  message: "Bet Totals request is successful",
+                  data: finalTotals,
+                });
               }
             });
-
-            if (!inserted) {
-              if (colorValue === "RED") {
-                totalAmount = manipulateValues.bb_manip_red;
-                finalTotals.push({ color: colorValue, total: totalAmount });
-                inserted = true;
-              } else if (colorValue === "GREEN") {
-                totalAmount = manipulateValues.bb_manip_green;
-                finalTotals.push({ color: colorValue, total: totalAmount });
-                inserted = true;
-              } else if (colorValue === "BLUE") {
-                totalAmount = manipulateValues.bb_manip_blue;
-                finalTotals.push({ color: colorValue, total: totalAmount });
-                inserted = true;
-              } else if (colorValue === "WHITE") {
-                totalAmount = manipulateValues.bb_manip_white;
-                finalTotals.push({ color: colorValue, total: totalAmount });
-                inserted = true;
-              } else if (colorValue === "YELLOW") {
-                totalAmount = manipulateValues.bb_manip_yellow;
-                finalTotals.push({ color: colorValue, total: totalAmount });
-                inserted = true;
-              } else if (colorValue === "PURPLE") {
-                totalAmount = manipulateValues.bb_manip_purple;
-                finalTotals.push({ color: colorValue, total: totalAmount });
-                inserted = true;
-              }
-            }
-          });
-          logger.info(
-            `${
-              req.originalUrl
-            } request successful, gameId:${gameId} marketId:${marketId} duration:${getDurationInMilliseconds(
-              start
-            )}`
-          );
-          res.status(200).json({
-            message: "Bet Totals request is successful",
-            data: finalTotals,
-          });
-        }
-      });
+          }
+        });
     }
-  });
+  })
+
+
 });
 
 app.listen(4004, () => {
