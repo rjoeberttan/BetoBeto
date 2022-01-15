@@ -131,7 +131,7 @@ function LiveRoom() {
   function getColorGameBetTotals() {
     axios({
       method: "get",
-      url: `${gameHeader}/getColorGameBetTotals/${gameId}/${marketDetails.market_id}/${gameDetails.name}`,
+      url: `${gameHeader}/getColorGameBetTotals/${gameId}/${marketDetails.market_id}`,
       headers: {
         "Authorization": process.env.REACT_APP_KEY_GAME
       },
