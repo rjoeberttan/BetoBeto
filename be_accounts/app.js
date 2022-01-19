@@ -55,6 +55,15 @@ const db = mysql.createConnection({
 // Saltrounds for encryption
 const saltRounds = parseInt(process.env.SALT_ROUNDS);
 
+
+// Account Types
+// 0 - Admin
+// 1 - Master Agent
+// 2 - Agent
+// 3 - Player
+// 4 - Declarator
+// 5 - Grand Master
+
 // POST REGISTER
 // Requires: api-key, email, username, cell_no, password, agent_id
 // Responses:
@@ -104,13 +113,26 @@ app.post("/register", (req, res) => {
       res.status(409).json({
         message: "Agent ID is not Found. Please get valid Register Link",
       });
-    } else if (result1[0].account_type === 3) {
+    } else if (result1[0].account_type === 3 || result1[0].account_type === 4) {
       logger.warn(`${req.originalUrl} request warning, registering using an invalid agent type, received agentId:${agentId}, username:${username}`);
       res.status(409).json({
         message: "Please get valid Register Link from Agents or Master Agents",
       });
     } else {
-      const newUserAccountType = result1[0].account_type + 1;
+      agentAccountType = result1[0].account_type;
+      var newUserAccountType = 0
+
+      if (agentAccountType === 0){
+        newUserAccountType = 5 // Grand Master
+      } else if (agentAccountType === 5){
+        newUserAccountType = 1 // Master Agent
+      } else if (agentAccountType === 1){
+        newUserAccountType = 2 // Agent
+      } else if (agentAccountType === 2){
+        newUserAccountType = 3 // Player
+      } else {
+        newUserAccountType = 4
+      }
 
       // Process 2:
       // Check if username and email is already used
@@ -129,11 +151,9 @@ app.post("/register", (req, res) => {
           // Prepare values to be inserted
           // username, email, phone, password, agent_id, account_type, account_status, wallet, created_date, lastedit_date, edited_by
           const account_status = newUserAccountType === 3 ? 1 : 0;
-          const commission =
-            newUserAccountType === 1
-              ? 3.0
-              : newUserAccountType === 2
-              ? 2.0
+          const commission = newUserAccountType === 1 ? 5.0
+              : newUserAccountType === 2 ? 2.5
+              : newUserAccountType === 5 ? 0.5
               : null;
 
           // Process 3:
@@ -704,6 +724,15 @@ app.get("/getAccountList/:accountId/:accountType", (req, res) => {
     // Administrator
     sqlQuery = "SELECT * FROM accounts;";
     sqlQuery = db.format(sqlQuery);
+  } else if (accountType === "5") {
+    // Grandmaster
+    sqlQuery =
+      `select * from accounts where agent_id = ?
+      union
+      select * from accounts where agent_id in (select account_id from accounts where agent_id = ?)
+      union
+      select * from accounts where agent_id in (select account_id from accounts where agent_id in (select account_id from accounts where agent_id = ?));`
+    sqlQuery = db.format(sqlQuery, [accountId, accountId, accountId]);
   } else if (accountType === "1") {
     // Master Agent
     sqlQuery =
@@ -732,7 +761,9 @@ app.get("/getAccountList/:accountId/:accountType", (req, res) => {
   }
 });
 
-
+// To be used to get masteragent count for GMs
+// To be used to get agents count for MAs
+// To be used to get players count for Agents
 app.get("/getCountUnderUser/:accountId", (req, res) => {
   const start = process.hrtime()
   // Get body
@@ -771,6 +802,8 @@ app.get("/getCountUnderUser/:accountId", (req, res) => {
   });
 });
 
+// To be used to get players count for MAs
+// Can be used to get agents count for GMs
 app.get("/getCountPlayer/:accountId", (req, res) => {
   const start = process.hrtime()
   // Get body
@@ -793,8 +826,48 @@ app.get("/getCountPlayer/:accountId", (req, res) => {
 
   // Process 1
   // Get all necessary details
-  sqlQuery =
+  sqlQuery = 
     "select count(*) as userCount from accounts where agent_id in (select account_id from accounts where agent_id = ?);";
+  db.query(sqlQuery, [accountId], (err, result) => {
+    if (err) {
+      logger.error(`${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`)
+      res.status(500).json({ message: "Server error" });
+    } else {
+      logger.info(`${req.originalUrl} request successful, accountId:${accountId} duration:${getDurationInMilliseconds(start)}`)
+      res.status(200).json({
+        message: "Request successful",
+        accountId: accountId,
+        count: result[0].userCount,
+      });
+    }
+  });
+});
+
+app.get("/getPlayersCountOfGM/:accountId", (req, res) => {
+  const start = process.hrtime()
+  // Get body
+  const accountId = req.params.accountId;
+  const apiKey = req.header("Authorization");
+
+  // Check if body is complete
+  if (!accountId) {
+    logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  // Process 1
+  // Get all necessary details
+  sqlQuery = 
+    "select count(*) as userCount from accounts where agent_id in (select account_id from accounts where agent_id in (select account_id from accounts where agent_id = ?));"
+
   db.query(sqlQuery, [accountId], (err, result) => {
     if (err) {
       logger.error(`${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`)

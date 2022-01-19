@@ -524,8 +524,40 @@ app.get("/getBetMarketList/:marketId", (req, res) => {
         res.status(200).json({ message: "Request Successful", data: result });
       }
     });
-  });
+});
 
+
+app.get("/getAccountBetslips/:accountId/:marketId", (req, res) => {
+    const start = process.hrtime()
+
+    const apiKey = req.header("Authorization");
+    const accountId = req.params.accountId
+    const marketId = req.params.marketId;
+  
+    // Check if body is complete
+    if (!marketId || !accountId) {
+      logger.warn(`${req.originalUrl} request has missing body parameters, marketId:${marketId}`)
+      res.status(400).json({ message: "Missing body parameters" });
+      return;
+    }
+  
+    // Check if apiKey is correct
+    if (!apiKey || apiKey !== process.env.API_KEY) {
+      logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+      res.status(401).json({ message: "Unauthorized Request" });
+      return;
+    }
+  
+    sqlQuery = "SELECT * from bets WHERE market_id=? and account_id=?";
+    db.query(sqlQuery, [marketId, accountId], (err, result) => {
+      if (err) {
+        logger.error(`${req.originalUrl} request has an error during process 1, marketId:${marketId}, error:${err}`)
+      } else {
+        logger.info(`${req.originalUrl} successful, duration:${getDurationInMilliseconds(start)}`)
+        res.status(200).json({ message: "Request Successful", data: result });
+      }
+    });
+});
 
 
 app.listen(4005, () => {

@@ -937,6 +937,58 @@ app.post("/resultMarket", (req, res) => {
   });
 });
 
+app.get("/getMarketTrend/:gameId", (req, res) => {
+  const start = process.hrtime();
+
+  const apiKey = req.header("Authorization");
+  const gameId = req.params.gameId;
+  const status = 2
+  const limit = 15
+
+  // Check if body is complete
+  if (!gameId) {
+    logger.warn(
+      `${req.originalUrl} request has missing body parameters, gameId:${gameId}`
+    );
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(
+      `${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`
+    );
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  // Process 1
+  // Get latest market detail
+  sqlQuery =
+    "select market_id, result from markets where game_id = ? and  status = ? order by settled_date desc limit ?;";
+  db.query(sqlQuery, [gameId, status, limit], (err, result) => {
+    if (err) {
+      logger.error(
+        `${req.originalUrl} request has an error during process 1, gameId:${gameId}, error:${err}`
+      );
+      res.status(500).json({ message: "Server error" });
+    } else {
+      logger.info(
+        `${
+          req.originalUrl
+        } request successful, gameId:${gameId} duration:${getDurationInMilliseconds(
+          start
+        )}`
+      );
+      res
+        .status(200)
+        .json({ message: "Request successful", data: { trends: result } });
+    }
+  });
+});
+
+
 app.get("/getLatestMarketDetails/:gameId", (req, res) => {
   const start = process.hrtime();
 
