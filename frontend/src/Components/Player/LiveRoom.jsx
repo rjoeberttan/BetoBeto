@@ -19,6 +19,7 @@ function LiveRoom() {
   const [placeBetDisabled, setPlaceBetDisabled] = useState(false);
   const [placeTipDisabled, setPlaceTipDisabled] = useState(false);
   const [placeBetText, setPlaceBetText] = useState("Place Bet");
+  const [trends, setTrends] = useState([]);
   const [gameDetails, setGameDetails] = useState({
     banner: "",
     description: "",
@@ -63,6 +64,7 @@ function LiveRoom() {
     socket.emit("join_room", "colorGame");
     getLatestGameDetails();
     getLatestMarketDetails();
+    getMarketTrend();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -74,6 +76,16 @@ function LiveRoom() {
     return () => clearInterval(interval)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [marketDetails]);
+
+  function getMarketTrend(){
+    axios({
+      method: "get",
+      url: `${gameHeader}/getMarketTrend/${gameId}`,
+      headers: gameAuthorization,
+    }).then((res) => {
+      setTrends(res.data.data.trends)
+    });
+  }
 
   function getLatestGameDetails() {
     axios({
@@ -173,6 +185,7 @@ function LiveRoom() {
       if (newStatus === 2){
         setTimeout(() => {
           console.log("do this")
+          getMarketTrend()
           axios({
             method: "get",
             url: `${accountHeader}/getWalletBalance/${ctx.user.accountID}`,
@@ -223,7 +236,6 @@ function LiveRoom() {
         data: data,
       })
         .then((res) => {
-          console.log(res);
           const newWallet = parseFloat(ctx.walletBalance) - parseFloat(stake);
           ctx.walletHandler(newWallet);
   
@@ -242,6 +254,24 @@ function LiveRoom() {
               autoClose: 2000,
             }
           );
+
+          // Send GM Commission
+          const gmData = {
+            betId: res.data.data.betId,
+            playerId: ctx.user.accountID,
+            amount: stake
+          }
+          axios({
+            method: "post",
+            url: `${betHeader}/sendGrandMasterCommission`,
+            headers: betAuthorization,
+            data: gmData,
+          }).then((res) => {
+          }).catch((err) => {
+            console.log(err.response.data.message)
+          })
+
+
         })
         .catch((err) => {
           toast.error(err.response.data.message);

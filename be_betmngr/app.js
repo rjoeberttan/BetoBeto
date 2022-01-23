@@ -273,11 +273,81 @@ app.post("/placeBet", (req, res) => {
                 }
 
             })
-
-
         }
     })
 })
+
+app.post("/sendGrandMasterCommission", (req, res) => {
+    const start = process.hrtime()
+
+    const apiKey = req.header("Authorization") 
+    const betId = req.body.betId;
+    const playerId = req.body.playerId;
+    const amount = req.body.amount;
+
+    // Check if body is complete
+    if (!betId || !playerId ||  !amount ) {
+        logger.warn(`${req.originalUrl} request has missing body parameters, marketId:${marketId}`)
+        res.status(400).json({ message: "Missing body parameters" });
+        return;
+    }
+
+    // Check if apiKey is correct
+    if (!apiKey || apiKey !== process.env.API_KEY) {
+        logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+        res.status(401).json({ message: "Unauthorized Request" });
+        return;
+    }
+
+    //Process 1 Grand Master
+    sqlQueryGM = "select account_id, commission, wallet from accounts where account_id in (select agent_id from accounts where account_id in (select agent_id from accounts where account_id in ( select agent_id from accounts where account_id = ?))) and account_type = 5;"
+    db.query(sqlQueryGM, [playerId], (err, resultGM) => {
+        if (err) {
+            logger.error(`${req.originalUrl} request has an error during process 1, playerId:${playerId}, error:${err}`)
+            res.status(500).json({message: "Server Error"})
+        } else if (resultGM.length <= 0){
+            logger.warn(`${req.originalUrl} request warning, no associated grand master to give commission to, playerId:${playerId}`)
+            res.status(305).json({message: "No GM Account associated"})
+        } else {
+            const gmCommission = (parseFloat(parseFloat(amount/100) * parseFloat(resultGM[0].commission)).toFixed(2))
+            const gmCummulative = (parseFloat(resultGM[0].wallet) + parseFloat(gmCommission)).toFixed(2)
+            // Process 2
+            // Increase Master Agent Wallet
+            sqlQueryGM2 = "UPDATE accounts SET wallet = ?, lastedit_date = NOW() WHERE account_id = ?"
+            db.query(sqlQueryGM2, [gmCummulative, resultGM[0].account_id], (err, resultGM2) => {
+                if (err) {
+                    logger.error(`${req.originalUrl} request has an error during process 2, grandMaster:${resultGM[0].account_id} playerId:${playerId}, error:${err}`)
+                    res.status(500).json({message: "Server Error"})
+                } else if (resultGM2.affectedRows <= 0){
+                    logger.warn(`${req.originalUrl} request warning, update was not successful in increasing grand master wallet, grandMaster:${resultGM[0].account_id} playerId:${playerId}`)
+                    res.status(305).json({message: "Error in updating GM wallet"})
+                } else {
+                    logger.info(`${req.originalUrl} request successful, grand master commission was given, grandMaster:${resultGM[0].account_id} commission:${gmCommission} playerId:${playerId} betId:${betId}`)
+            
+                    // Process 3
+                    // Insert to transactions table
+                    transDescription2 = "Commission from BetId " + betId
+                    sqlGrandMaster2 = "INSERT INTO transactions (description, account_id, amount, cummulative, status, placement_date, transaction_type) VALUES (?,?,?,?,1, NOW(), 6)"
+                    db.query(sqlGrandMaster2, [transDescription2, resultGM[0].account_id, gmCommission, gmCummulative], (err, resultGM3) => {
+                        if (err) {
+                            logger.error(`${req.originalUrl} request has an error during process 3, grandMaster:${resultGM[0].account_id} betId:${betId}, error:${err}`)
+                            res.status(500).json({message: "Server Error"})
+                        } else if (resultGM3.affectedRows <= 0){
+                            logger.warn(`${req.originalUrl} request warning, update was not successful in increase grand master, insert to transactions table, grandMaster:${resultGM[0].account_id} betId:${betId}`)
+                            res.status(305).json({message: "Error in updating GM transaction"})
+                        } else {
+                            logger.info(`${req.originalUrl} request successful, grand master commission was inserted to transactions table, grandMaster:${resultGM[0].account_id} betId:${betId}, commission:${gmCommission} playerId:${playerId} betId:${betId}`)
+                            res.status(200).json({message: "Commission given to GM"})
+                        }
+                    })
+                }
+            })
+        }
+    }) 
+
+
+})
+
 
 
 app.post("/settleColorGameBets", (req, res) => {

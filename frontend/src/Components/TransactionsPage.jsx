@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { AuthContext } from "../store/auth-context";
 import { toast } from "react-toastify";
+
 import "./TransactionsPage.css";
 
 export default function TransactionsPage() {
@@ -117,10 +118,14 @@ export default function TransactionsPage() {
   }
 
   function setActiveUser(e) {
+    console.log(e.target.value)
     const [accountId, username] = e.target.value.split("-");
     setActiveUserId(accountId);
     setActiveUsername(username);
+    
     e.preventDefault();
+
+    
   }
 
   function handleFilterChange(e) {
