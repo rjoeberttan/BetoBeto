@@ -1,8 +1,8 @@
-import React, {useContext} from "react";
+import React, { useContext } from "react";
 import { AuthContext } from "../../store/auth-context";
 
 function Banner(props) {
-  const ctx = useContext(AuthContext)
+  const ctx = useContext(AuthContext);
   // function handleClick(e){
   //   ctx.handleWallet("Hello")
   //   e.preventDefault();
@@ -19,8 +19,13 @@ function Banner(props) {
           <form className="d-flex">
             <div className="text-light">
               <span>Welcome {props.user}!</span>
-              <br />
-              <span>Wallet: ₱{parseFloat(ctx.walletBalance).toFixed(2)}</span>
+              {(ctx.user.accountType === "agent" ||
+                ctx.user.accountType === "masteragent") && (
+                <div>
+                  Commission: {parseFloat(ctx.user.commission).toFixed(2)}%
+                </div>
+              )}
+              <div>Wallet: ₱{parseFloat(ctx.walletBalance).toFixed(2)}</div>
             </div>
           </form>
         </div>

@@ -128,7 +128,10 @@ export default function AuthContextProvider(props) {
           if (res.data.accountStatus === 1) {
             const accountType = res.data.accountType;
 
-            if (((accountType === 0) ||( accountType === 4)) && window.location.pathname === "/admin") {
+            if (
+              (accountType === 0 || accountType === 4) &&
+              window.location.pathname === "/admin"
+            ) {
               console.log("ok admin && declarator");
               if (accountType === 0) {
                 setAccount({
@@ -168,7 +171,11 @@ export default function AuthContextProvider(props) {
                   console.log(err);
                 });
               setIsLoggedIn(true);
-            } else if (((accountType >= 1) && (accountType <= 3)) && window.location.pathname === "/") {
+            } else if (
+              accountType >= 1 &&
+              accountType <= 3 &&
+              window.location.pathname === "/"
+            ) {
               console.log("ok agent, ma, p");
               if (accountType === 1) {
                 setAccount({
@@ -176,6 +183,7 @@ export default function AuthContextProvider(props) {
                   email: res.data.email,
                   phoneNum: res.data.phoneNum,
                   accountType: "masteragent",
+                  commission: res.data.commission,
                 });
               } else if (accountType === 2) {
                 setAccount({
@@ -183,6 +191,7 @@ export default function AuthContextProvider(props) {
                   email: res.data.email,
                   phoneNum: res.data.phoneNum,
                   accountType: "agent",
+                  commission: res.data.commission,
                 });
               } else if (accountType === 3) {
                 setAccount({
@@ -215,7 +224,7 @@ export default function AuthContextProvider(props) {
                 });
               setIsLoggedIn(true);
             } else {
-              toast.error("Invalid login page")
+              toast.error("Invalid login page");
             }
           } else {
             toast.error("Your account is locked, please contact your Agent");

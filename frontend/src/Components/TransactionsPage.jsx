@@ -63,7 +63,7 @@ export default function TransactionsPage() {
       accType = 1;
     } else if (accType === "agent") {
       accType = 2;
-    } else if (accType === "player"){
+    } else if (accType === "player") {
       accType = 3;
     } else {
       accType = 4;
@@ -118,14 +118,12 @@ export default function TransactionsPage() {
   }
 
   function setActiveUser(e) {
-    console.log(e.target.value)
+    console.log(e.target.value);
     const [accountId, username] = e.target.value.split("-");
     setActiveUserId(accountId);
     setActiveUsername(username);
-    
-    e.preventDefault();
 
-    
+    e.preventDefault();
   }
 
   function handleFilterChange(e) {
@@ -457,11 +455,13 @@ export default function TransactionsPage() {
                   <td>{x.description}</td>
                   <td>₱ {x.stake.toFixed(2)}</td>
                   <td>₱ {x.cummulative ? x.cummulative.toFixed(2) : "-"}</td>
-                  <td>{x.status === 0
-                          ? "Pending"
-                          : x.status === 1
-                          ? "Lose"
-                          : "Win"}</td>
+                  <td>
+                    {x.status === 0
+                      ? "Pending"
+                      : x.status === 1
+                      ? "Lose"
+                      : "Win"}
+                  </td>
                   <td>{x.result}</td>
                   <td>{x.settled_date}</td>
                 </tr>

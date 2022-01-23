@@ -38,7 +38,7 @@ function LiveRoom() {
     status: "",
     result: "",
   });
-  const [statusStyle, setStatusStyle] = useState({color: ""})
+  const [statusStyle, setStatusStyle] = useState({ color: "" });
   const [betTotals, setBetTotals] = useState({
     RED: "0.00",
     BLUE: "0.00",
@@ -49,12 +49,15 @@ function LiveRoom() {
   });
   const [stake, setStake] = useState();
   const [tip, setTip] = useState();
+  const [betslip, setBetslip] = useState([]);
   const { gameId } = useParams();
   const gameHeader = process.env.REACT_APP_HEADER_GAME;
   const betHeader = process.env.REACT_APP_HEADER_BET;
   const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT;
   const gameAuthorization = { "Authorization": process.env.REACT_APP_KEY_GAME };
-  const accAuthorization = { "Authorization": process.env.REACT_APP_KEY_ACCOUNT};
+  const accAuthorization = {
+    "Authorization": process.env.REACT_APP_KEY_ACCOUNT,
+  };
   const betAuthorization = { "Authorization": process.env.REACT_APP_KEY_BET };
 
   //===========================================
@@ -70,21 +73,37 @@ function LiveRoom() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      getColorGameBetTotals()
+      getColorGameBetTotals();
     }, 5000);
 
-    return () => clearInterval(interval)
+    return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [marketDetails]);
 
-  function getMarketTrend(){
+  function getMarketTrend() {
     axios({
       method: "get",
       url: `${gameHeader}/getMarketTrend/${gameId}`,
       headers: gameAuthorization,
     }).then((res) => {
-      setTrends(res.data.data.trends)
+      setTrends(res.data.data.trends.reverse());
     });
+  }
+
+  function generateResultsArray() {
+    var res1 = [];
+    var res2 = [];
+    var res3 = [];
+
+    trends.map((x) => {
+      var resultLong = x.result;
+      var resSplit = resultLong.split(",");
+      res1.push(resSplit[0]);
+      res2.push(resSplit[1]);
+      res3.push(resSplit[2]);
+    });
+
+    return [res1, res2, res3];
   }
 
   function getLatestGameDetails() {
@@ -110,14 +129,28 @@ function LiveRoom() {
     });
   }
 
-  function manageStatusStyle(marketStatus){
-    if (marketStatus === 0){
-      setStatusStyle({color: "green"})
+  function getBetSlips(marketid) {
+    axios({
+      method: "get",
+      url: `${betHeader}/getAccountBetslips/${ctx.user.accountID}/${marketid}`,
+      headers: betAuthorization,
+    })
+      .then((res) => {
+        setBetslip(res.data.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
+  function manageStatusStyle(marketStatus) {
+    if (marketStatus === 0) {
+      setStatusStyle({ color: "green" });
     } else if (marketStatus === 1) {
-      setStatusStyle({color: "red"})
+      setStatusStyle({ color: "red" });
     } else if (marketStatus === 2) {
-      setStatusStyle({color: "purple"})
-    } 
+      setStatusStyle({ color: "purple" });
+    }
   }
 
   function getLatestMarketDetails() {
@@ -135,8 +168,9 @@ function LiveRoom() {
         status: market.status,
         result: market.result,
       });
-      manageStatusStyle(market.status)
+      manageStatusStyle(market.status);
       handlePlaceBetButtonStatus(market.status);
+      getBetSlips(market.market_id);
     });
   }
 
@@ -145,7 +179,7 @@ function LiveRoom() {
       method: "get",
       url: `${gameHeader}/getColorGameBetTotals/${gameId}/${marketDetails.market_id}`,
       headers: {
-        "Authorization": process.env.REACT_APP_KEY_GAME
+        "Authorization": process.env.REACT_APP_KEY_GAME,
       },
     })
       .then((res) => {
@@ -169,7 +203,6 @@ function LiveRoom() {
   //===========================================
   useEffect(() => {
     socket.on("received_market_update", (data) => {
-      console.log("received")
       setMarketDetails((prev) => {
         return {
           ...prev,
@@ -177,15 +210,14 @@ function LiveRoom() {
           status: data.status,
         };
       });
-      manageStatusStyle(data.status)
+      manageStatusStyle(data.status);
       handlePlaceBetButtonStatus(data.status);
 
-      var newStatus = data.status
+      var newStatus = data.status;
       // Update wallet Balance if Market is Resulted
-      if (newStatus === 2){
+      if (newStatus === 2) {
         setTimeout(() => {
-          console.log("do this")
-          getMarketTrend()
+          getMarketTrend();
           axios({
             method: "get",
             url: `${accountHeader}/getWalletBalance/${ctx.user.accountID}`,
@@ -193,15 +225,13 @@ function LiveRoom() {
           })
             .then((res) => {
               const walletBalance = res.data.wallet;
-              ctx.walletHandler(walletBalance)
-              toast.info("Wallet Balance Updated")
+              ctx.walletHandler(walletBalance);
+              toast.info("Wallet Balance Updated");
             })
             .catch((err) => {
               console.log(err);
-              
             });
         }, 2000);
-        
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -219,15 +249,15 @@ function LiveRoom() {
       choice: color.toUpperCase(),
       stake: stake,
       wallet: ctx.walletBalance,
-      maxBet: gameDetails.max_bet
+      maxBet: gameDetails.max_bet,
     };
 
-    var stakeAmt= parseFloat(stake)
-    var minBet = parseFloat(gameDetails.min_bet).toFixed(2)
-    var maxBet = parseFloat(gameDetails.max_bet).toFixed(2)
+    var stakeAmt = parseFloat(stake);
+    var minBet = parseFloat(gameDetails.min_bet).toFixed(2);
+    var maxBet = parseFloat(gameDetails.max_bet).toFixed(2);
 
-    if ((minBet > stakeAmt) || (stakeAmt > maxBet)){
-      toast.error(`Acceptable stake amount: ₱${minBet}-₱${maxBet}`)
+    if (minBet > stakeAmt || stakeAmt > maxBet) {
+      toast.error(`Acceptable stake amount: ₱${minBet}-₱${maxBet}`);
     } else {
       axios({
         method: "post",
@@ -238,15 +268,15 @@ function LiveRoom() {
         .then((res) => {
           const newWallet = parseFloat(ctx.walletBalance) - parseFloat(stake);
           ctx.walletHandler(newWallet);
-  
+
           //Disable Button for 5 seconds
           setPlaceBetDisabled(true);
           setPlaceBetText("Please Wait");
-  
+
           setTimeout(() => {
             setPlaceBetText("Place Bet");
             setPlaceBetDisabled(false);
-            setStake('');
+            setStake("");
           }, 5000);
           toast.success(
             `Placed Bet successfully. BetId: ${res.data.data.betId}`,
@@ -259,19 +289,18 @@ function LiveRoom() {
           const gmData = {
             betId: res.data.data.betId,
             playerId: ctx.user.accountID,
-            amount: stake
-          }
+            amount: stake,
+          };
           axios({
             method: "post",
             url: `${betHeader}/sendGrandMasterCommission`,
             headers: betAuthorization,
             data: gmData,
-          }).then((res) => {
-          }).catch((err) => {
-            console.log(err.response.data.message)
           })
-
-
+            .then((res) => {})
+            .catch((err) => {
+              console.log(err.response.data.message);
+            });
         })
         .catch((err) => {
           toast.error(err.response.data.message);
@@ -280,13 +309,10 @@ function LiveRoom() {
   }
 
   function handleStakeChange(e) {
-
     const currentStake = parseFloat(e.target.value).toFixed(0);
     const walletBalance = parseFloat(ctx.walletBalance);
 
     if (currentStake > walletBalance || marketDetails.status !== 0) {
-      console.log(currentStake, walletBalance)
-      console.log("Insufficient Funds");
       setStake(parseFloat(e.target.value).toFixed(0));
       setPlaceBetDisabled(true);
     } else {
@@ -315,8 +341,6 @@ function LiveRoom() {
         wallet: ctx.walletBalance,
       };
 
-      console.log(data);
-
       axios({
         method: "post",
         url: `${betHeader}/sendTip`,
@@ -324,7 +348,6 @@ function LiveRoom() {
         data: data,
       })
         .then((res) => {
-          console.log(res);
           const newWallet = parseFloat(ctx.walletBalance) - parseFloat(tip);
           ctx.walletHandler(newWallet);
           toast.success(`Thanks for the tip! Enjoy the game`, {
@@ -338,41 +361,36 @@ function LiveRoom() {
   }
 
   function handleTipChange(e) {
-    const input = (e.target.value)
-    const inputNum = parseFloat(e.target.value)
+    const input = e.target.value;
+    const inputNum = parseFloat(e.target.value);
 
     if (inputNum < 9999999999) {
-      if (input.indexOf('.') > 0) {
-        console.log("found")  
-        const decimalLength = input.length - input.indexOf('.') - 1;
-        console.log(decimalLength)
-        if (decimalLength < 3){
+      if (input.indexOf(".") > 0) {
+        const decimalLength = input.length - input.indexOf(".") - 1;
+        if (decimalLength < 3) {
           const currenttip = parseFloat(e.target.value);
           const walletBalance = parseFloat(ctx.walletBalance);
           if (currenttip > walletBalance) {
             setPlaceTipDisabled(true);
-            setTip(parseFloat(e.target.value))
+            setTip(parseFloat(e.target.value));
           } else {
             setPlaceTipDisabled(false);
-            setTip(parseFloat(e.target.value))
+            setTip(parseFloat(e.target.value));
+          }
         }
-        console.log("still in here")
-      }
       } else {
-          const currenttip = parseFloat(e.target.value);
-          const walletBalance = parseFloat(ctx.walletBalance);
-          if (currenttip > walletBalance) {
-            setPlaceTipDisabled(true);
-            setTip(parseFloat(e.target.value))
-          } else {
-            setPlaceTipDisabled(false);
-            setTip(parseFloat(e.target.value))
+        const currenttip = parseFloat(e.target.value);
+        const walletBalance = parseFloat(ctx.walletBalance);
+        if (currenttip > walletBalance) {
+          setPlaceTipDisabled(true);
+          setTip(parseFloat(e.target.value));
+        } else {
+          setPlaceTipDisabled(false);
+          setTip(parseFloat(e.target.value));
+        }
       }
     }
   }
-  }
-
-
 
   function handleChange(e) {
     const { value } = e.target;
@@ -420,15 +438,15 @@ function LiveRoom() {
               </h4>
               <h5 className="card-text" style={statusStyle}>
                 Betting Status:{" "}
-                  {marketDetails.status === 0
+                {marketDetails.status === 0
                   ? " OPEN"
                   : marketDetails.status === 1
                   ? " CLOSED"
                   : " RESULTED"}
               </h5>
-                <p className="card-text">
-                Min/Max Bet: ₱{parseFloat(gameDetails.min_bet).toFixed(2)} - ₱{parseFloat(gameDetails.max_bet).toFixed(2)}
-
+              <p className="card-text">
+                Min/Max Bet: ₱{parseFloat(gameDetails.min_bet).toFixed(2)} - ₱
+                {parseFloat(gameDetails.max_bet).toFixed(2)}
               </p>
               <div className="row text-center">
                 <label className="col-sm-3 col-5 red-box radio-button fix-padding-left">
@@ -513,7 +531,9 @@ function LiveRoom() {
                     type="number"
                     className="form-control"
                     onWheel={(e) => e.target.blur()}
-                    placeholder={`₱${parseFloat(gameDetails.min_bet).toFixed(2)}-₱${parseFloat(gameDetails.max_bet).toFixed(2)} `}
+                    placeholder={`₱${parseFloat(gameDetails.min_bet).toFixed(
+                      2
+                    )}-₱${parseFloat(gameDetails.max_bet).toFixed(2)} `}
                     onChange={handleStakeChange}
                     value={stake}
                   />
@@ -533,28 +553,91 @@ function LiveRoom() {
           </div>
         </div>
       </div>
-      <div className="label-margin">
-        <div className="text-center">
+      <div className="row">
+        <div className="label-margin col-md-4">
+          <div className="text-center">
+            <div className="card text-black" style={{ height: "250px" }}>
+              <div className="card-body">
+                <h5 className="card-title" style={{ marginTop: "50px" }}>
+                  Donation Box
+                </h5>
+                <p className="card-text">
+                  If you enjoy playing, you can tip me!
+                </p>
+                <div className="input-group mb-2">
+                  <input
+                    type="number"
+                    className="form-control"
+                    placeholder="P500"
+                    onChange={handleTipChange}
+                    value={tip}
+                  />
+                  <button
+                    className="btn btn-color text-light"
+                    type="button"
+                    onClick={sendTip}
+                    disabled={placeTipDisabled}
+                  >
+                    Tip
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="label-margin col-md-4">
+          <div className="text-center">
+            <div className="card text-black">
+              <div className="card-body table-responsive-sm">
+                <h4 className="card-title">Market Trends</h4>
+                <table class="table table-bordered border-dark col-md-8">
+                  <thead>
+                    <tr>
+                      {trends.map((x) => (
+                        <th>{x.market_id}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {generateResultsArray().map((newArr) => (
+                      <tr key={Math.random()}>
+                        {newArr.map((x) => (
+                          <td style={{ backgroundColor: x.toLowerCase() }}>
+                            &nbsp;
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="label-margin col-md-4">
           <div className="card text-black">
-            <div className="card-body">
-              <h5 className="card-title">Donation Box</h5>
-              <p className="card-text">If you enjoy playing, you can tip me!</p>
-              <div className="input-group mb-2">
-                <input
-                  type="number"
-                  className="form-control"
-                  placeholder="P500"
-                  onChange={handleTipChange}
-                  value={tip}
-                />
-                <button
-                  className="btn btn-color text-light"
-                  type="button"
-                  onClick={sendTip}
-                  disabled={placeTipDisabled}
-                >
-                  Tip
-                </button>
+            <div className="card-body table-responsive-sm">
+              <h4 className="card-title">Betslips</h4>
+
+              <div
+                class="card text-white bg-secondary mb-3"
+                style={{ height: "150px" }}
+              >
+                <div class="card-body">
+                  <h5>
+                    Bet #{betslip[0].bet_id} {betslip[0].description} <br></br>{" "}
+                    Market #{betslip[0].market_id}
+                  </h5>
+                  <p style={{ margin: "0px" }}>
+                    Status:{" "}
+                    {betslip[0].status === 0
+                      ? "Pending"
+                      : betslip[0].status === 1
+                      ? "Lose"
+                      : "Win"}
+                  </p>
+                  <p>Stake: ₱{betslip[0].stake.toFixed(2)}</p>
+                </div>
               </div>
             </div>
           </div>
