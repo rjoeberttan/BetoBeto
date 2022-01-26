@@ -20,7 +20,8 @@ function Banner(props) {
             <div className="text-light">
               <span>Welcome {props.user}!</span>
               {(ctx.user.accountType === "agent" ||
-                ctx.user.accountType === "masteragent") && (
+                ctx.user.accountType === "masteragent" ||
+                ctx.user.accountType === "grandmaster") && (
                 <div>
                   Commission: {parseFloat(ctx.user.commission).toFixed(2)}%
                 </div>

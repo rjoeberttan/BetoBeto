@@ -180,8 +180,8 @@ export default function AuthContextProvider(props) {
                 });
               setIsLoggedIn(true);
             } else if (
-              accountType >= 1 &&
-              accountType <= 3 &&
+              accountType !== 0 &&
+              accountType !== 4 &&
               window.location.pathname === "/"
             ) {
               console.log("ok agent, ma, p");
@@ -214,7 +214,7 @@ export default function AuthContextProvider(props) {
                   email: res.data.email,
                   phoneNum: res.data.phoneNum,
                   accountType: "grandmaster",
-                  commission: res.data.commission
+                  commission: res.data.commission,
                 });
               }
               setAccount((prev) => {

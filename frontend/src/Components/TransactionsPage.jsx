@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { AuthContext } from "../store/auth-context";
 import { toast } from "react-toastify";
-import Select from 'react-select'
+import Select from "react-select";
 
 import "./TransactionsPage.css";
 
@@ -95,7 +95,7 @@ export default function TransactionsPage() {
       headers: bankAuthorization,
     })
       .then((res) => {
-        console.log(res.data.data)
+        console.log(res.data.data);
         const data = res.data.data;
         setTransactionsList(data);
       })
@@ -123,7 +123,6 @@ export default function TransactionsPage() {
     const [accountId, username] = e.value.split("-");
     setActiveUserId(accountId);
     setActiveUsername(username);
-
   }
 
   function handleFilterChange(e) {
@@ -300,7 +299,7 @@ export default function TransactionsPage() {
 
   function renderUserFilterHeading() {
     if (ctx.user.accountType !== "player") {
-      return <h4 className="lead smaller-device">User Filter</h4>;
+      return <h4 className="lead smaller-device">Username Filter</h4>;
     } else {
       return;
     }
@@ -374,7 +373,7 @@ export default function TransactionsPage() {
     );
   }
 
-  function handleAllUserSearch(e){
+  function handleAllUserSearch(e) {
     axios({
       method: "get",
       url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
@@ -382,17 +381,17 @@ export default function TransactionsPage() {
     })
       .then((res) => {
         const data = res.data.data;
-        console.log(data)
+        console.log(data);
         setTransactionsList(data);
       })
       .catch((err) => {
         console.log(err);
       });
-    
+
     e.preventDefault();
   }
 
-  function handleGMUserSearch(e){
+  function handleGMUserSearch(e) {
     axios({
       method: "get",
       url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
@@ -401,116 +400,114 @@ export default function TransactionsPage() {
       .then((res) => {
         const data = res.data.data;
         var newArr = data.filter((el) => {
-          return el.account_type === 5
-        })
-        setTransactionsList(newArr);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-    
-    e.preventDefault();
-  }
-
-  function handleMAUserSearch(e){
-    axios({
-      method: "get",
-      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
-      headers: bankAuthorization,
-    })
-      .then((res) => {
-        const data = res.data.data;
-        var newArr = data.filter((el) => {
-          return el.account_type === 1
-        })
-        setTransactionsList(newArr);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-    
-    e.preventDefault();
-  }
-
-  function handleMAUserSearch(e){
-    axios({
-      method: "get",
-      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
-      headers: bankAuthorization,
-    })
-      .then((res) => {
-        const data = res.data.data;
-        var newArr = data.filter((el) => {
-          return el.account_type === 1
-        })
-        setTransactionsList(newArr);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-    
-    e.preventDefault();
-  }
-
-  function handleAgentUserSearch(e){
-    axios({
-      method: "get",
-      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
-      headers: bankAuthorization,
-    })
-      .then((res) => {
-        const data = res.data.data;
-        var newArr = data.filter((el) => {
-          return el.account_type === 2
-        })
-        setTransactionsList(newArr);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-    
-    e.preventDefault();
-  }
-
-  function handlePlayerUserSearch(e){
-    axios({
-      method: "get",
-      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
-      headers: bankAuthorization,
-    })
-      .then((res) => {
-        const data = res.data.data;
-        var newArr = data.filter((el) => {
-          return el.account_type === 3
-        })
-        setTransactionsList(newArr);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-    
-    axios({
-        method: "get",
-        url: `${betHeader}/getAllBetHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
-        headers: betAuthorization,
-      })
-        .then((res) => {
-          const data = res.data.data;
-          setBetList(data);
-        })
-        .catch((err) => {
-          console.log(err);
+          return el.account_type === 5;
         });
-    setUserFilter("3")
+        setTransactionsList(newArr);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
     e.preventDefault();
   }
 
-  
+  function handleMAUserSearch(e) {
+    axios({
+      method: "get",
+      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
+      headers: bankAuthorization,
+    })
+      .then((res) => {
+        const data = res.data.data;
+        var newArr = data.filter((el) => {
+          return el.account_type === 1;
+        });
+        setTransactionsList(newArr);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
 
-  function renderAllUserSearch(){
-    if (ctx.user.accountType !== "player" || ctx.user.accountType !== "agent"){
+    e.preventDefault();
+  }
+
+  function handleMAUserSearch(e) {
+    axios({
+      method: "get",
+      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
+      headers: bankAuthorization,
+    })
+      .then((res) => {
+        const data = res.data.data;
+        var newArr = data.filter((el) => {
+          return el.account_type === 1;
+        });
+        setTransactionsList(newArr);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+    e.preventDefault();
+  }
+
+  function handleAgentUserSearch(e) {
+    axios({
+      method: "get",
+      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
+      headers: bankAuthorization,
+    })
+      .then((res) => {
+        const data = res.data.data;
+        var newArr = data.filter((el) => {
+          return el.account_type === 2;
+        });
+        setTransactionsList(newArr);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+    e.preventDefault();
+  }
+
+  function handlePlayerUserSearch(e) {
+    axios({
+      method: "get",
+      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
+      headers: bankAuthorization,
+    })
+      .then((res) => {
+        const data = res.data.data;
+        var newArr = data.filter((el) => {
+          return el.account_type === 3;
+        });
+        setTransactionsList(newArr);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+    axios({
+      method: "get",
+      url: `${betHeader}/getAllBetHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
+      headers: betAuthorization,
+    })
+      .then((res) => {
+        const data = res.data.data;
+        setBetList(data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+    setUserFilter("3");
+    e.preventDefault();
+  }
+
+  function renderAllUserSearch() {
+    if (ctx.user.accountType !== "player" || ctx.user.accountType !== "agent") {
       return (
-        <div className="col-md-2">
+        <div className="col-md-2 col-6" style={{ marginBottom: "10px" }}>
           <button
             className="btn btn-color transaction-btn text-light col-xs-12"
             onClick={handleAllUserSearch}
@@ -518,44 +515,47 @@ export default function TransactionsPage() {
             Search All Users
           </button>
         </div>
-      )
+      );
     }
   }
 
-    function renderGMUserSearch(){
-    if (ctx.user.accountType === "admin"){
+  function renderGMUserSearch() {
+    if (ctx.user.accountType === "admin") {
       return (
-        <div className="col-md-2">
+        <div className="col-md-2 col-6" style={{ marginBottom: "10px" }}>
           <button
             className="btn btn-color transaction-btn text-light col-xs-12"
             onClick={handleGMUserSearch}
           >
-            Search Grandmasters Users
+            Search GM Users
           </button>
         </div>
-      )
+      );
     }
   }
 
-  function renderMAUserSearch(){
-    if (ctx.user.accountType === "admin" || ctx.user.accountType === "grandmaster"){
+  function renderMAUserSearch() {
+    if (
+      ctx.user.accountType === "admin" ||
+      ctx.user.accountType === "grandmaster"
+    ) {
       return (
-        <div className="col-md-2">
+        <div className="col-md-2 col-6" style={{ marginBottom: "10px" }}>
           <button
             className="btn btn-color transaction-btn text-light col-xs-12"
             onClick={handleMAUserSearch}
           >
-            Search Master Agent Users
+            Search MA Users
           </button>
         </div>
-      )
+      );
     }
   }
 
-  function renderAgentUserSearch(){
-    if (ctx.user.accountType !== "agent" || ctx.user.accountType !== "player"){
+  function renderAgentUserSearch() {
+    if (ctx.user.accountType !== "agent" || ctx.user.accountType !== "player") {
       return (
-        <div className="col-md-2">
+        <div className="col-md-2 col-6">
           <button
             className="btn btn-color transaction-btn text-light col-xs-12"
             onClick={handleAgentUserSearch}
@@ -563,14 +563,14 @@ export default function TransactionsPage() {
             Search Agent Users
           </button>
         </div>
-      )
+      );
     }
   }
 
-  function renderPlayerUserSearch(){
-    if (ctx.user.accountType !== "player"){
+  function renderPlayerUserSearch() {
+    if (ctx.user.accountType !== "player") {
       return (
-        <div className="col-md-2">
+        <div className="col-md-2 col-6">
           <button
             className="btn btn-color transaction-btn text-light col-xs-12"
             onClick={handlePlayerUserSearch}
@@ -578,7 +578,7 @@ export default function TransactionsPage() {
             Search Player Users
           </button>
         </div>
-      )
+      );
     }
   }
 
@@ -586,15 +586,17 @@ export default function TransactionsPage() {
     const colorStyles = {
       option: (provided, state) => ({
         ...provided,
-        color: 'black'
+        color: "black",
       }),
-    }
+    };
 
-
-    const options = []
+    const options = [];
     filteredList.map((x) => {
-      options.push({value: x.account_id + "-" + x.username, label: x.username})
-    })
+      options.push({
+        value: x.account_id + "-" + x.username,
+        label: x.username,
+      });
+    });
     if (ctx.user.accountType !== "player") {
       return (
         <div className="row">
@@ -602,9 +604,11 @@ export default function TransactionsPage() {
             <label className="col-form-label">Username</label>
           </div>
           <div className="col-md-2">
-            <Select  onChange={setActiveUser} options={options} styles={colorStyles}>
-              
-            </Select>
+            <Select
+              onChange={setActiveUser}
+              options={options}
+              styles={colorStyles}
+            ></Select>
           </div>
           <div className="col-md-2">{renderSearchButton()}</div>
         </div>
@@ -622,11 +626,14 @@ export default function TransactionsPage() {
         {renderUserFilterHeading()}
         {renderChoices()}
         {renderUserFilter()}
-        {renderAllUserSearch()}
-        {renderGMUserSearch()}
-        {renderMAUserSearch()}
-        {renderAgentUserSearch()}
-        {renderPlayerUserSearch()}
+        <h4 className="lead smaller-device">Type Filter</h4>
+        <div className="row" style={{ marginTop: "10px" }}>
+          {renderAllUserSearch()}
+          {renderGMUserSearch()}
+          {renderMAUserSearch()}
+          {renderAgentUserSearch()}
+          {renderPlayerUserSearch()}
+        </div>
       </form>
       <div className="table-responsive">
         <table className="table table-success table-striped transaction-page-spacing">
