@@ -212,6 +212,9 @@ function LiveRoom() {
       });
       manageStatusStyle(data.status);
       handlePlaceBetButtonStatus(data.status);
+      setTimeout(() => {
+        getBetSlips()
+      }, 1000)
 
       var newStatus = data.status;
       // Update wallet Balance if Market is Resulted
@@ -268,6 +271,7 @@ function LiveRoom() {
         .then((res) => {
           const newWallet = parseFloat(ctx.walletBalance) - parseFloat(stake);
           ctx.walletHandler(newWallet);
+          getBetSlips(marketDetails.market_id)
 
           //Disable Button for 5 seconds
           setPlaceBetDisabled(true);
@@ -284,6 +288,7 @@ function LiveRoom() {
               autoClose: 2000,
             }
           );
+          
 
           // Send GM Commission
           const gmData = {
@@ -413,6 +418,43 @@ function LiveRoom() {
     style.backgroundColor = "aliceblue";
   } else if (color === "purple") {
     style.backgroundColor = "#a333c8";
+  }
+
+
+  function renderBetslips(){
+    if (betslip.length === 0) {
+      return (
+        <h4>No Open Betslips</h4>
+      )
+    } else {
+      return (
+        <div>
+          {betslip.map((x) => (
+            <div
+              class="card text-white bg-secondary mb-3"
+              style={{ height: "150px" }}
+            >
+              <h5>
+                Bet #{x.bet_id} {x.description} <br></br>{" "}
+                Market #{x.market_id}
+              </h5>
+
+              <p style={{ margin: "0px" }}>
+                Status:{" "}
+                {x.status === 0
+                  ? "Pending"
+                  : x.status === 1
+                  ? "Lose"
+                  : "Win"}
+              </p>
+              <p style={{ margin: "0px" }}>Stake: ₱{x.stake.toFixed(2)}</p>
+              {x.status === 2 && <p>Winnings: ₱{x.winnings.toFixed(2)}</p> }
+            </div>
+          ))}
+        </div>
+      )
+       
+    }
   }
 
   return (
@@ -618,27 +660,8 @@ function LiveRoom() {
           <div className="card text-black">
             <div className="card-body table-responsive-sm">
               <h4 className="card-title">Betslips</h4>
-
-              <div
-                class="card text-white bg-secondary mb-3"
-                style={{ height: "150px" }}
-              >
-                <div class="card-body">
-                  <h5>
-                    Bet #{betslip[0].bet_id} {betslip[0].description} <br></br>{" "}
-                    Market #{betslip[0].market_id}
-                  </h5>
-                  <p style={{ margin: "0px" }}>
-                    Status:{" "}
-                    {betslip[0].status === 0
-                      ? "Pending"
-                      : betslip[0].status === 1
-                      ? "Lose"
-                      : "Win"}
-                  </p>
-                  <p>Stake: ₱{betslip[0].stake.toFixed(2)}</p>
-                </div>
-              </div>
+                  {renderBetslips()}
+              
             </div>
           </div>
         </div>

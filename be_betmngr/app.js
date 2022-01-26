@@ -893,6 +893,78 @@ app.get("/getBetHistory/:accountId/:dateFrom/:dateTo", (req, res) => {
   });
 });
 
+app.get("/getAllBetHistory/:accountId/:accountType/:dateFrom/:dateTo", (req, res) => {
+  const start = process.hrtime();
+
+  const apiKey = req.header("Authorization");
+  const accountId = req.params.accountId;
+  const accountType = req.params.accountType;
+  const dateFrom = req.params.dateFrom;
+  const dateTo = req.params.dateTo;
+
+  // Check if body is complete
+  if (!accountId || !accountType || !dateFrom || !dateTo) {
+    logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  var sqlQuery = ""
+  // Generate SQL Query
+  if (accountType === "admin") {
+    sqlQuery = "SELECT bt.*, (SELECT result FROM markets WHERE market_id=bt.market_id AND settled_date IS NOT NULL) AS result, (SELECT username FROM accounts ac WHERE ac.account_id = bt.account_id) AS username FROM bets bt WHERE bt.placement_date BETWEEN ? AND ? ORDER BY bt.placement_date DESC;"
+    sqlQuery = db.format(sqlQuery, [dateFrom, dateTo])
+  } else if (accountType === "grandmaster") {
+    sqlQuery = `SELECT bt.*, (SELECT result FROM markets WHERE market_id=bt.market_id AND settled_date IS NOT NULL) AS result, (SELECT username FROM accounts ac WHERE ac.account_id = bt.account_id) AS username FROM bets bt 
+    WHERE account_id IN
+    (SELECT account_id FROM accounts WHERE agent_id IN (SELECT account_id FROM accounts WHERE agent_id IN (SELECT account_id FROM accounts WHERE agent_id = ?))) AND placement_date BETWEEN ? AND ? ORDER BY bt.placement_date DESC;`
+    sqlQuery = db.format(sqlQuery, [accountId, dateFrom, dateTo])
+  } else if (accountType === "masteragent") {
+    sqlQuery = `SELECT bt.*, (SELECT result FROM markets WHERE market_id=bt.market_id AND settled_date IS NOT NULL) AS result, (SELECT username FROM accounts ac WHERE ac.account_id = bt.account_id) AS username FROM bets bt 
+    WHERE account_id IN
+    (SELECT account_id FROM accounts WHERE agent_id = ? OR agent_id IN (SELECT account_id FROM accounts WHERE agent_id = ?)) AND placement_date BETWEEN ? AND ? ORDER BY bt.placement_date DESC;`
+    sqlQuery = db.format(sqlQuery, [accountId, accountId, dateFrom, dateTo])
+  } else if (accountType === "agent") {
+    sqlQuery = `SELECT bt.*, (SELECT result FROM markets WHERE market_id=bt.market_id AND settled_date IS NOT NULL) AS result, (SELECT username FROM accounts ac WHERE ac.account_id = bt.account_id) AS username FROM bets bt 
+    WHERE account_id IN
+    (SELECT account_id FROM accounts WHERE agent_id = ?) AND placement_date BETWEEN ? AND ? ORDER BY bt.placement_date DESC;`
+    sqlQuery = db.format(sqlQuery, [accountId, dateFrom, dateTo])
+  }
+
+  if (sqlQuery !== "") {
+    db.query(sqlQuery, (err, result) => {
+      if (err) {
+        logger.error(
+          `${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`
+        );
+      } else {
+        logger.info(
+          `${
+            req.originalUrl
+          } request successful, accountId:${accountId} duration:${getDurationInMilliseconds(
+            start
+          )}`
+        );
+        res.status(200).json({ message: "Request Successful", data: result });
+      }
+    });
+  } else {
+    logger.warn(
+      `${req.originalUrl} request warning, account is not allowed to request the accountType, accountId:${accountId} accountType:${accountType}`
+    );
+    res
+      .status(401)
+      .json({ message: "User type is not authorized to ask this request" });
+  }
+})
+
 app.get("/getBetMarketList/:marketId", (req, res) => {
   const start = process.hrtime();
 

@@ -743,6 +743,83 @@ app.get("/getTransactionHistory/:accountId/:dateFrom/:dateTo", (req, res) => {
 });
 
 
+app.get("/getAllTransactionHistory/:accountId/:accountType/:dateFrom/:dateTo", (req, res) => {
+  const start = process.hrtime();
+
+  const apiKey = req.header("Authorization");
+  const accountId = req.params.accountId;
+  const accountType = req.params.accountType;
+  const dateFrom = req.params.dateFrom;
+  const dateTo = req.params.dateTo;
+
+  // Check if body is complete
+  if (!accountId || !accountType || !dateFrom || !dateTo) {
+    logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  var sqlQuery = ""
+  // Generate SQL Query
+  if (accountType === "admin") {
+    sqlQuery = "SELECT tr.placement_date, tr.transaction_id, tr.description, ac.username, tr.amount, tr.cummulative, tr.status, tr.settled_by, ac.account_type from transactions tr LEFT JOIN accounts ac ON tr.account_id=ac.account_id WHERE tr.placement_date BETWEEN ? AND ? ORDER BY tr.placement_date DESC;"
+    sqlQuery = db.format(sqlQuery, [dateFrom, dateTo])
+  } else if (accountType === "grandmaster") {
+    sqlQuery = `SELECT tr.placement_date, tr.transaction_id, tr.description, ac.username, tr.amount, tr.cummulative, tr.status, tr.settled_by FROM transactions tr LEFT JOIN accounts ac ON tr.account_id=ac.account_id WHERE ac.account_id IN
+    (SELECT account_id FROM accounts WHERE agent_id = ?
+    UNION
+    SELECT account_id FROM accounts WHERE agent_id IN (SELECT account_id FROM accounts WHERE agent_id = ?)
+    UNION
+    SELECT account_id FROM accounts WHERE agent_id IN (SELECT account_id FROM accounts WHERE agent_id IN (SELECT account_id FROM accounts WHERE agent_id = ?))) AND placement_date BETWEEN ? AND ? ORDER BY tr.placement_date DESC;`
+    sqlQuery = db.format(sqlQuery, [accountId, accountId, accountId, dateFrom, dateTo])
+  } else if (accountType === "masteragent") {
+    sqlQuery = `SELECT tr.placement_date, tr.transaction_id, tr.description, ac.username, tr.amount, tr.cummulative, tr.status, tr.settled_by FROM transactions tr LEFT JOIN accounts ac ON tr.account_id=ac.account_id WHERE ac.account_id IN
+    (SELECT account_id FROM accounts WHERE agent_id = ? OR agent_id IN (SELECT account_id FROM accounts WHERE agent_id = ?)) AND placement_date BETWEEN ? AND ? ORDER BY tr.placement_date DESC;`
+    sqlQuery = db.format(sqlQuery, [accountId, accountId, dateFrom, dateTo])
+  } else if (accountType === "agent") {
+    sqlQuery = `SELECT tr.placement_date, tr.transaction_id, tr.description, ac.username, tr.amount, tr.cummulative, tr.status, tr.settled_by FROM transactions tr LEFT JOIN accounts ac ON tr.account_id=ac.account_id WHERE ac.account_id IN
+    (SELECT account_id FROM accounts WHERE agent_id = ?) AND placement_date BETWEEN ? AND ? ORDER BY tr.placement_date DESC;`
+    sqlQuery = db.format(sqlQuery, [accountId, dateFrom, dateTo])
+  }
+
+  if (sqlQuery !== "") {
+    db.query(sqlQuery, (err, result) => {
+      if (err) {
+        logger.error(
+          `${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`
+        );
+      } else {
+        logger.info(
+          `${
+            req.originalUrl
+          } request successful, accountId:${accountId} duration:${getDurationInMilliseconds(
+            start
+          )}`
+        );
+        res.status(200).json({ message: "Request Successful", data: result });
+      }
+    });
+  } else {
+    logger.warn(
+      `${req.originalUrl} request warning, account is not allowed to request the accountType, accountId:${accountId} accountType:${accountType}`
+    );
+    res
+      .status(401)
+      .json({ message: "User type is not authorized to ask this request" });
+  }
+
+})
+
+
+
+
 app.get("/getBetCommissionEarnings/:dateFrom/:dateTo", (req, res) => {
   const start = process.hrtime();
 
