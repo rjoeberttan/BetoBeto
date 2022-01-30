@@ -66,7 +66,10 @@ export default function TransactionsPage() {
       accType = 2;
     } else if (accType === "player") {
       accType = 3;
-    } else {
+    } else if (accType === "grandmaster") {
+      accType = 5;
+    }
+    else {
       accType = 4;
     }
 
@@ -198,7 +201,7 @@ export default function TransactionsPage() {
   }
 
   function renderChoiceMasterAgent() {
-    if (ctx.user.accountType === "admin") {
+    if (ctx.user.accountType === "admin" || ctx.user.accountType === "grandmaster") {
       return (
         <div className="form-check form-check-inline">
           <input
@@ -238,7 +241,7 @@ export default function TransactionsPage() {
     }
     if (
       ctx.user.accountType === "admin" ||
-      ctx.user.accountType === "masteragent"
+      ctx.user.accountType === "masteragent" || ctx.user.accountType === "grandmaster"
     ) {
       return (
         <div className="form-check form-check-inline">
@@ -387,6 +390,20 @@ export default function TransactionsPage() {
       .catch((err) => {
         console.log(err);
       });
+    
+    axios({
+        method: "get",
+        url: `${betHeader}/getAllBetHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
+        headers: betAuthorization,
+      })
+        .then((res) => {
+          const data = res.data.data;
+          setBetList(data);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      setUserFilter("3");
 
     e.preventDefault();
   }
@@ -403,6 +420,7 @@ export default function TransactionsPage() {
           return el.account_type === 5;
         });
         setTransactionsList(newArr);
+        setBetList([])
       })
       .catch((err) => {
         console.log(err);
@@ -419,30 +437,12 @@ export default function TransactionsPage() {
     })
       .then((res) => {
         const data = res.data.data;
+        console.log(data)
         var newArr = data.filter((el) => {
           return el.account_type === 1;
         });
         setTransactionsList(newArr);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-
-    e.preventDefault();
-  }
-
-  function handleMAUserSearch(e) {
-    axios({
-      method: "get",
-      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
-      headers: bankAuthorization,
-    })
-      .then((res) => {
-        const data = res.data.data;
-        var newArr = data.filter((el) => {
-          return el.account_type === 1;
-        });
-        setTransactionsList(newArr);
+        setBetList([])
       })
       .catch((err) => {
         console.log(err);
@@ -463,6 +463,7 @@ export default function TransactionsPage() {
           return el.account_type === 2;
         });
         setTransactionsList(newArr);
+        setBetList([])
       })
       .catch((err) => {
         console.log(err);
@@ -483,6 +484,7 @@ export default function TransactionsPage() {
           return el.account_type === 3;
         });
         setTransactionsList(newArr);
+        setUserFilter("3");
       })
       .catch((err) => {
         console.log(err);
@@ -505,7 +507,7 @@ export default function TransactionsPage() {
   }
 
   function renderAllUserSearch() {
-    if (ctx.user.accountType !== "player" || ctx.user.accountType !== "agent") {
+    if (ctx.user.accountType === "admin" || ctx.user.accountType === "grandmaster" || ctx.user.accountType === "masteragent") {
       return (
         <div className="col-md-2 col-6" style={{ marginBottom: "10px" }}>
           <button
@@ -553,7 +555,7 @@ export default function TransactionsPage() {
   }
 
   function renderAgentUserSearch() {
-    if (ctx.user.accountType !== "agent" || ctx.user.accountType !== "player") {
+    if (ctx.user.accountType === "admin" || ctx.user.accountType === "grandmaster" || ctx.user.accountType === "masteragent" ) {
       return (
         <div className="col-md-2 col-6">
           <button
@@ -652,7 +654,8 @@ export default function TransactionsPage() {
           <tbody>
             {transactionsList.map((x) => (
               <tr key={Math.random()}>
-                <td>{x.placement_date}</td>
+                {/* <td>{x.placement_date}</td> */}
+                <td>{new Date(Date.parse(x.placement_date)).toLocaleString(('en-us', {timeZone : 'Asia/Taipei'}))}</td>
                 <td>{x.transaction_id}</td>
                 <td>{!x.username ? x.account_id : x.username}</td>
                 <td>{x.description}</td>
@@ -695,7 +698,7 @@ export default function TransactionsPage() {
             <tbody>
               {betList.map((x) => (
                 <tr key={Math.random()}>
-                  <td>{x.placement_date.substring(0, 10)}</td>
+                  <td>{new Date(Date.parse(x.placement_date)).toLocaleString(('en-us', {timeZone : 'Asia/Taipei'}))}</td>
                   <td>{x.bet_id}</td>
                   <td>{!x.username ? x.account_id : x.username}</td>
                   <td>{x.market_id}</td>
@@ -717,7 +720,7 @@ export default function TransactionsPage() {
           </table>
         </div>
       ) : null}
-      {transactionsList.length === 0 && userFilter === "3"
+      {transactionsList.length === 0 && userFilter === "3" 
         ? renderEmptyTable(true)
         : renderEmptyTable(false)}
     </div>

@@ -1,14 +1,15 @@
-import { React, useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import UserCard from "../Usercard/UserCard";
 import { AuthContext } from "../../store/auth-context";
 import axios from "axios";
+import "./AdminPlayers.css";
 
-function GMPlayers() {
+function AdminGrandMasters() {
   const ctx = useContext(AuthContext);
   const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT;
-  const [players, setPlayers] = useState([]);
+  const [masterAgents, setMasterAgents] = useState([]);
   const [userSearch, setUserSearch] = useState("");
-  const [filteredPlayers, setFilteredPlayers] = useState([]);
+  const [filteredMasterAgents, setfilteredMasterAgents] = useState([]);
 
   useEffect(() => {
     getUserList();
@@ -18,20 +19,18 @@ function GMPlayers() {
   function getUserList() {
     axios({
       method: "get",
-      url: `${accountHeader}/getAccountList/${ctx.user.accountID}/5`,
+      url: `${accountHeader}/getAccountList/${ctx.user.accountID}/0`,
       headers: {
         "Authorization": process.env.REACT_APP_KEY_ACCOUNT,
       },
     })
       .then((res) => {
         const data = res.data.data;
-        const Players = data.filter((x) => x.account_type === 3);
-        setPlayers(Players);
-        setFilteredPlayers(Players);
+        const masterAgentss = data.filter((x) => x.account_type === 5);
+        setMasterAgents(masterAgentss);
+        setfilteredMasterAgents(masterAgentss);
       })
-      .catch((err) => {
-        console.log(err);
-      });
+      .catch((err) => {});
   }
 
   function handleChange(e) {
@@ -40,19 +39,21 @@ function GMPlayers() {
 
     let filtered = [];
 
-    players.map((x) => {
+    masterAgents.map((x) => {
       let username = x.username;
       if (username.includes(searchVal)) {
         filtered.push(x);
       }
     });
-    setFilteredPlayers(filtered);
+    setfilteredMasterAgents(filtered);
   }
 
   return (
     <div className="container text-light container-wallet">
       <div className="heading-text">
-        <h1 className="display-5 small-device bold-small">Manage Players</h1>
+        <h1 className="display-5 small-device bold-small">
+          Manage Grand Masters
+        </h1>
       </div>
       <div className="row">
         <div className="col-sm-2">
@@ -83,7 +84,7 @@ function GMPlayers() {
         </div>
       </div>
       <div className="row text-black second-box">
-        {filteredPlayers.map((x) => (
+        {filteredMasterAgents.map((x) => (
           <UserCard
             key={x.account_id}
             accountId={x.account_id}
@@ -97,7 +98,7 @@ function GMPlayers() {
             walletBalance={x.wallet}
             editor={ctx.user.username}
             editorId={ctx.user.accountID}
-            accountType="3"
+            accountType="1"
           />
         ))}
       </div>
@@ -105,4 +106,4 @@ function GMPlayers() {
   );
 }
 
-export default GMPlayers;
+export default AdminGrandMasters;

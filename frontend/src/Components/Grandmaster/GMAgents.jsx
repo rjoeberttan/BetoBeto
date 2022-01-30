@@ -18,7 +18,7 @@ function GMAgents() {
   function getUserList() {
     axios({
       method: "get",
-      url: `${accountUrl}/getAccountList/${ctx.user.accountID}/0`,
+      url: `${accountUrl}/getAccountList/${ctx.user.accountID}/5`,
       headers: {
         "Authorization": process.env.REACT_APP_KEY_ACCOUNT,
       },

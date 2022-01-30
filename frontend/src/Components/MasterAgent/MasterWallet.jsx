@@ -7,6 +7,8 @@ import WithdrawalReq from "../WithdrawalReq";
 import DepositRequest from "../DepositRequest";
 import { toast, ToastContainer } from "react-toastify";
 import { to } from "@react-spring/core";
+import { BiHelpCircle } from 'react-icons/bi';
+import ReactTooltip from 'react-tooltip';
 
 function MasterWallet() {
   //============================================
@@ -321,54 +323,57 @@ function MasterWallet() {
                   </div>
                 </div>
                 <div className="row">
+                <div className="col-md-7 col-6 admin-wallet-font">
+                    <h5>Wallet Activities: <BiHelpCircle data-tip data-for="walletHelp"/></h5>
+                  </div>
                   <div className="col-md-7 col-6 admin-wallet-font">
-                    <b>(+) Deposit Accepted</b>
+                    <b>Deposit Accepted</b>
                   </div>
                   <div className="col-md-5 col-6 admin-wallet-font">
                     ₱{earnings.totalDepositAccepted}
                   </div>
                   <div className="col-md-7 col-6 admin-wallet-font">
-                    <b>(-) Withdrawal Accepted</b>
+                    <b>Withdrawal Accepted</b>
                   </div>
                   <div className="col-md-5 col-6 admin-wallet-font">
                     ₱{earnings.totalWithdrawalAccepted}
                   </div>
                   <div className="col-md-7 col-6 admin-wallet-font">
-                    <b>(-) Deposit Requested</b>
+                    <b>Deposit Requested</b>
                   </div>
                   <div className="col-md-5 col-6 admin-wallet-font">
                     ₱{earnings.totalDepositRequested}
                   </div>
                   <div className="col-md-7 col-6 admin-wallet-font">
-                    <b>(+) Withdrawal Requested</b>
+                    <b>Withdrawal Requested</b>
                   </div>
                   <div className="col-md-5 col-6 admin-wallet-font">
                     ₱{earnings.totalWithdrawalRequested}
                   </div>
                   <div className="col-md-7 col-6 admin-wallet-font">
-                    <b>(-) Fund Transfers</b>
+                    <b>Fund Transfers</b>
                   </div>
                   <div className="col-md-5 col-6 admin-wallet-font">
                     ₱{earnings.totalFundTransfers}
                   </div>
                   <div className="col-md-7 col-6 admin-wallet-font">
-                    <b>(+) Fund Received</b>
+                    <b>Fund Received</b>
                   </div>
                   <div className="col-md-5 col-6 admin-wallet-font">
                     ₱{earnings.totalFundReceived}
                   </div>
                   <div className="col-md-7 col-6 admin-wallet-font">
-                    <b>(+) Commissions</b>
+                    <b>Total Commissions</b>
                   </div>
                   <div className="col-md-5 col-6 admin-wallet-font">
                     ₱{earnings.totalCommissions}
                   </div>
-                  <div className="col-md-7 col-6 admin-wallet-font">
+                  {/* <div className="col-md-7 col-6 admin-wallet-font">
                     <b>Total Earnings</b>
                   </div>
                   <div className="col-md-5 col-6 admin-wallet-font">
                     ₱{earnings.totalEarnings}
-                  </div>
+                  </div> */}
                 </div>
               </div>
             </div>
@@ -505,7 +510,7 @@ function MasterWallet() {
                   requesterAccountId={x.account_id}
                   requesterUsername={x.username}
                   requesterType={x.account_type}
-                  placementDate={x.placement_date.substring(0, 10)}
+                  placementDate={new Date(Date.parse(x.placement_date)).toLocaleString(('en-us', {timeZone : 'Asia/Taipei'}))}
                   amount={x.amount}
                   phoneNum={x.phone_num}
                   accepterAccountId={ctx.user.accountID}
@@ -539,7 +544,7 @@ function MasterWallet() {
                   requesterAccountId={x.account_id}
                   requesterUsername={x.username}
                   requesterType={x.account_type}
-                  placementDate={x.placement_date.substring(0, 10)}
+                  placementDate={new Date(Date.parse(x.placement_date)).toLocaleString(('en-us', {timeZone : 'Asia/Taipei'}))}
                   amount={x.amount}
                   phoneNum={x.phone_num}
                   accepterAccountId={ctx.user.accountID}
@@ -552,6 +557,20 @@ function MasterWallet() {
           </table>
         </div>
       </div>
+
+
+      <ReactTooltip id="walletHelp" place="bottom" effect="solid">
+        <b>Wallet Activities:</b> <br />
+        <b>Deposit Accepted</b> - Total of All Deposits you accepted from your Players <br />
+        <b>Withdrawal Accepted</b> - Total of All Deposits you accepted from your players <br /> <br/>
+        <b>Deposit Requested</b> - Total of All Approved Deposits you requested from your agent <br />
+        <b>Withdrawal Requested</b> - Total of All Approved Withdrawals you requested from your agent <br /><br/>
+        <b>Fund Transfer</b> - Total of all Fund Transfers from your wallet to your player's wallet <br />
+        <b>Fund Received</b> - Total of all Fund Received from your agent to your wallet <br /><br/>
+        <b>Commissions</b> - Total of all commissions you received from your players' bets. Commissions are automatically topped up in your wallet <br /><br/>
+
+        <em>All with respect to your Date Setting</em>
+      </ReactTooltip>
     </div>
   );
 }

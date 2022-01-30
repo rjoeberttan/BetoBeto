@@ -68,6 +68,17 @@ function NavBar(props) {
               )}
             </li>
             <li className="nav-item">
+              {(props.user === "admin") && (
+                <Link
+                  className="nav-link active"
+                  aria-current="page"
+                  to={`/${[props.user]}/grandmaster`}
+                >
+                  Grand Master
+                </Link>
+              )}
+            </li>
+            <li className="nav-item">
               {(props.user === "admin" || props.user === "grandmaster") && (
                 <Link
                   className="nav-link active"

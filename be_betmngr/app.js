@@ -876,7 +876,7 @@ app.get("/getBetHistory/:accountId/:dateFrom/:dateTo", (req, res) => {
   }
 
   sqlQuery =
-    "SELECT bt.*, (select result from markets where market_id=bt.market_id and settled_date is not null) as result FROM bets bt WHERE account_id = ? AND placement_date BETWEEN ? AND ?";
+    "SELECT bt.*, (select result from markets where market_id=bt.market_id and settled_date is not null) as result FROM bets bt WHERE account_id = ? AND placement_date BETWEEN ? AND ? ORDER BY placement_date DESC";
   db.query(sqlQuery, [accountId, dateFrom, dateTo], (err, result) => {
     if (err) {
       logger.error(

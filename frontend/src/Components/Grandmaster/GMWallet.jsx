@@ -3,6 +3,10 @@ import React, { useEffect, useContext, useState } from "react";
 import { AuthContext } from "../../store/auth-context";
 import WalletRequestTable from "../WalletRequestTable";
 import { toast, ToastContainer } from "react-toastify";
+import WithdrawalReq from "../WithdrawalReq";
+import DepositRequest from "../DepositRequest";
+import { BiHelpCircle } from 'react-icons/bi';
+import ReactTooltip from 'react-tooltip';
 
 function GMWallet() {
   //============================================
@@ -61,11 +65,7 @@ function GMWallet() {
 
   function getUnsettledDeposits() {
     const accType =
-      ctx.user.accountType === "admin"
-        ? 0
-        : ctx.user.accountType === "masteragent"
-        ? 1
-        : 2;
+      ctx.user.accountType === "admin" ? 0  : ctx.user.accountType === "masteragent" ? 1 : ctx.user.accountType === "grandmaster" ? 5: 2;
     axios({
       method: "get",
       url: `${bankHeader}/getUnsettledRequest/${ctx.user.accountID}/${accType}/0`,
@@ -82,11 +82,7 @@ function GMWallet() {
 
   function getUnsettledWithdrawals() {
     const accType =
-      ctx.user.accountType === "admin"
-        ? 0
-        : ctx.user.accountType === "masteragent"
-        ? 1
-        : 2;
+    ctx.user.accountType === "admin" ? 0  : ctx.user.accountType === "masteragent" ? 1 : ctx.user.accountType === "grandmaster" ? 5: 2;
     axios({
       method: "get",
       url: `${bankHeader}/getUnsettledRequest/${ctx.user.accountID}/${accType}/2`,
@@ -104,7 +100,7 @@ function GMWallet() {
   function getUsersList() {
     axios({
       method: "get",
-      url: `${accountHeader}/getAccountList/${ctx.user.accountID}/0`,
+      url: `${accountHeader}/getAccountList/${ctx.user.accountID}/5`,
       headers: accAuthorization,
     })
       .then((res) => {
@@ -197,106 +193,71 @@ function GMWallet() {
     });
   }
 
-  function calculateEarnings(earnings) {
-    const {
-      totalDepositsAccepted,
-      totalWithdrawalAccepted,
-      totalFundTransfers,
-      totalTipReceived,
-      totalBetsPlaced,
-      totalLossesCommissions,
-      totalLossesBetWinnings,
-    } = earnings;
+  function calculateEarnings(transList) {
+    var depositAccepted = 0;
+    var withdrawalAccepted = 0;
+    var depositRequested = 0;
+    var withdrawalRequested = 0;
+    var fundTransfers = 0;
+    var fundReceived = 0;
+    var commissions = 0;
 
-    setEarnings((prev) => {
-      return {
-        ...prev,
-        totalDepositAccepted: parseFloat(totalDepositsAccepted).toFixed(2),
-        totalWithdrawalAccepted: parseFloat(totalWithdrawalAccepted).toFixed(2),
-        totalFundTransfers: parseFloat(totalFundTransfers).toFixed(2),
-        totalTipReceived: parseFloat(totalTipReceived).toFixed(2),
-        totalBetsPlaced: parseFloat(totalBetsPlaced).toFixed(2),
-        totalLossesCommissions: parseFloat(totalLossesCommissions).toFixed(2),
-        totalLossesBetWinnings: parseFloat(totalLossesBetWinnings).toFixed(2),
-      };
+    transList.forEach((trx) => {
+      if (trx.transaction_type === 0 && trx.status === 1) {
+        depositRequested += trx.amount;
+      } else if (trx.transaction_type === 1) {
+        depositAccepted += trx.amount;
+      } else if (trx.transaction_type === 2 && trx.status === 1) {
+        withdrawalRequested += trx.amount;
+      } else if (trx.transaction_type === 3) {
+        withdrawalAccepted += trx.amount;
+      } else if (trx.transaction_type === 4) {
+        fundTransfers += trx.amount;
+      } else if (trx.transaction_type === 5) {
+        fundReceived += trx.amount;
+      } else if (trx.transaction_type === 6) {
+        commissions += trx.amount;
+      }
     });
 
-    const totalEarnings =
-      parseFloat(earnings.totalDepositsAccepted) -
-      parseFloat(earnings.totalWithdrawalAccepted) -
-      parseFloat(earnings.totalFundTransfers) +
-      parseFloat(earnings.totalTipReceived) +
-      parseFloat(earnings.totalBetsPlaced) -
-      parseFloat(earnings.totalLossesCommissions) -
-      parseFloat(earnings.totalLossesBetWinnings);
+    var totalEarnings =
+      depositAccepted -
+      depositRequested +
+      withdrawalRequested -
+      withdrawalAccepted -
+      fundTransfers +
+      fundReceived +
+      commissions;
 
     setEarnings((prev) => {
       return {
         ...prev,
-        totalEarnings: parseFloat(totalEarnings).toFixed(2),
+        totalDepositRequested: depositRequested.toFixed(2),
+        totalDepositAccepted: depositAccepted.toFixed(2),
+        totalWithdrawalRequested: withdrawalRequested.toFixed(2),
+        totalWithdrawalAccepted: withdrawalAccepted.toFixed(2),
+        totalFundTransfers: fundTransfers.toFixed(2),
+        totalFundReceived: fundReceived.toFixed(2),
+        totalCommissions: commissions.toFixed(2),
+        totalEarnings: totalEarnings.toFixed(2),
       };
     });
   }
 
-  function getTransactionHistory() {
+  function getEarnings(e) {
     axios({
       method: "get",
       url: `${bankHeader}/getTransactionHistory/${ctx.user.accountID}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
       headers: bankAuthorization,
     })
       .then((res) => {
-        let totalDepositsAccepted = 0;
-        let totalWithdrawalAccepted = 0;
-        let totalFundTransfers = 0;
-        let totalTipReceived = 0;
-        let totalBetsPlaced = 0;
-        let totalLossesBetWinnings = 0;
-        let totalLossesCommissions = 0;
+        console.log(res.data.data)
         const data = res.data.data;
-        data.forEach((transaction) => {
-          const transType = transaction.transaction_type;
-          const amount = transaction.amount;
-          if (transType === 1) {
-            totalDepositsAccepted += amount;
-          } else if (transType === 3) {
-            totalWithdrawalAccepted += amount;
-          } else if (transType === 4) {
-            totalFundTransfers += amount;
-          } else if (transType === 8) {
-            totalTipReceived += amount;
-          }
-        });
-        axios({
-          method: "get",
-          url: `${bankHeader}/getBetCommissionEarnings/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
-          headers: bankAuthorization,
-        })
-          .then((res) => {
-            const data = res.data.data;
-            totalBetsPlaced = data.stake;
-            totalLossesBetWinnings = data.winnings;
-            totalLossesCommissions = data.commissions;
-            calculateEarnings({
-              totalDepositsAccepted: totalDepositsAccepted,
-              totalWithdrawalAccepted: totalWithdrawalAccepted,
-              totalFundTransfers: totalFundTransfers,
-              totalTipReceived: totalTipReceived,
-              totalBetsPlaced: totalBetsPlaced,
-              totalLossesCommissions: totalLossesCommissions,
-              totalLossesBetWinnings: totalLossesBetWinnings,
-            });
-          })
-          .catch((err) => {
-            console.log(err);
-          });
+        calculateEarnings(data);
       })
       .catch((err) => {
         console.log(err);
       });
-  }
-
-  function getEarnings(e) {
-    getTransactionHistory();
 
     e.preventDefault();
   }
@@ -349,67 +310,57 @@ function GMWallet() {
                   </div>
                 </div>
                 <div className="row">
+                  <div className="col-md-7 col-6 admin-wallet-font">
+                    <h5>Wallet Activities: <BiHelpCircle data-tip data-for="walletHelp"/></h5>
+                  </div>
+                  <div className="col-md-7 col-6 admin-wallet-font">
+                    <b>Deposit Accepted</b>
+                  </div>
+                  <div className="col-md-5 col-6 admin-wallet-font">
+                    ₱{earnings.totalDepositAccepted}
+                  </div>
+                  <div className="col-md-7 col-6 admin-wallet-font">
+                    <b>Withdrawal Accepted</b>
+                  </div>
+                  <div className="col-md-5 col-6 admin-wallet-font">
+                    ₱{earnings.totalWithdrawalAccepted}
+                  </div>
+                  <div className="col-md-7 col-6 admin-wallet-font">
+                    <b>Deposit Requested</b>
+                  </div>
+                  <div className="col-md-5 col-6 admin-wallet-font">
+                    ₱{earnings.totalDepositRequested}
+                  </div>
+                  <div className="col-md-7 col-6 admin-wallet-font">
+                    <b>Withdrawal Requested</b>
+                  </div>
+                  <div className="col-md-5 col-6 admin-wallet-font">
+                    ₱{earnings.totalWithdrawalRequested}
+                  </div>
+                  <div className="col-md-7 col-6 admin-wallet-font">
+                    <b>Fund Transfers</b>
+                  </div>
+                  <div className="col-md-5 col-6 admin-wallet-font">
+                    ₱{earnings.totalFundTransfers}
+                  </div>
+                  <div className="col-md-7 col-6 admin-wallet-font">
+                    <b>Fund Received</b>
+                  </div>
+                  <div className="col-md-5 col-6 admin-wallet-font">
+                    ₱{earnings.totalFundReceived}
+                  </div>
+                  <div className="col-md-7 col-6 admin-wallet-font">
+                    <b>Total Commissions</b>
+                  </div>
+                  <div className="col-md-5 col-6 admin-wallet-font">
+                    ₱{earnings.totalCommissions}
+                  </div>
                   {/* <div className="col-md-7 col-6 admin-wallet-font">
-                    <b>Wallet Balance:</b>
+                    <b>Total Earnings</b>
                   </div>
                   <div className="col-md-5 col-6 admin-wallet-font">
-                    P 99,999.99
+                    ₱{earnings.totalEarnings}
                   </div> */}
-                  {/* <div className="col-md-7 col-6 admin-wallet-font">
-                    <b>Total Bets Placed:</b>
-                  </div>
-                  <div className="col-md-5 col-6 admin-wallet-font">
-                    P 60, 000.00
-                  </div> */}
-                  <div className="col-md-7 col-6 admin-wallet-font">
-                    <b>(+) Total Deposits Received:</b>
-                  </div>
-                  <div className="col-md-5 col-6 admin-wallet-font">
-                    P {earnings.totalDepositAccepted}
-                  </div>
-                  <div className="col-md-7 col-6 admin-wallet-font">
-                    <b>(-) Total Withdrawals:</b>
-                  </div>
-                  <div className="col-md-5 col-6 admin-wallet-font">
-                    P {earnings.totalWithdrawalAccepted}
-                  </div>
-                  <div className="col-md-7 col-6 admin-wallet-font">
-                    <b>(-) Total Fund Transfers:</b>
-                  </div>
-                  <div className="col-md-5 col-6 admin-wallet-font">
-                    P {earnings.totalFundTransfers}
-                  </div>
-                  <div className="col-md-7 col-6 admin-wallet-font">
-                    <b>(+) Total Tip Received:</b>
-                  </div>
-                  <div className="col-md-5 col-6 admin-wallet-font">
-                    P {earnings.totalTipReceived}
-                  </div>
-
-                  <div className="col-md-7 col-6 admin-wallet-font">
-                    <b>(+) Total Bets Placed:</b>
-                  </div>
-                  <div className="col-md-5 col-6 admin-wallet-font">
-                    P {earnings.totalBetsPlaced}
-                  </div>
-                  <div className="col-md-7 col-6 admin-wallet-font">
-                    <b>(-) Total Commissions Given:</b>
-                  </div>
-                  <div className="col-md-5 col-6 admin-wallet-font">
-                    P {earnings.totalLossesCommissions}
-                  </div>
-                  <div className="col-md-7 col-6 admin-wallet-font">
-                    <b>(-) Total Bet Winnings:</b>
-                  </div>
-                  <div className="col-md-5 col-6 admin-wallet-font">
-                    P {earnings.totalLossesBetWinnings}
-                  </div>
-                  <div className="col-md-7 col-6 admin-wallet-font">
-                    <b>Total Earnings:</b>
-                  </div>
-                  <div className="col-md-5 col-6 admin-wallet-font">
-                    P {earnings.totalEarnings}
-                  </div>
                 </div>
               </div>
             </div>
@@ -507,6 +458,17 @@ function GMWallet() {
               </div>
             </div>
           </div>
+          <DepositRequest
+            accId={ctx.user.accountID}
+            header="http://localhost:4006"
+            col="6"
+          />
+          <WithdrawalReq
+            accId={ctx.user.accountID}
+            header="http://localhost:4006"
+            walletBalance={ctx.walletBalance}
+            col="6"
+          />
         </div>
       </form>
 
@@ -532,7 +494,7 @@ function GMWallet() {
                   requesterAccountId={x.account_id}
                   requesterUsername={x.username}
                   requesterType={x.account_type}
-                  placementDate={x.placement_date.substring(0, 10)}
+                  placementDate={new Date(Date.parse(x.placement_date)).toLocaleString(('en-us', {timeZone : 'Asia/Taipei'}))}
                   amount={x.amount}
                   phoneNum={x.phone_num}
                   accepterAccountId={ctx.user.accountID}
@@ -572,7 +534,7 @@ function GMWallet() {
                   requesterAccountId={x.account_id}
                   requesterUsername={x.username}
                   requesterType={x.account_type}
-                  placementDate={x.placement_date.substring(0, 10)}
+                  placementDate={new Date(Date.parse(x.placement_date)).toLocaleString(('en-us', {timeZone : 'Asia/Taipei'}))}
                   amount={x.amount}
                   phoneNum={x.phone_num}
                   accepterAccountId={ctx.user.accountID}
@@ -590,6 +552,19 @@ function GMWallet() {
           )}
         </div>
       </div>
+
+      <ReactTooltip id="walletHelp" place="bottom" effect="solid">
+        <b>Wallet Activities:</b> <br />
+        <b>Deposit Accepted</b> - Total of All Deposits you accepted from your Players <br />
+        <b>Withdrawal Accepted</b> - Total of All Deposits you accepted from your players <br /> <br/>
+        <b>Deposit Requested</b> - Total of All Approved Deposits you requested from your agent <br />
+        <b>Withdrawal Requested</b> - Total of All Approved Withdrawals you requested from your agent <br /><br/>
+        <b>Fund Transfer</b> - Total of all Fund Transfers from your wallet to your player's wallet <br />
+        <b>Fund Received</b> - Total of all Fund Received from your agent to your wallet <br /><br/>
+        <b>Commissions</b> - Total of all commissions you received from your players' bets. Commissions are automatically topped up in your wallet <br /><br/>
+
+        <em>All with respect to your Date Setting</em>
+      </ReactTooltip>
     </div>
   );
 }
