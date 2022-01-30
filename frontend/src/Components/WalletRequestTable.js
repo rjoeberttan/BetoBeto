@@ -34,7 +34,10 @@ function WalletRequestTable({
       setRequesterTypeStr("Agent");
     } else if (requesterType === 3) {
       setRequesterTypeStr("Player");
-    } else {
+    } else if (requesterType === 5) {
+      setRequesterTypeStr("G. Master");
+    }
+    else {
       setRequesterTypeStr("Unknown");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

@@ -2,6 +2,8 @@ import React, { useState, useEffect, useContext } from "react";
 import axios from "axios";
 import { AuthContext } from "../store/auth-context";
 import { toast } from "react-toastify";
+import Select from "react-select";
+
 import "./TransactionsPage.css";
 
 export default function TransactionsPage() {
@@ -62,9 +64,12 @@ export default function TransactionsPage() {
       accType = 1;
     } else if (accType === "agent") {
       accType = 2;
-    } else if (accType === "player"){
+    } else if (accType === "player") {
       accType = 3;
-    } else {
+    } else if (accType === "grandmaster") {
+      accType = 5;
+    }
+    else {
       accType = 4;
     }
 
@@ -93,6 +98,7 @@ export default function TransactionsPage() {
       headers: bankAuthorization,
     })
       .then((res) => {
+        console.log(res.data.data);
         const data = res.data.data;
         setTransactionsList(data);
       })
@@ -117,15 +123,13 @@ export default function TransactionsPage() {
   }
 
   function setActiveUser(e) {
-    const [accountId, username] = e.target.value.split("-");
+    const [accountId, username] = e.value.split("-");
     setActiveUserId(accountId);
     setActiveUsername(username);
-    e.preventDefault();
   }
 
   function handleFilterChange(e) {
     const value = Number(e.target.value);
-    console.log(value);
     if (value !== 0 && value !== 9) {
       const x = usersList.filter((user) => user.account_type === value);
       setUserFilter(e.target.value);
@@ -197,7 +201,7 @@ export default function TransactionsPage() {
   }
 
   function renderChoiceMasterAgent() {
-    if (ctx.user.accountType === "admin") {
+    if (ctx.user.accountType === "admin" || ctx.user.accountType === "grandmaster") {
       return (
         <div className="form-check form-check-inline">
           <input
@@ -213,6 +217,23 @@ export default function TransactionsPage() {
     }
   }
 
+  function renderChoiceGrandMaster() {
+    if (ctx.user.accountType === "admin") {
+      return (
+        <div className="form-check form-check-inline">
+          <input
+            className="form-check-input"
+            type="radio"
+            name="inlineRadioOptions"
+            value="5"
+            onChange={handleFilterChange}
+          />
+          <label className="form-check-label">Grand Master</label>
+        </div>
+      );
+    }
+  }
+
   function renderChoiceAgent() {
     let defaultVal = false;
     if (ctx.user.accountType === "masteragent") {
@@ -220,7 +241,7 @@ export default function TransactionsPage() {
     }
     if (
       ctx.user.accountType === "admin" ||
-      ctx.user.accountType === "masteragent"
+      ctx.user.accountType === "masteragent" || ctx.user.accountType === "grandmaster"
     ) {
       return (
         <div className="form-check form-check-inline">
@@ -281,7 +302,7 @@ export default function TransactionsPage() {
 
   function renderUserFilterHeading() {
     if (ctx.user.accountType !== "player") {
-      return <h4 className="lead smaller-device">User Filter</h4>;
+      return <h4 className="lead smaller-device">Username Filter</h4>;
     } else {
       return;
     }
@@ -292,6 +313,7 @@ export default function TransactionsPage() {
       <div>
         <div>
           {renderChoiceAll()}
+          {renderChoiceGrandMaster()}
           {renderChoiceMasterAgent()}
           {renderChoiceAgent()}
           {renderChoicePlayer()}
@@ -354,7 +376,229 @@ export default function TransactionsPage() {
     );
   }
 
+  function handleAllUserSearch(e) {
+    axios({
+      method: "get",
+      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
+      headers: bankAuthorization,
+    })
+      .then((res) => {
+        const data = res.data.data;
+        console.log(data);
+        setTransactionsList(data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+    
+    axios({
+        method: "get",
+        url: `${betHeader}/getAllBetHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
+        headers: betAuthorization,
+      })
+        .then((res) => {
+          const data = res.data.data;
+          setBetList(data);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      setUserFilter("3");
+
+    e.preventDefault();
+  }
+
+  function handleGMUserSearch(e) {
+    axios({
+      method: "get",
+      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
+      headers: bankAuthorization,
+    })
+      .then((res) => {
+        const data = res.data.data;
+        var newArr = data.filter((el) => {
+          return el.account_type === 5;
+        });
+        setTransactionsList(newArr);
+        setBetList([])
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+    e.preventDefault();
+  }
+
+  function handleMAUserSearch(e) {
+    axios({
+      method: "get",
+      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
+      headers: bankAuthorization,
+    })
+      .then((res) => {
+        const data = res.data.data;
+        console.log(data)
+        var newArr = data.filter((el) => {
+          return el.account_type === 1;
+        });
+        setTransactionsList(newArr);
+        setBetList([])
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+    e.preventDefault();
+  }
+
+  function handleAgentUserSearch(e) {
+    axios({
+      method: "get",
+      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
+      headers: bankAuthorization,
+    })
+      .then((res) => {
+        const data = res.data.data;
+        var newArr = data.filter((el) => {
+          return el.account_type === 2;
+        });
+        setTransactionsList(newArr);
+        setBetList([])
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+    e.preventDefault();
+  }
+
+  function handlePlayerUserSearch(e) {
+    axios({
+      method: "get",
+      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
+      headers: bankAuthorization,
+    })
+      .then((res) => {
+        const data = res.data.data;
+        var newArr = data.filter((el) => {
+          return el.account_type === 3;
+        });
+        setTransactionsList(newArr);
+        setUserFilter("3");
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+
+    axios({
+      method: "get",
+      url: `${betHeader}/getAllBetHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
+      headers: betAuthorization,
+    })
+      .then((res) => {
+        const data = res.data.data;
+        setBetList(data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+    setUserFilter("3");
+    e.preventDefault();
+  }
+
+  function renderAllUserSearch() {
+    if (ctx.user.accountType === "admin" || ctx.user.accountType === "grandmaster" || ctx.user.accountType === "masteragent") {
+      return (
+        <div className="col-md-2 col-6" style={{ marginBottom: "10px" }}>
+          <button
+            className="btn btn-color transaction-btn text-light col-xs-12"
+            onClick={handleAllUserSearch}
+          >
+            Search All Users
+          </button>
+        </div>
+      );
+    }
+  }
+
+  function renderGMUserSearch() {
+    if (ctx.user.accountType === "admin") {
+      return (
+        <div className="col-md-2 col-6" style={{ marginBottom: "10px" }}>
+          <button
+            className="btn btn-color transaction-btn text-light col-xs-12"
+            onClick={handleGMUserSearch}
+          >
+            Search GM Users
+          </button>
+        </div>
+      );
+    }
+  }
+
+  function renderMAUserSearch() {
+    if (
+      ctx.user.accountType === "admin" ||
+      ctx.user.accountType === "grandmaster"
+    ) {
+      return (
+        <div className="col-md-2 col-6" style={{ marginBottom: "10px" }}>
+          <button
+            className="btn btn-color transaction-btn text-light col-xs-12"
+            onClick={handleMAUserSearch}
+          >
+            Search MA Users
+          </button>
+        </div>
+      );
+    }
+  }
+
+  function renderAgentUserSearch() {
+    if (ctx.user.accountType === "admin" || ctx.user.accountType === "grandmaster" || ctx.user.accountType === "masteragent" ) {
+      return (
+        <div className="col-md-2 col-6">
+          <button
+            className="btn btn-color transaction-btn text-light col-xs-12"
+            onClick={handleAgentUserSearch}
+          >
+            Search Agent Users
+          </button>
+        </div>
+      );
+    }
+  }
+
+  function renderPlayerUserSearch() {
+    if (ctx.user.accountType !== "player") {
+      return (
+        <div className="col-md-2 col-6">
+          <button
+            className="btn btn-color transaction-btn text-light col-xs-12"
+            onClick={handlePlayerUserSearch}
+          >
+            Search Player Users
+          </button>
+        </div>
+      );
+    }
+  }
+
   function renderUserFilter() {
+    const colorStyles = {
+      option: (provided, state) => ({
+        ...provided,
+        color: "black",
+      }),
+    };
+
+    const options = [];
+    filteredList.map((x) => {
+      options.push({
+        value: x.account_id + "-" + x.username,
+        label: x.username,
+      });
+    });
     if (ctx.user.accountType !== "player") {
       return (
         <div className="row">
@@ -362,22 +606,18 @@ export default function TransactionsPage() {
             <label className="col-form-label">Username</label>
           </div>
           <div className="col-md-2">
-            <select className="form-select" onChange={setActiveUser}>
-              {filteredList.map((x) => (
-                <option
-                  key={Math.random()}
-                  value={x.account_id + "-" + x.username}
-                >
-                  {x.username}{" "}
-                </option>
-              ))}
-            </select>
+            <Select
+              onChange={setActiveUser}
+              options={options}
+              styles={colorStyles}
+            ></Select>
           </div>
           <div className="col-md-2">{renderSearchButton()}</div>
         </div>
       );
     }
   }
+
   return (
     <div className="container text-light container-transactions">
       <div className="heading-text">
@@ -388,6 +628,14 @@ export default function TransactionsPage() {
         {renderUserFilterHeading()}
         {renderChoices()}
         {renderUserFilter()}
+        <h4 className="lead smaller-device">Type Filter</h4>
+        <div className="row" style={{ marginTop: "10px" }}>
+          {renderAllUserSearch()}
+          {renderGMUserSearch()}
+          {renderMAUserSearch()}
+          {renderAgentUserSearch()}
+          {renderPlayerUserSearch()}
+        </div>
       </form>
       <div className="table-responsive">
         <table className="table table-success table-striped transaction-page-spacing">
@@ -395,6 +643,7 @@ export default function TransactionsPage() {
             <tr>
               <th scope="col">Date</th>
               <th scope="col">Transaction ID</th>
+              <th scope="col">Account ID/Username</th>
               <th scope="col">Description</th>
               <th scope="col">Amount</th>
               <th scope="col">Cummulative</th>
@@ -405,8 +654,10 @@ export default function TransactionsPage() {
           <tbody>
             {transactionsList.map((x) => (
               <tr key={Math.random()}>
-                <td>{x.placement_date}</td>
+                {/* <td>{x.placement_date}</td> */}
+                <td>{new Date(Date.parse(x.placement_date)).toLocaleString(('en-us', {timeZone : 'Asia/Taipei'}))}</td>
                 <td>{x.transaction_id}</td>
+                <td>{!x.username ? x.account_id : x.username}</td>
                 <td>{x.description}</td>
                 <td>₱ {x.amount.toFixed(2)}</td>
                 <td>₱ {x.cummulative ? x.cummulative.toFixed(2) : "-"}</td>
@@ -434,6 +685,7 @@ export default function TransactionsPage() {
               <tr>
                 <th scope="col">Date</th>
                 <th scope="col">Bet ID</th>
+                <th scope="col">Username/Account ID</th>
                 <th scope="col">Market ID</th>
                 <th scope="col">Description</th>
                 <th scope="col">Stake</th>
@@ -446,17 +698,20 @@ export default function TransactionsPage() {
             <tbody>
               {betList.map((x) => (
                 <tr key={Math.random()}>
-                  <td>{x.placement_date.substring(0, 10)}</td>
+                  <td>{new Date(Date.parse(x.placement_date)).toLocaleString(('en-us', {timeZone : 'Asia/Taipei'}))}</td>
                   <td>{x.bet_id}</td>
+                  <td>{!x.username ? x.account_id : x.username}</td>
                   <td>{x.market_id}</td>
                   <td>{x.description}</td>
                   <td>₱ {x.stake.toFixed(2)}</td>
                   <td>₱ {x.cummulative ? x.cummulative.toFixed(2) : "-"}</td>
-                  <td>{x.status === 0
-                          ? "Pending"
-                          : x.status === 1
-                          ? "Lose"
-                          : "Win"}</td>
+                  <td>
+                    {x.status === 0
+                      ? "Pending"
+                      : x.status === 1
+                      ? "Lose"
+                      : "Win"}
+                  </td>
                   <td>{x.result}</td>
                   <td>{x.settled_date}</td>
                 </tr>
@@ -465,7 +720,7 @@ export default function TransactionsPage() {
           </table>
         </div>
       ) : null}
-      {transactionsList.length === 0 && userFilter === "3"
+      {transactionsList.length === 0 && userFilter === "3" 
         ? renderEmptyTable(true)
         : renderEmptyTable(false)}
     </div>

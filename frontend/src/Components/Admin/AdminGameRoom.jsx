@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import AdminGameRoomList from "./AdminGameRoomList";
+import colorGameLogo from "./colorgame.png"
 import "./AdminGameRoom.css";
 const axios = require("axios").default;
 
@@ -18,8 +19,8 @@ function AdminGameRoom() {
     });
   }, []);
 
-  const sampleImgUrl =
-    "https://psycatgames.com/magazine/party-games/three-man-dice/feature-image_hu9ed284971d2ae71dd1c66e655aa65d6d_1287743_1200x1200_fill_q100_box_smart1.jpg";
+  // const sampleImgUrl =
+  //   "https://psycatgames.com/magazine/party-games/three-man-dice/feature-image_hu9ed284971d2ae71dd1c66e655aa65d6d_1287743_1200x1200_fill_q100_box_smart1.jpg";
   return (
     <div className="container text-light container-game-room">
       <div className="heading-text">
@@ -29,7 +30,7 @@ function AdminGameRoom() {
         {gameList.map((game) => (
           <AdminGameRoomList
             key={game.game_id}
-            sampleImgUrl={sampleImgUrl}
+            sampleImgUrl={colorGameLogo}
             name={game.name}
             min_bet={game.min_bet}
             max_bet={game.max_bet}

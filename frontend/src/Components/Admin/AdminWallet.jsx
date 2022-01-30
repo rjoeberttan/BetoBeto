@@ -3,6 +3,8 @@ import React, { useEffect, useContext, useState } from "react";
 import { AuthContext } from "../../store/auth-context";
 import WalletRequestTable from "../WalletRequestTable";
 import { toast, ToastContainer } from "react-toastify";
+import { BiHelpCircle } from 'react-icons/bi';
+import ReactTooltip from 'react-tooltip';
 import "./AdminWallet.css";
 
 function AdminWallet() {
@@ -95,6 +97,7 @@ function AdminWallet() {
     })
       .then((res) => {
         const data = res.data.data;
+        console.log(data)
         setWithdrawalRequest(data);
       })
       .catch((err) => {
@@ -364,7 +367,10 @@ function AdminWallet() {
                     P 60, 000.00
                   </div> */}
                   <div className="col-md-7 col-6 admin-wallet-font">
-                    <b>(+) Total Deposits Received:</b>
+                    <h5>Wallet Activities: <BiHelpCircle data-tip data-for="walletHelp"/></h5> 
+                  </div>
+                  <div className="col-md-7 col-6 admin-wallet-font">
+                    <b>Total Deposits Received:</b>
                   </div>
                   <div className="col-md-5 col-6 admin-wallet-font">
                     P {earnings.totalDepositAccepted}
@@ -387,7 +393,6 @@ function AdminWallet() {
                   <div className="col-md-5 col-6 admin-wallet-font">
                     P {earnings.totalTipReceived}
                   </div>
-
                   <div className="col-md-7 col-6 admin-wallet-font">
                     <b>(+) Total Bets Placed:</b>
                   </div>
@@ -433,6 +438,16 @@ function AdminWallet() {
                       defaultChecked
                     />
                     <label className="form-check-label">All</label>
+                  </div>
+                  <div className="form-check form-check-inline">
+                    <input
+                      className="form-check-input"
+                      type="radio"
+                      name="inlineRadioOptions"
+                      value="5"
+                      onChange={handleFilterChange}
+                    />
+                    <label className="form-check-label">G. Masters</label>
                   </div>
                   <div className="form-check form-check-inline">
                     <input
@@ -592,6 +607,19 @@ function AdminWallet() {
           )}
         </div>
       </div>
+
+      <ReactTooltip id="walletHelp" place="bottom" effect="solid">
+        <b>Wallet Activities:</b> <br />
+        <b>Total Deposits Received</b> - Total of All Deposits you accepted from your Clients <br />
+        <b>Total Tips Received</b> - Total of All Tips that players gave <br />
+        <b>Total Amount of Bets Placed</b> - Total amount of all Bets Placed by Players <br />
+        <b>Total Withdrawals</b> - Total of All Withdrawals you accepted from your Clients <br />
+        <b>Total Fund Transfer</b> - Total of All Funds you sent to your Clients <br />
+        <b>Total Commissions Given</b> - Total of all Commissions issued to your Clients <br />
+        <b>Total Bet Winnings Given away</b> - Total amount of all Funds lost due to giving winnings to players <br /><br/>
+
+        <em>All with respect to your Date Setting</em>
+      </ReactTooltip>
     </div>
   );
 }

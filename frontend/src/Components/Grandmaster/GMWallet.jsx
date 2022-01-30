@@ -2,27 +2,31 @@ import axios from "axios";
 import React, { useEffect, useContext, useState } from "react";
 import { AuthContext } from "../../store/auth-context";
 import WalletRequestTable from "../WalletRequestTable";
+import { toast, ToastContainer } from "react-toastify";
 import WithdrawalReq from "../WithdrawalReq";
 import DepositRequest from "../DepositRequest";
-import { toast, ToastContainer } from "react-toastify";
 import { BiHelpCircle } from 'react-icons/bi';
 import ReactTooltip from 'react-tooltip';
-import "./AgentWallet.css";
 
-function AgentWallet() {
+function GMWallet() {
   //============================================
   // Variable and useState Definitions
   //============================================
   const ctx = useContext(AuthContext);
-  const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT;
   const bankHeader = process.env.REACT_APP_HEADER_BANK;
+  const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT;
+  const bankAuthorization = {
+    "Authorization": process.env.REACT_APP_KEY_BANK,
+  };
   const accAuthorization = {
     "Authorization": process.env.REACT_APP_KEY_ACCOUNT,
   };
-  const bankAuthorization = { "Authorization": process.env.REACT_APP_KEY_BANK };
   const [depositRequest, setDepositRequest] = useState([]);
   const [withdrawalRequest, setWithdrawalRequest] = useState([]);
   const [usersList, setUsersList] = useState([]);
+  const [filteredList, setFilteredList] = useState([]);
+  // eslint-disable-next-line no-unused-vars
+  const [userFilter, setUserFilter] = useState("0");
   const [activeUserId, setActiveUserId] = useState("");
   const [activeUsername, setActiveUsername] = useState("");
   const [amount, setAmount] = useState();
@@ -31,13 +35,13 @@ function AgentWallet() {
     endDate: "",
   });
   const [earnings, setEarnings] = useState({
-    totalDepositRequested: 0,
     totalDepositAccepted: 0,
-    totalWithdrawalRequested: 0,
     totalWithdrawalAccepted: 0,
     totalFundTransfers: 0,
-    totalFundReceived: 0,
-    totalCommissions: 0,
+    totalTipReceived: 0,
+    totalBetsPlaced: 0,
+    totalLossesBetWinnings: 0,
+    totalLossesCommissions: 0,
     totalEarnings: 0,
   });
 
@@ -61,11 +65,7 @@ function AgentWallet() {
 
   function getUnsettledDeposits() {
     const accType =
-      ctx.user.accountType === "admin"
-        ? 0
-        : ctx.user.accountType === "masteragent"
-        ? 1
-        : 2;
+      ctx.user.accountType === "admin" ? 0  : ctx.user.accountType === "masteragent" ? 1 : ctx.user.accountType === "grandmaster" ? 5: 2;
     axios({
       method: "get",
       url: `${bankHeader}/getUnsettledRequest/${ctx.user.accountID}/${accType}/0`,
@@ -73,7 +73,6 @@ function AgentWallet() {
     })
       .then((res) => {
         const data = res.data.data;
-        console.log(data);
         setDepositRequest(data);
       })
       .catch((err) => {
@@ -83,11 +82,7 @@ function AgentWallet() {
 
   function getUnsettledWithdrawals() {
     const accType =
-      ctx.user.accountType === "admin"
-        ? 0
-        : ctx.user.accountType === "masteragent"
-        ? 1
-        : 2;
+    ctx.user.accountType === "admin" ? 0  : ctx.user.accountType === "masteragent" ? 1 : ctx.user.accountType === "grandmaster" ? 5: 2;
     axios({
       method: "get",
       url: `${bankHeader}/getUnsettledRequest/${ctx.user.accountID}/${accType}/2`,
@@ -95,7 +90,6 @@ function AgentWallet() {
     })
       .then((res) => {
         const data = res.data.data;
-        console.log(data);
         setWithdrawalRequest(data);
       })
       .catch((err) => {
@@ -106,48 +100,87 @@ function AgentWallet() {
   function getUsersList() {
     axios({
       method: "get",
-      url: `${accountHeader}/getAccountList/${ctx.user.accountID}/2`,
+      url: `${accountHeader}/getAccountList/${ctx.user.accountID}/5`,
       headers: accAuthorization,
     })
       .then((res) => {
         const data = res.data.data;
-        console.log(data);
         setUsersList(data);
-        setActiveUsername(data[0].username);
-        setActiveUserId(data[0].account_id);
+        setActiveUsername(data[1].username);
+        setActiveUserId(data[1].account_id);
+        setFilteredList(data);
       })
       .catch((err) => {
         console.log(err);
       });
   }
 
-  //=====================================================
-  // Event Handler Functions
-  //=====================================================
   function setActiveUser(e) {
     const [accountId, username] = e.target.value.split("-");
     // console.log(accountId, username)
     setActiveUserId(accountId);
     setActiveUsername(username);
+    e.preventDefault();
+  }
+
+  //=====================================================
+  // Event Handler Functions
+  //=====================================================
+  function handleAmount(e) {
+    setAmount(parseFloat(e.target.value).toFixed(0));
+  }
+
+  function submitTransfer(e) {
+    const senderWallet = parseFloat(ctx.walletBalance).toFixed(2);
+
+    if (senderWallet < parseFloat(amount)) {
+      toast.error("Wallet balance is bigger than to send");
+    } else if (amount <= 0) {
+      toast.error("Invalid amount");
+    } else {
+      const data = {
+        fromAccountId: ctx.user.accountID,
+        fromUsername: ctx.user.username,
+        toAccountId: activeUserId,
+        toUsername: activeUsername,
+        amount: amount,
+      };
+      console.log(data);
+
+      axios({
+        method: "post",
+        url: `${bankHeader}/transferFunds`,
+        headers: bankAuthorization,
+        data: data,
+      })
+        .then((res) => {
+          let newWallet = parseFloat(ctx.walletBalance) - parseFloat(amount);
+          ctx.walletHandler(newWallet);
+
+          toast.success(res.data.message);
+          console.log(res);
+        })
+        .catch((err) => {
+          console.log(err);
+          toast.error("Fund transfer failed");
+        });
+    }
 
     e.preventDefault();
   }
 
-  function handleAmount(e){
-    setAmount(parseFloat(e.target.value).toFixed(0))
-    // const input = (e.target.value)
-    // const inputNum = (e.target.value)
-
-    // if (inputNum < 999999999){
-    //   if (input.indexOf('.') > 0) {
-    //     const decimalLength = input.length - input.indexOf('.') - 1;
-    //     if (decimalLength < 3){
-    //       setAmount(e.target.value)
-    //     }
-    //   } else {
-    //     setAmount(e.target.value)
-    //   }
-    // }
+  function handleFilterChange(e) {
+    const value = Number(e.target.value);
+    console.log(value);
+    if (value !== 0) {
+      const x = usersList.filter((user) => user.account_type === value);
+      setUserFilter(e.target.value);
+      setFilteredList(x);
+    } else {
+      console.log("gegege");
+      setFilteredList(usersList);
+      setUserFilter(e.target.value);
+    }
   }
 
   function handleDateChange(e) {
@@ -161,16 +194,15 @@ function AgentWallet() {
   }
 
   function calculateEarnings(transList) {
-    let depositAccepted = 0;
-    let withdrawalAccepted = 0;
-    let depositRequested = 0;
-    let withdrawalRequested = 0;
-    let fundTransfers = 0;
-    let fundReceived = 0;
-    let commissions = 0;
+    var depositAccepted = 0;
+    var withdrawalAccepted = 0;
+    var depositRequested = 0;
+    var withdrawalRequested = 0;
+    var fundTransfers = 0;
+    var fundReceived = 0;
+    var commissions = 0;
 
     transList.forEach((trx) => {
-      console.log(trx.transaction_type, trx.amount);
       if (trx.transaction_type === 0 && trx.status === 1) {
         depositRequested += trx.amount;
       } else if (trx.transaction_type === 1) {
@@ -213,15 +245,14 @@ function AgentWallet() {
   }
 
   function getEarnings(e) {
-    console.log("here");
     axios({
       method: "get",
       url: `${bankHeader}/getTransactionHistory/${ctx.user.accountID}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
       headers: bankAuthorization,
     })
       .then((res) => {
+        console.log(res.data.data)
         const data = res.data.data;
-        console.log(res);
         calculateEarnings(data);
       })
       .catch((err) => {
@@ -231,45 +262,10 @@ function AgentWallet() {
     e.preventDefault();
   }
 
-  function submitTransfer(e) {
-    const senderWallet = parseFloat(ctx.walletBalance).toFixed(2);
-    if (amount <= 0){
-      toast.error("Invalid Amount")
-    }
-    else if (senderWallet < parseFloat(amount)) {
-      toast.error("Wallet balance is bigger than to send");
-    } else {
-      const data = {
-        fromAccountId: ctx.user.accountID,
-        fromUsername: ctx.user.username,
-        toAccountId: activeUserId,
-        toUsername: activeUsername,
-        amount: amount,
-      };
-      console.log(data);
-
-      axios({
-        method: "post",
-        url: `${bankHeader}/transferFunds`,
-        headers: bankAuthorization,
-        data: data,
-      })
-        .then((res) => {
-          let newWallet = parseFloat(ctx.walletBalance) - parseFloat(amount);
-          ctx.walletHandler(newWallet);
-          toast.success(res.data.message);
-        })
-        .catch((err) => {
-          toast.error("Fund transfer failed");
-        });
-    }
-
-    e.preventDefault();
-  }
-
   //=====================================================
   //  Components
   //=====================================================
+
   return (
     <div className="container text-light container-wallet">
       <ToastContainer />
@@ -294,6 +290,7 @@ function AgentWallet() {
                       onChange={handleDateChange}
                     />
                   </div>
+                  -
                   <div className="col-md-4">
                     <input
                       className="date-style form-label"
@@ -303,7 +300,7 @@ function AgentWallet() {
                       onChange={handleDateChange}
                     />
                   </div>
-                  <div className="col-md-4">
+                  <div className="col-md-2">
                     <button
                       className="btn btn-color transaction-btn text-light col-xs-12"
                       onClick={getEarnings}
@@ -368,17 +365,63 @@ function AgentWallet() {
               </div>
             </div>
           </div>
+
           <div className="col-sm-6 wallet-card">
             <div className="card">
               <div className="card-body">
-                <h5 className="card-title">Transfer Funds</h5>
+                <h5 className="card-title">Increase Wallet</h5>
+
+                <div className="wallet-box master-wallet admin-wallet">
+                  <div className="form-check form-check-inline">
+                    <input
+                      className="form-check-input"
+                      type="radio"
+                      name="inlineRadioOptions"
+                      value="0"
+                      onChange={handleFilterChange}
+                      defaultChecked
+                    />
+                    <label className="form-check-label">All</label>
+                  </div>
+                  <div className="form-check form-check-inline">
+                    <input
+                      className="form-check-input"
+                      type="radio"
+                      name="inlineRadioOptions"
+                      value="1"
+                      onChange={handleFilterChange}
+                    />
+                    <label className="form-check-label">M. Agent</label>
+                  </div>
+                  <div className="form-check form-check-inline">
+                    <input
+                      className="form-check-input"
+                      type="radio"
+                      name="inlineRadioOptions"
+                      value="2"
+                      onChange={handleFilterChange}
+                    />
+                    <label className="form-check-label">Agents</label>
+                  </div>
+                  <div className="form-check form-check-inline">
+                    <input
+                      className="form-check-input"
+                      type="radio"
+                      name="inlineRadioOptions"
+                      value="3"
+                      onChange={handleFilterChange}
+                    />
+                    <label className="form-check-label">Player</label>
+                  </div>
+                </div>
+
                 <div className="row wallet-box">
-                  <div className="col-md-4">
+                  <div className="col-md-3">
                     <label className="col-form-label">Username</label>
                   </div>
-                  <div className="col-md-12">
+                  <div className="col-md-9">
                     <select className="form-select" onChange={setActiveUser}>
-                      {usersList.map((x) => (
+                      {filteredList.map((x) => (
                         <option
                           key={Math.random()}
                           value={x.account_id + "-" + x.username}
@@ -390,17 +433,17 @@ function AgentWallet() {
                   </div>
                 </div>
                 <div className="row wallet-box wallet-box-2">
-                  <div className="col-md-4">
+                  <div className="col-md-3">
                     <label className="col-form-label">Amount</label>
                   </div>
-                  <div className="col-md-12">
+                  <div className="col-md-9">
                     <input
                       type="number"
                       className="form-control"
                       onWheel={(e) => e.target.blur()}
+                      placeholder="P500"
                       value={amount}
                       onChange={handleAmount}
-                      placeholder="0.00"
                     />
                   </div>
                 </div>
@@ -430,7 +473,7 @@ function AgentWallet() {
       </form>
 
       <div className="row second-box">
-        <div className="col-md-12">
+        <div className="col-md-12 table-responsive">
           <h2>Deposit Request</h2>
           <table className="table table-success table-striped">
             <thead>
@@ -462,9 +505,15 @@ function AgentWallet() {
               ))}
             </tbody>
           </table>
+          {console.log(depositRequest.length)}
+          {depositRequest.length === 0 && (
+            <div>
+              <h5 className="no-transactions">No Deposit Requests</h5>
+            </div>
+          )}
         </div>
 
-        <div className="col-md-12">
+        <div className="col-md-12 table-responsive">
           <h2>Withdrawal Request</h2>
           <table className="table table-success table-striped">
             <thead>
@@ -496,6 +545,11 @@ function AgentWallet() {
               ))}
             </tbody>
           </table>
+          {withdrawalRequest.length === 0 && (
+            <div>
+              <h5 className="no-transactions">No Transaction Requests</h5>
+            </div>
+          )}
         </div>
       </div>
 
@@ -515,4 +569,4 @@ function AgentWallet() {
   );
 }
 
-export default AgentWallet;
+export default GMWallet;

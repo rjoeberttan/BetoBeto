@@ -30,6 +30,12 @@ import AdminMasterAgents from "./Components/Admin/AdminMasterAgents";
 import AdminAgents from "./Components/Admin/AdminAgents";
 import AdminPlayers from "./Components/Admin/AdminPlayers";
 import AdminWallet from "./Components/Admin/AdminWallet";
+import AdminGrandMasters from "./Components/Admin/AdminGrandMaster";
+//Grandmaster IMPORTS
+import GMMasteragents from "./Components/Grandmaster/GMMasteragents";
+import GMAgents from "./Components/Grandmaster/GMAgents";
+import GMWallet from "./Components/Grandmaster/GMWallet";
+import GMPlayers from "./Components/Grandmaster/GMPlayers";
 //ERROR PAGE
 import ErrorPage from "./Components/ErrorPage";
 //IMPORT TRANSACTION TABLE
@@ -69,6 +75,9 @@ function App() {
             ) : null}
             {token && ctx.user.accountType === "declarator" ? (
               <Redirect to="/declarator/gameroom" />
+            ) : null}
+            {token && ctx.user.accountType === "grandmaster" ? (
+              <Redirect to="/grandmaster/masteragents" />
             ) : null}
             <Login />
           </Route>
@@ -165,6 +174,27 @@ function App() {
             </Switch>
           ) : null}
 
+          {/* Grandmaster ROUTES */}
+          {token && ctx.user.accountType === "grandmaster" ? (
+            <Switch>
+              <Route
+                path="/grandmaster/masteragents"
+                exact
+                component={GMMasteragents}
+              />
+              <Route path="/grandmaster/agents" exact component={GMAgents} />
+              <Route path="/grandmaster/players" exact component={GMPlayers} />
+              <Route path="/grandmaster/wallet" exact component={GMWallet} />
+              <Route
+                path="/grandmaster/transactions"
+                exact
+                component={TransactionsPage}
+              />
+              <Route path="/grandmaster/account" exact component={MyAccount} />
+              <Route path="*" component={ErrorPage} />
+            </Switch>
+          ) : null}
+
           {/* ADMIN ROUTES */}
           {token && ctx.user.accountType === "admin" ? (
             <Switch>
@@ -183,6 +213,11 @@ function App() {
                 path="/admin/masteragents"
                 exact
                 component={AdminMasterAgents}
+              />
+              <Route
+                path="/admin/grandmaster"
+                exact
+                component={AdminGrandMasters}
               />
               <Route path="/admin/agents" exact component={AdminAgents} />
               <Route path="/admin/players" exact component={AdminPlayers} />
