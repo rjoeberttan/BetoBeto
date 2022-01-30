@@ -1,6 +1,7 @@
 import { React, useState, useEffect } from "react";
 import "./PlayerGameRoom.css";
 import PlayerGameRoomList from "./PlayerGameRoomList";
+import colorGameLogo from "./colorgame.png"
 const axios = require("axios");
 
 function GameRoom() {
@@ -19,8 +20,8 @@ function GameRoom() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const sampleImgUrl =
-    "https://psycatgames.com/magazine/party-games/three-man-dice/feature-image_hu9ed284971d2ae71dd1c66e655aa65d6d_1287743_1200x1200_fill_q100_box_smart1.jpg";
+  // const sampleImgUrl =
+  //   "https://psycatgames.com/magazine/party-games/three-man-dice/feature-image_hu9ed284971d2ae71dd1c66e655aa65d6d_1287743_1200x1200_fill_q100_box_smart1.jpg";
   return (
     <div className="container text-light container-game-room">
       <div className="heading-text">
@@ -30,7 +31,7 @@ function GameRoom() {
         {gameList.map((game) => (
           <PlayerGameRoomList
             key={game.game_id}
-            sampleImgUrl={sampleImgUrl}
+            sampleImgUrl={colorGameLogo}
             name={game.name}
             min_bet={game.min_bet}
             max_bet={game.max_bet}

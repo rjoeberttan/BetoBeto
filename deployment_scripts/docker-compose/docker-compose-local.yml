@@ -36,6 +36,18 @@ services:
       - /var/log/app/gamemanager:/var/log/app
     ports:
       - "4004:4004"
+  totalisator:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ../../be_totalisator
+    env_file:
+      - ../environment/local/.env.totalisator.local
+    volumes:
+      - /app/node_modules
+      - ../../be_totalisator:/app
+      - /var/log/app/totalisator:/var/log/app
+    ports:
+      - "4007:4007"
   bank:
     build:
       dockerfile: Dockerfile.dev
