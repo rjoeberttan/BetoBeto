@@ -943,7 +943,7 @@ app.get("/getMarketTrend/:gameId", (req, res) => {
   const apiKey = req.header("Authorization");
   const gameId = req.params.gameId;
   const status = 2;
-  const limit = 8;
+  const limit = 7;
 
   // Check if body is complete
   if (!gameId) {
