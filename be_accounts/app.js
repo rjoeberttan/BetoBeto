@@ -167,9 +167,9 @@ app.post("/register", (req, res) => {
           const account_status = newUserAccountType === 3 ? 1 : 0;
           const commission =
             newUserAccountType === 1
-              ? 5.0
+              ? 4.5
               : newUserAccountType === 2
-              ? 2.5
+              ? 2
               : newUserAccountType === 5
               ? 0.5
               : null;
