@@ -15,8 +15,10 @@ export default function AuthContextProvider(props) {
     accountID: "",
     email: "",
     phoneNum: "",
+    commission: ""
   });
   const [walletBalance, setWalletBalance] = useState(null);
+  const [commission, setCommission] = useState(null)
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -96,6 +98,20 @@ export default function AuthContextProvider(props) {
             .catch((err) => {
               console.log(err);
             });
+
+          axios({
+              method: "get",
+              url: `${accountHeader}/getCommission/${res.data.accountId}`,
+              headers: accAuthorization,
+            })
+              .then((res3) => {
+                console.log(res3)
+                const commission = res3.data.commission;
+                setCommission(commission);
+              })
+              .catch((err) => {
+                console.log(err);
+              });
           setIsLoggedIn(true);
         }
       })
@@ -178,6 +194,20 @@ export default function AuthContextProvider(props) {
                 .catch((err) => {
                   console.log(err);
                 });
+
+              axios({
+                  method: "get",
+                  url: `${accountHeader}/getCommission/${res.data.accountId}`,
+                  headers: accAuthorization,
+                })
+                  .then((res3) => {
+                    console.log(res3)
+                    const commission = res3.data.commission;
+                    setCommission(commission);
+                  })
+                  .catch((err) => {
+                    console.log(err);
+                  });
               setIsLoggedIn(true);
             } else if (
               accountType !== 0 &&
@@ -206,6 +236,7 @@ export default function AuthContextProvider(props) {
                   username: person.username,
                   email: res.data.email,
                   phoneNum: res.data.phoneNum,
+                  commission: res.data.commission,
                   accountType: "player",
                 });
               } else if (accountType === 5) {
@@ -238,6 +269,20 @@ export default function AuthContextProvider(props) {
                 .catch((err) => {
                   console.log(err);
                 });
+              
+              axios({
+                  method: "get",
+                  url: `${accountHeader}/getCommission/${res.data.accountId}`,
+                  headers: accAuthorization,
+                })
+                  .then((res3) => {
+                    console.log(res3)
+                    const commission = res3.data.commission;
+                    setCommission(commission);
+                  })
+                  .catch((err) => {
+                    console.log(err);
+                  });
               setIsLoggedIn(true);
             } else {
               toast.error("Invalid login page");
@@ -272,6 +317,7 @@ export default function AuthContextProvider(props) {
         user: account,
         hostHeader: accountHeader,
         walletBalance: walletBalance,
+        commission: commission
         // handleWallet: handleWallet
       }}
     >
