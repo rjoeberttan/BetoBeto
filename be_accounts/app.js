@@ -534,6 +534,62 @@ app.get("/getWalletBalance/:accountId", (req, res) => {
   });
 });
 
+
+app.get("/getCommission/:accountId", (req, res) => {
+  const start = process.hrtime();
+  // Get body
+  const accountId = req.params.accountId;
+  const apiKey = req.header("Authorization");
+
+  // Check if body is complete
+  if (!accountId) {
+    logger.warn(
+      `${req.originalUrl} request has missing body parameters, accountId:${accountId}`
+    );
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(
+      `${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`
+    );
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  // Process 1
+  // Get all necessary details
+  sqlQuery = "SELECT commission FROM accounts where account_id = ?";
+  db.query(sqlQuery, [accountId], (err, result) => {
+    if (err) {
+      logger.error(
+        `${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`
+      );
+      res.status(500).json({ message: "Server error" });
+    } else if (result.length <= 0) {
+      logger.warn(
+        `${req.originalUrl} request warning, account is not found in database, accountId:${accountId}`
+      );
+      res.status(409).json({ message: "Account not found" });
+    } else {
+      logger.info(
+        `${
+          req.originalUrl
+        } request successful, accountId:${accountId} duration:${getDurationInMilliseconds(
+          start
+        )}`
+      );
+      res.status(200).json({
+        message: "Request successful",
+        accountId: accountId,
+        commission: result[0].commission,
+      });
+    }
+  });
+});
+
 // POST updatePhoneDetail
 // Requires: accountId, phone, editorUsername, apiKey
 // Response:

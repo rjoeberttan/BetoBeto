@@ -554,15 +554,12 @@ app.post("/transferFunds", (req, res) => {
   // Process 1
   // Check if fromAccount has enough funds
   sqlQuery1 =
-    "SELECT wallet FROM accounts where account_id = ? OR account_id = ? ORDER BY account_type ASC";
+    "SELECT wallet FROM accounts where account_id = ?";
   db.query(sqlQuery1, [fromAccountId, toAccountId], (err, result1) => {
     if (err) {
       logger.error(`${req.originalUrl} request has an error during process 1, accountId:${fromAccountId}, error:${err}`)
-    } else if (result1.length <= 1) {
-      logger.warn(`${req.originalUrl} accounts not found, from:${fromAccountId} to:${toAccountId}`)
-      res.status(409).json({ message: "Requester account_id not found" });
-      successful = false;
     } else if (result1[0].wallet < amount) {
+      console.log(result1)
       logger.warn(`${req.originalUrl} request warning, requester does not have enough funds to transfer, from:${fromAccountId}`);
       res.status(409).json({
         message:
