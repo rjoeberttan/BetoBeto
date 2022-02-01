@@ -29,6 +29,14 @@ export default function TransactionsPage() {
   });
   const [transactionsList, setTransactionsList] = useState([]);
   const [betList, setBetList] = useState([]);
+  const [pages, setPages] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1)
+  const [paginatedPosts, setPaginatedPosts] = useState([]);
+
+  const [BetPages, setBetPages] = useState([]);
+  const [currentBetPage, setCurrentBetPage] = useState(1)
+  const [paginatedBets, setPaginatedBets] = useState([]);
+  
 
   useEffect(() => {
     const date = new Date();
@@ -53,6 +61,71 @@ export default function TransactionsPage() {
     } else {
       setUserFilter("9");
     }
+
+    //HandleAllUserSearch
+    console.log(dateFilter.startDate, dateFilter.endDate)
+    axios({
+      method: "get",
+      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/2021-01-01 00:00/2030-12-31 23:59`,
+      headers: bankAuthorization,
+    })
+      .then((res) => {
+        const data = res.data.data;
+        console.log(data);
+        setTransactionsList(data);
+
+        // Calculated Pages
+        const pageSize = 50;
+        const pageCount = data? Math.ceil(data.length/pageSize) : 0;
+        var pages = [];
+        for (var i = 1; i<= pageCount; i++){
+          pages.push(i)
+        }
+        setPages(pages)
+
+        const pageNo = 1
+        setCurrentPage(1);
+        const startIndex = (pageNo - 1) * pageSize    
+        const endIndex = (pageNo * pageSize)
+        const newTransactions = data.slice(startIndex, endIndex)
+        setPaginatedPosts(newTransactions)
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+    
+    axios({
+        method: "get",
+        url: `${betHeader}/getAllBetHistory/${ctx.user.accountID}/${ctx.user.accountType}/2021-01-01 00:00/2030-12-31 23:59`,
+        headers: betAuthorization,
+      })
+        .then((res) => {
+          const data = res.data.data;
+          setBetList(data);
+          // Calculated Pages
+          const pageSize = 50;
+          const pageCount = data? Math.ceil(data.length/pageSize) : 0;
+          var pages = [];
+          for (var i = 1; i<= pageCount; i++){
+            pages.push(i)
+          }
+          setBetPages(pages)
+
+
+          const pageNo = 1
+          setCurrentBetPage(1);
+          const startIndex = (pageNo - 1) * pageSize    
+          const endIndex = (pageNo * pageSize)
+          const newTransactions = data.slice(startIndex, endIndex)
+          setPaginatedBets(newTransactions)
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+      setUserFilter("3");
+
+
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -83,7 +156,7 @@ export default function TransactionsPage() {
         setUsersList(data);
         setActiveUsername(data[0].username);
         setActiveUserId(data[0].account_id);
-        getTransactionsTable(data[0].account_id);
+        // getTransactionsTable(data[0].account_id);
         setFilteredList(data);
       })
       .catch((err) => {
@@ -101,6 +174,23 @@ export default function TransactionsPage() {
         console.log(res.data.data);
         const data = res.data.data;
         setTransactionsList(data);
+
+        // Calculated Pages
+        const pageSize = 50;
+        const pageCount = data? Math.ceil(data.length/pageSize) : 0;
+        var pages = [];
+        for (var i = 1; i<= pageCount; i++){
+          pages.push(i)
+        }
+        setPages(pages)
+
+
+        const pageNo = 1
+        setCurrentPage(1);
+        const startIndex = (pageNo - 1) * pageSize    
+        const endIndex = (pageNo * pageSize)
+        const newTransactions = data.slice(startIndex, endIndex)
+        setPaginatedPosts(newTransactions)
       })
       .catch((err) => {
         console.log(err);
@@ -116,6 +206,22 @@ export default function TransactionsPage() {
       .then((res) => {
         const data = res.data.data;
         setBetList(data);
+        // Calculated Pages
+        const pageSize = 50;
+        const pageCount = data? Math.ceil(data.length/pageSize) : 0;
+        var pages = [];
+        for (var i = 1; i<= pageCount; i++){
+          pages.push(i)
+        }
+        setBetPages(pages)
+
+
+        const pageNo = 1
+        setCurrentBetPage(1);
+        const startIndex = (pageNo - 1) * pageSize    
+        const endIndex = (pageNo * pageSize)
+        const newTransactions = data.slice(startIndex, endIndex)
+        setPaginatedBets(newTransactions)
       })
       .catch((err) => {
         console.log(err);
@@ -130,30 +236,35 @@ export default function TransactionsPage() {
 
   function handleFilterChange(e) {
     const value = Number(e.target.value);
+    console.log("gere")
+    setTransactionsList([])
+    setPaginatedPosts([])
+    setBetList([])
+    setCurrentPage(1)
     if (value !== 0 && value !== 9) {
       const x = usersList.filter((user) => user.account_type === value);
       setUserFilter(e.target.value);
       setFilteredList(x);
-      if (x.length > 0) {
-        setActiveUserId(x[0].account_id);
-        setActiveUsername(x[0].username);
-        getTransactionsTable(x[0].account_id);
-        getBetTable(x[0].account_id);
-      }
+      // if (x.length > 0) {
+      //   setActiveUserId(x[0].account_id);
+      //   setActiveUsername(x[0].username);
+      //   getTransactionsTable(x[0].account_id);
+      //   getBetTable(x[0].account_id);
+      // }
     } else if (value === 9) {
       setUserFilter(e.target.value);
       setFilteredList([]);
       setActiveUserId(ctx.user.accountID);
       setActiveUsername(ctx.user.username);
-      getTransactionsTable(ctx.user.accountID);
-      getBetTable(ctx.user.accountID);
+      // getTransactionsTable(ctx.user.accountID);
+      // getBetTable(ctx.user.accountID);
     } else {
       setFilteredList(usersList);
       setUserFilter(e.target.value);
       setActiveUserId(usersList[0].account_id);
       setActiveUsername(usersList[0].username);
-      getTransactionsTable(usersList[0].account_id);
-      getBetTable(usersList[0].account_id);
+      // getTransactionsTable(usersList[0].account_id);
+      // getBetTable(usersList[0].account_id);
     }
   }
 
@@ -179,6 +290,9 @@ export default function TransactionsPage() {
       getTransactionsTable(activeUserId);
       getBetTable(activeUserId);
     }
+
+
+    
     e.preventDefault();
   }
 
@@ -377,15 +491,32 @@ export default function TransactionsPage() {
   }
 
   function handleAllUserSearch(e) {
+    console.log(dateFilter.startDate, dateFilter.endDate)
     axios({
       method: "get",
-      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
+      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/2021-01-01 00:00/2030-12-31 23:59`,
       headers: bankAuthorization,
     })
       .then((res) => {
         const data = res.data.data;
         console.log(data);
         setTransactionsList(data);
+
+        // Calculated Pages
+        const pageSize = 50;
+        const pageCount = data? Math.ceil(data.length/pageSize) : 0;
+        var pages = [];
+        for (var i = 1; i<= pageCount; i++){
+          pages.push(i)
+        }
+        setPages(pages)
+
+        const pageNo = 1
+        setCurrentPage(1);
+        const startIndex = (pageNo - 1) * pageSize    
+        const endIndex = (pageNo * pageSize)
+        const newTransactions = data.slice(startIndex, endIndex)
+        setPaginatedPosts(newTransactions)
       })
       .catch((err) => {
         console.log(err);
@@ -393,12 +524,28 @@ export default function TransactionsPage() {
     
     axios({
         method: "get",
-        url: `${betHeader}/getAllBetHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
+        url: `${betHeader}/getAllBetHistory/${ctx.user.accountID}/${ctx.user.accountType}/2021-01-01 00:00/2030-12-31 23:59`,
         headers: betAuthorization,
       })
         .then((res) => {
           const data = res.data.data;
           setBetList(data);
+          // Calculated Pages
+          const pageSize = 50;
+          const pageCount = data? Math.ceil(data.length/pageSize) : 0;
+          var pages = [];
+          for (var i = 1; i<= pageCount; i++){
+            pages.push(i)
+          }
+          setBetPages(pages)
+
+
+          const pageNo = 1
+          setCurrentBetPage(1);
+          const startIndex = (pageNo - 1) * pageSize    
+          const endIndex = (pageNo * pageSize)
+          const newTransactions = data.slice(startIndex, endIndex)
+          setPaginatedBets(newTransactions)
         })
         .catch((err) => {
           console.log(err);
@@ -411,7 +558,7 @@ export default function TransactionsPage() {
   function handleGMUserSearch(e) {
     axios({
       method: "get",
-      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
+      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/2021-01-01 00:00/2030-12-31 23:59`,
       headers: bankAuthorization,
     })
       .then((res) => {
@@ -421,6 +568,23 @@ export default function TransactionsPage() {
         });
         setTransactionsList(newArr);
         setBetList([])
+
+        // Calculated Pages
+        const pageSize = 50;
+        const pageCount = newArr? Math.ceil(newArr.length/pageSize) : 0;
+        var pages = [];
+        for (var i = 1; i<= pageCount; i++){
+          pages.push(i)
+        }
+        setPages(pages)
+
+
+        const pageNo = 1
+        setCurrentPage(1);
+        const startIndex = (pageNo - 1) * pageSize    
+        const endIndex = (pageNo * pageSize)
+        const newTransactions = newArr.slice(startIndex, endIndex)
+        setPaginatedPosts(newTransactions)
       })
       .catch((err) => {
         console.log(err);
@@ -432,7 +596,7 @@ export default function TransactionsPage() {
   function handleMAUserSearch(e) {
     axios({
       method: "get",
-      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
+      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/2021-01-01 00:00/2030-12-31 23:59`,
       headers: bankAuthorization,
     })
       .then((res) => {
@@ -443,6 +607,23 @@ export default function TransactionsPage() {
         });
         setTransactionsList(newArr);
         setBetList([])
+
+        // Calculated Pages
+        const pageSize = 50;
+        const pageCount = newArr? Math.ceil(newArr.length/pageSize) : 0;
+        var pages = [];
+        for (var i = 1; i<= pageCount; i++){
+          pages.push(i)
+        }
+        setPages(pages)
+
+
+        const pageNo = 1
+        setCurrentPage(1);
+        const startIndex = (pageNo - 1) * pageSize    
+        const endIndex = (pageNo * pageSize)
+        const newTransactions = newArr.slice(startIndex, endIndex)
+        setPaginatedPosts(newTransactions)
       })
       .catch((err) => {
         console.log(err);
@@ -454,7 +635,7 @@ export default function TransactionsPage() {
   function handleAgentUserSearch(e) {
     axios({
       method: "get",
-      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
+      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/2021-01-01 00:00/2030-12-31 23:59`,
       headers: bankAuthorization,
     })
       .then((res) => {
@@ -464,6 +645,23 @@ export default function TransactionsPage() {
         });
         setTransactionsList(newArr);
         setBetList([])
+
+        // Calculated Pages
+        const pageSize = 50;
+        const pageCount = newArr? Math.ceil(newArr.length/pageSize) : 0;
+        var pages = [];
+        for (var i = 1; i<= pageCount; i++){
+          pages.push(i)
+        }
+        setPages(pages)
+
+
+        const pageNo = 1
+        setCurrentPage(1);
+        const startIndex = (pageNo - 1) * pageSize    
+        const endIndex = (pageNo * pageSize)
+        const newTransactions = newArr.slice(startIndex, endIndex)
+        setPaginatedPosts(newTransactions)
       })
       .catch((err) => {
         console.log(err);
@@ -475,7 +673,7 @@ export default function TransactionsPage() {
   function handlePlayerUserSearch(e) {
     axios({
       method: "get",
-      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
+      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/2021-01-01 00:00/2030-12-31 23:59`,
       headers: bankAuthorization,
     })
       .then((res) => {
@@ -485,6 +683,23 @@ export default function TransactionsPage() {
         });
         setTransactionsList(newArr);
         setUserFilter("3");
+
+        // Calculated Pages
+        const pageSize = 50;
+        const pageCount = newArr? Math.ceil(newArr.length/pageSize) : 0;
+        var pages = [];
+        for (var i = 1; i<= pageCount; i++){
+          pages.push(i)
+        }
+        setPages(pages)
+
+
+        const pageNo = 1
+        setCurrentPage(1);
+        const startIndex = (pageNo - 1) * pageSize    
+        const endIndex = (pageNo * pageSize)
+        const newTransactions = newArr.slice(startIndex, endIndex)
+        setPaginatedPosts(newTransactions)
       })
       .catch((err) => {
         console.log(err);
@@ -492,12 +707,29 @@ export default function TransactionsPage() {
 
     axios({
       method: "get",
-      url: `${betHeader}/getAllBetHistory/${ctx.user.accountID}/${ctx.user.accountType}/${dateFilter.startDate} 00:00/${dateFilter.endDate} 23:59`,
+      url: `${betHeader}/getAllBetHistory/${ctx.user.accountID}/${ctx.user.accountType}/2021-01-01 00:00/2030-12-31 23:59`,
       headers: betAuthorization,
     })
       .then((res) => {
         const data = res.data.data;
         setBetList(data);
+        
+        // Calculated Pages
+        const pageSize = 50;
+        const pageCount = data? Math.ceil(data.length/pageSize) : 0;
+        var pages = [];
+        for (var i = 1; i<= pageCount; i++){
+          pages.push(i)
+        }
+        setBetPages(pages)
+
+
+        const pageNo = 1
+        setCurrentBetPage(1);
+        const startIndex = (pageNo - 1) * pageSize    
+        const endIndex = (pageNo * pageSize)
+        const newTransactions = data.slice(startIndex, endIndex)
+        setPaginatedBets(newTransactions)
       })
       .catch((err) => {
         console.log(err);
@@ -618,6 +850,30 @@ export default function TransactionsPage() {
     }
   }
 
+  function pagination(pageNo) {
+    console.log(transactionsList)
+    console.log(typeof(pageNo),pageNo, "pogi")
+    setCurrentPage(pageNo);
+    // console.log(transactionsList)
+    const pageSize = 50
+    const startIndex = (pageNo - 1) * pageSize    
+    const endIndex = (pageNo * pageSize)
+    const newTransactions = transactionsList.slice(startIndex, endIndex)
+    console.log(startIndex, endIndex, newTransactions)
+    setPaginatedPosts(newTransactions)
+  }
+
+  function betPagination(pageNo){
+    setCurrentBetPage(pageNo);
+    // console.log(transactionsList)
+    const pageSize = 50
+    const startIndex = (pageNo - 1) * pageSize    
+    const endIndex = (pageNo * pageSize)
+    const newTransactions = betList.slice(startIndex, endIndex)
+    console.log(startIndex, endIndex, newTransactions)
+    setPaginatedBets(newTransactions)
+  }
+
   return (
     <div className="container text-light container-transactions">
       <div className="heading-text">
@@ -637,7 +893,21 @@ export default function TransactionsPage() {
           {renderPlayerUserSearch()}
         </div>
       </form>
+      
       <div className="table-responsive">
+
+        <div className="d-flex justify-content-center">
+          <nav>
+              <ul className="pagination">
+                {pages.map((page) => (
+                  <li className={page === currentPage ? "page-item active": "page-item"}><p className="page-link" onClick={
+                    () => pagination(page)
+                  }>{page}</p></li>
+                ))}
+              </ul>
+          </nav>
+        </div>
+
         <table className="table table-success table-striped transaction-page-spacing">
           <thead>
             <tr>
@@ -652,7 +922,7 @@ export default function TransactionsPage() {
             </tr>
           </thead>
           <tbody>
-            {transactionsList.map((x) => (
+            {paginatedPosts.map((x) => (
               <tr key={Math.random()}>
                 {/* <td>{x.placement_date}</td> */}
                 <td>{new Date(Date.parse(x.placement_date)).toLocaleString(('en-us', {timeZone : 'Asia/Taipei'}))}</td>
@@ -680,6 +950,19 @@ export default function TransactionsPage() {
 
       {userFilter === "3" || ctx.user.accountType === "player" ? (
         <div className="table-responsive">
+
+          <div className="d-flex justify-content-center">
+            <nav>
+                <ul className="pagination">
+                  {BetPages.map((page) => (
+                    <li className={page === currentBetPage ? "page-item active": "page-item"}><p className="page-link" onClick={
+                      () => betPagination(page)
+                    }>{page}</p></li>
+                  ))}
+                </ul>
+            </nav>
+          </div>
+
           <table className="table table-success table-striped">
             <thead>
               <tr>
@@ -696,7 +979,7 @@ export default function TransactionsPage() {
               </tr>
             </thead>
             <tbody>
-              {betList.map((x) => (
+              {paginatedBets.map((x) => (
                 <tr key={Math.random()}>
                   <td>{new Date(Date.parse(x.placement_date)).toLocaleString(('en-us', {timeZone : 'Asia/Taipei'}))}</td>
                   <td>{x.bet_id}</td>

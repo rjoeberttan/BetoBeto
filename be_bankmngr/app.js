@@ -766,7 +766,7 @@ app.get("/getAllTransactionHistory/:accountId/:accountType/:dateFrom/:dateTo", (
   var sqlQuery = ""
   // Generate SQL Query
   if (accountType === "admin") {
-    sqlQuery = "SELECT tr.placement_date, tr.transaction_id, tr.description, ac.username, tr.amount, tr.cummulative, tr.status, tr.settled_by, ac.account_type from transactions tr LEFT JOIN accounts ac ON tr.account_id=ac.account_id WHERE tr.placement_date BETWEEN ? AND ? ORDER BY tr.placement_date DESC LIMIT 50;"
+    sqlQuery = "SELECT tr.placement_date, tr.transaction_id, tr.description, ac.username, tr.amount, tr.cummulative, tr.status, tr.settled_by, ac.account_type from transactions tr LEFT JOIN accounts ac ON tr.account_id=ac.account_id WHERE tr.placement_date BETWEEN ? AND ? ORDER BY tr.placement_date DESC;"
     sqlQuery = db.format(sqlQuery, [dateFrom, dateTo])
   } else if (accountType === "grandmaster") {
     sqlQuery = `SELECT tr.placement_date, tr.transaction_id, tr.description, ac.username, ac.account_type, tr.amount, tr.cummulative, tr.status, tr.settled_by FROM transactions tr LEFT JOIN accounts ac ON tr.account_id=ac.account_id WHERE ac.account_id IN
@@ -774,15 +774,15 @@ app.get("/getAllTransactionHistory/:accountId/:accountType/:dateFrom/:dateTo", (
     UNION
     SELECT account_id FROM accounts WHERE agent_id IN (SELECT account_id FROM accounts WHERE agent_id = ?)
     UNION
-    SELECT account_id FROM accounts WHERE agent_id IN (SELECT account_id FROM accounts WHERE agent_id IN (SELECT account_id FROM accounts WHERE agent_id = ?))) AND placement_date BETWEEN ? AND ? ORDER BY tr.placement_date DESC LIMIT 50;`
+    SELECT account_id FROM accounts WHERE agent_id IN (SELECT account_id FROM accounts WHERE agent_id IN (SELECT account_id FROM accounts WHERE agent_id = ?))) AND placement_date BETWEEN ? AND ? ORDER BY tr.placement_date DESC;`
     sqlQuery = db.format(sqlQuery, [accountId, accountId, accountId, dateFrom, dateTo])
   } else if (accountType === "masteragent") {
     sqlQuery = `SELECT tr.placement_date, tr.transaction_id, tr.description, ac.username, ac.account_type, tr.amount, tr.cummulative, tr.status, tr.settled_by FROM transactions tr LEFT JOIN accounts ac ON tr.account_id=ac.account_id WHERE ac.account_id IN
-    (SELECT account_id FROM accounts WHERE agent_id = ? OR agent_id IN (SELECT account_id FROM accounts WHERE agent_id = ?)) AND placement_date BETWEEN ? AND ? ORDER BY tr.placement_date DESC LIMIT 50;`
+    (SELECT account_id FROM accounts WHERE agent_id = ? OR agent_id IN (SELECT account_id FROM accounts WHERE agent_id = ?)) AND placement_date BETWEEN ? AND ? ORDER BY tr.placement_date DESC;`
     sqlQuery = db.format(sqlQuery, [accountId, accountId, dateFrom, dateTo])
   } else if (accountType === "agent") {
     sqlQuery = `SELECT tr.placement_date, tr.transaction_id, tr.description, ac.username, ac.account_type, tr.amount, tr.cummulative, tr.status, tr.settled_by FROM transactions tr LEFT JOIN accounts ac ON tr.account_id=ac.account_id WHERE ac.account_id IN
-    (SELECT account_id FROM accounts WHERE agent_id = ?) AND placement_date BETWEEN ? AND ? ORDER BY tr.placement_date DESC LIMIT 50;`
+    (SELECT account_id FROM accounts WHERE agent_id = ?) AND placement_date BETWEEN ? AND ? ORDER BY tr.placement_date DESC;`
     sqlQuery = db.format(sqlQuery, [accountId, dateFrom, dateTo])
   }
 
