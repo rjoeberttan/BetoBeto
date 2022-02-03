@@ -850,27 +850,50 @@ export default function TransactionsPage() {
     }
   }
 
-  function pagination(pageNo) {
-    console.log(transactionsList)
-    console.log(typeof(pageNo),pageNo, "pogi")
-    setCurrentPage(pageNo);
-    // console.log(transactionsList)
+  function pagination(command) {
+    var pageNo = currentPage
+    if (command === "first") {
+      setCurrentPage(1)
+      pageNo = 1
+    } else if (command === "next" && currentPage < pages.length){
+      setCurrentPage(currentPage + 1)
+      pageNo = currentPage + 1
+    } else if (command === "prev" && currentPage !== 1){
+      setCurrentPage(currentPage - 1)
+      pageNo = currentPage - 1
+    } else if (command === "last" ){
+      setCurrentPage(pages.length)
+      pageNo = pages.length
+    }
+
+
     const pageSize = 50
     const startIndex = (pageNo - 1) * pageSize    
     const endIndex = (pageNo * pageSize)
     const newTransactions = transactionsList.slice(startIndex, endIndex)
-    console.log(startIndex, endIndex, newTransactions)
     setPaginatedPosts(newTransactions)
   }
 
-  function betPagination(pageNo){
-    setCurrentBetPage(pageNo);
-    // console.log(transactionsList)
+  function betPagination(command){
+    var pageNo = currentBetPage
+    if (command === "first") {
+      setCurrentBetPage(1)
+      pageNo = 1
+    } else if (command === "next" && currentBetPage < BetPages.length){
+      setCurrentBetPage(currentBetPage + 1)
+      pageNo = currentBetPage + 1
+    } else if (command === "prev" && currentBetPage !== 1){
+      setCurrentBetPage(currentBetPage - 1)
+      pageNo = currentBetPage - 1
+    } else if (command === "last" ){
+      setCurrentBetPage(BetPages.length)
+      pageNo = BetPages.length
+    }
+
     const pageSize = 50
     const startIndex = (pageNo - 1) * pageSize    
     const endIndex = (pageNo * pageSize)
     const newTransactions = betList.slice(startIndex, endIndex)
-    console.log(startIndex, endIndex, newTransactions)
     setPaginatedBets(newTransactions)
   }
 
@@ -898,13 +921,13 @@ export default function TransactionsPage() {
 
         <div className="d-flex justify-content-center">
           <nav>
-              <ul className="pagination">
-                {pages.map((page) => (
-                  <li className={page === currentPage ? "page-item active": "page-item"}><p className="page-link" onClick={
-                    () => pagination(page)
-                  }>{page}</p></li>
-                ))}
-              </ul>
+            <ul className="pagination">
+                <li className = "page-item"><p className="page-link" onClick={ () => pagination("first")}> &lt;&lt; </p> </li>
+                <li className = "page-item"><p className="page-link" onClick={ () => pagination("prev")}> &lt; </p> </li>
+                <li className = "page-item"><p className="page-link"> {currentPage} </p> </li>
+                <li className = "page-item"><p className="page-link" onClick={ () => pagination("next")}> &gt; </p> </li>
+                <li className = "page-item"><p className="page-link" onClick={ () => pagination("last")}> &gt;&gt; </p> </li>
+            </ul>
           </nav>
         </div>
 
@@ -953,13 +976,13 @@ export default function TransactionsPage() {
 
           <div className="d-flex justify-content-center">
             <nav>
-                <ul className="pagination">
-                  {BetPages.map((page) => (
-                    <li className={page === currentBetPage ? "page-item active": "page-item"}><p className="page-link" onClick={
-                      () => betPagination(page)
-                    }>{page}</p></li>
-                  ))}
-                </ul>
+              <ul className="pagination">
+                  <li className = "page-item"><p className="page-link" onClick={ () => betPagination("first")}> &lt;&lt; </p> </li>
+                  <li className = "page-item"><p className="page-link" onClick={ () => betPagination("prev")}> &lt; </p> </li>
+                  <li className = "page-item"><p className="page-link"> {currentBetPage} </p> </li>
+                  <li className = "page-item"><p className="page-link" onClick={ () => betPagination("next")}> &gt; </p> </li>
+                  <li className = "page-item"><p className="page-link" onClick={ () => betPagination("last")}> &gt;&gt; </p> </li>
+              </ul>
             </nav>
           </div>
 
