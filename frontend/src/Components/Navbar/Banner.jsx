@@ -23,7 +23,7 @@ function Banner(props) {
                 ctx.user.accountType === "masteragent" ||
                 ctx.user.accountType === "grandmaster") && (
                 <div>
-                  Commission: {parseFloat(ctx.user.commission).toFixed(2)}%
+                  Commission: {parseFloat(ctx.commission).toFixed(2)}%
                 </div>
               )}
               <div>Wallet: ₱{parseFloat(ctx.walletBalance).toFixed(2)}</div>
