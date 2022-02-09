@@ -1,14 +1,13 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
 import { AuthContext } from "../../store/auth-context";
-import "./AdminGameSettings.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/dist/ReactToastify.min.css";
 import socket from "../Websocket/socket";
 const axios = require("axios").default;
 
-function AdminGameSettings() {
+function AdminGameSettingsTotalisator() {
   const ctx = useContext(AuthContext);
   //set state for game variables
   const [gameDetails, setGameDetails] = useState({
@@ -548,63 +547,12 @@ function AdminGameSettings() {
     getBetList(marketDetails.market_id);
   }
 
-  function renderWinMultiplierSettings() {
-    if (ctx.user.accountType === "admin") {
-      return (
-        <div>
-          <h6 className="card-subtitle mb-2 label-margin">Win settings</h6>
-          <div className="row">
-            <div className="col-md-12 row">
-              <div className="col-md-5 label-margin">1-Hit Multiplier</div>
-              <div className="col-md-6">
-                <input
-                  className="form-control"
-                  name="win_multip1"
-                  type="number"
-                  value={gameDetails.win_multip1}
-                  onChange={handleGameChange}
-                ></input>
-              </div>
-            </div>
-            <div className="col-md-12 row label-margin">
-              <div className="col-md-5 label-margin">2-Hit Multiplier</div>
-              <div className="col-md-6">
-                <input
-                  className="form-control"
-                  name="win_multip2"
-                  type="number"
-                  value={gameDetails.win_multip2}
-                  onChange={handleGameChange}
-                ></input>
-              </div>
-            </div>
-            <div className="col-md-12 row label-margin">
-              <div className="col-md-5 label-margin">3-Hit Multiplier</div>
-              <div className="col-md-6">
-                <input
-                  className="form-control"
-                  name="win_multip3"
-                  type="number"
-                  value={gameDetails.win_multip3}
-                  onChange={handleGameChange}
-                ></input>
-              </div>
-            </div>
-          </div>
-          <div className="text-center">
-            <button
-              className="btn btn-color text-light"
-              style={{ marginTop: "15px" }}
-              onClick={handleWinSettingsClick}
-            >
-              Save Win Settings
-            </button>
-          </div>
-        </div>
-      );
-    } else {
-      return null;
-    }
+  const [bet, setBet] = useState();
+
+  function handleChange(e) {
+    console.log(e.target.value);
+    setBet(e.target.value);
+    console.log(bet, "hehe");
   }
 
   return (
@@ -658,92 +606,6 @@ function AdminGameSettings() {
                     Save Game Settings
                   </button>
                 </div>
-                <div className="row label-margin">
-                  <h6 className="card-subtitle mb-2 label-margin">
-                    Manipulate Total Color Bets:
-                  </h6>
-                  <div className="col-md-6 row label-margin">
-                    <div className="col-md-5 label-margin">Red</div>
-                    <div className="col-md-6">
-                      <input
-                        className="form-control"
-                        type="number"
-                        name="bb_manip_red"
-                        value={manipulateColors.bb_manip_red}
-                        onChange={handleManipulateValues}
-                      ></input>
-                    </div>
-                  </div>
-                  <div className="col-md-6 row label-margin">
-                    <div className="col-md-5 label-margin">Blue</div>
-                    <div className="col-md-6">
-                      <input
-                        className="form-control"
-                        type="number"
-                        name="bb_manip_blue"
-                        value={manipulateColors.bb_manip_blue}
-                        onChange={handleManipulateValues}
-                      ></input>
-                    </div>
-                  </div>
-                  <div className="col-md-6 row label-margin">
-                    <div className="col-md-5 label-margin">Green</div>
-                    <div className="col-md-6">
-                      <input
-                        className="form-control"
-                        type="number"
-                        name="bb_manip_green"
-                        value={manipulateColors.bb_manip_green}
-                        onChange={handleManipulateValues}
-                      ></input>
-                    </div>
-                  </div>
-                  <div className="col-md-6 row label-margin">
-                    <div className="col-md-5 label-margin">Yellow</div>
-                    <div className="col-md-6">
-                      <input
-                        className="form-control"
-                        type="number"
-                        name="bb_manip_yellow"
-                        value={manipulateColors.bb_manip_yellow}
-                        onChange={handleManipulateValues}
-                      ></input>
-                    </div>
-                  </div>
-                  <div className="col-md-6 row label-margin">
-                    <div className="col-md-5 label-margin">White</div>
-                    <div className="col-md-6">
-                      <input
-                        className="form-control"
-                        type="number"
-                        name="bb_manip_white"
-                        value={manipulateColors.bb_manip_white}
-                        onChange={handleManipulateValues}
-                      ></input>
-                    </div>
-                  </div>
-                  <div className="col-md-6 row label-margin">
-                    <div className="col-md-5 label-margin">Purple</div>
-                    <div className="col-md-6">
-                      <input
-                        className="form-control"
-                        type="number"
-                        name="bb_manip_purple"
-                        value={manipulateColors.bb_manip_purple}
-                        onChange={handleManipulateValues}
-                      ></input>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-center">
-                  <button
-                    className="btn btn-color text-light"
-                    style={{ marginTop: "15px" }}
-                    onClick={handleManipulateBetClick}
-                  >
-                    Save Manipulate Bets
-                  </button>
-                </div>
               </form>
             </div>
           </div>
@@ -784,7 +646,24 @@ function AdminGameSettings() {
                     Save Bet Thresholds
                   </button>
                 </div>
-                {renderWinMultiplierSettings()}
+                <h5 className="card-title">Win Settings</h5>
+                <h6 className="card-subtitle mb-2 label-margin">
+                  Draw Win Multiplier:
+                </h6>
+                <input
+                  className="form-control"
+                  type="number"
+                  name="drawWinMultiplier"
+                  onChange={handleGameChange}
+                ></input>
+                <div className="text-center">
+                  <button
+                    className="btn btn-color text-light"
+                    style={{ marginTop: "15px" }}
+                  >
+                    Save Win Settings
+                  </button>
+                </div>
               </form>
             </div>
           </div>
@@ -841,80 +720,54 @@ function AdminGameSettings() {
               <h6 className="card-subtitle mb-2 text-muted">
                 <b>Result Market</b>
               </h6>
-              <div className="row" style={{ marginTop: "15px" }}>
-                <select
-                  className={`col-sm-3 col-5 ${boxColor.boxOne}-boxx radio-button`}
-                  name="boxOne"
-                  onChange={handleColorChange}
-                  style={{ marginLeft: "25px" }}
-                >
-                  <option {...isSelected("RED", 1)} value="RED">
-                    Red
-                  </option>
-                  <option {...isSelected("BLUE", 1)} value="BLUE">
-                    Blue
-                  </option>
-                  <option {...isSelected("GREEN", 1)} value="GREEN">
-                    Green
-                  </option>
-                  <option {...isSelected("YELLOW", 1)} value="YELLOW">
-                    Yellow
-                  </option>
-                  <option {...isSelected("WHITE", 1)} value="WHITE">
-                    White
-                  </option>
-                  <option {...isSelected("PURPLE", 1)} value="PURPLE">
-                    Purple
-                  </option>
-                </select>
-                <select
-                  className={`col-sm-3 col-5 ${boxColor.boxTwo}-boxx radio-button`}
-                  name="boxTwo"
-                  onChange={handleColorChange}
-                >
-                  <option {...isSelected("RED", 2)} value="RED">
-                    Red
-                  </option>
-                  <option {...isSelected("BLUE", 2)} value="BLUE">
-                    Blue
-                  </option>
-                  <option {...isSelected("GREEN", 2)} value="GREEN">
-                    Green
-                  </option>
-                  <option {...isSelected("YELLOW", 2)} value="YELLOW">
-                    Yellow
-                  </option>
-                  <option {...isSelected("WHITE", 2)} value="WHITE">
-                    White
-                  </option>
-                  <option {...isSelected("PURPLE", 2)} value="PURPLE">
-                    Purple
-                  </option>
-                </select>
-                <select
-                  className={`col-sm-3 col-5 ${boxColor.boxThree}-boxx radio-button`}
-                  name="boxThree"
-                  onChange={handleColorChange}
-                >
-                  <option {...isSelected("RED", 3)} value="RED">
-                    Red
-                  </option>
-                  <option {...isSelected("BLUE", 3)} value="BLUE">
-                    Blue
-                  </option>
-                  <option {...isSelected("GREEN", 3)} value="GREEN">
-                    Green
-                  </option>
-                  <option {...isSelected("YELLOW", 3)} value="YELLOW">
-                    Yellow
-                  </option>
-                  <option {...isSelected("WHITE", 3)} value="WHITE">
-                    White
-                  </option>
-                  <option {...isSelected("PURPLE", 3)} value="PURPLE">
-                    Purple
-                  </option>
-                </select>
+              <div className="row">
+                <label>Place Bet:</label>
+
+                <div className="row text-center place-bet-boxes">
+                  <label
+                    className="col-md-3 col-4 placebet-styles-low"
+                    style={bet === "low" ? { border: "3px solid green" } : {}}
+                  >
+                    LOW
+                    <p>1.99</p>
+                    <input
+                      class="checked"
+                      type="radio"
+                      name="bet"
+                      value="low"
+                      onChange={handleChange}
+                    />
+                  </label>
+                  <label
+                    className="col-md-3 col-4 placebet-styles-draw"
+                    style={bet === "draw" ? { border: "3px solid green" } : {}}
+                  >
+                    DRAW
+                    <p>1.92</p>
+                    <input
+                      class="checked"
+                      type="radio"
+                      name="bet"
+                      value="draw"
+                      onChange={handleChange}
+                    />
+                  </label>
+                  <label
+                    className="col-md-3 col-4 placebet-styles-high"
+                    style={bet === "high" ? { border: "3px solid green" } : {}}
+                  >
+                    HIGH
+                    <p>1.92</p>
+                    <input
+                      class="checked"
+                      type="radio"
+                      name="bet"
+                      value="high"
+                      onChange={handleChange}
+                    />
+                  </label>
+                </div>
+
                 <div
                   className="col-md-12 text-center"
                   style={{ marginTop: "15px" }}
@@ -984,4 +837,4 @@ function AdminGameSettings() {
   );
 }
 
-export default AdminGameSettings;
+export default AdminGameSettingsTotalisator;
