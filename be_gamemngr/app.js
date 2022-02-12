@@ -1338,6 +1338,365 @@ app.get("/getColorGameBetTotals/:gameId/:marketId", (req, res) => {
   });
 });
 
+
+
+// ***************************************************************
+// Totalisator Game
+//****************************************************************
+app.post("/createTotalisatorMarket", (req, res) => {
+  const start = process.hrtime();
+  console.log("asd")
+  
+  const apiKey = req.header("Authorization");
+  const gameId = req.body.gameId;
+  const description = req.body.description;
+  const editor = req.body.editor;
+
+  // Check if body is complete
+  if (!gameId || !description || !editor) {
+    logger.warn(
+      `${req.originalUrl} request has missing body parameters, gameId:${gameId}`
+    );
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(
+      `${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`
+    );
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+
+  // Prcess 1: Get Latest Market Entry for GameID entered
+  sqlQuery = "SELECT * FROM markets WHERE game_id = ? ORDER BY lastedit_date DESC LIMIT 1;"
+  db.query(sqlQuery, [gameId], (err, result) => {
+    if (err) {
+      logger.error(`${req.originalUrl} request has an error during process 1, gameId:${gameId}, error:${err}`)
+      res.status(500).json({ message: "Server error" });
+      return;
+    } else {
+
+      // Check if latest market has resulted state
+      if (result.length > 0 && result[0].status !== 2){
+        logger.warn(`${req.originalUrl} request warning, there is an unsettled market, marketId:${result[0].market_id} gameId:${gameId}`)
+        res.status(409).json({message: "There are still unsettled market for this game. Settle first before creating new market", data: {gameId: gameId, marketID: result[0].market_id, status: result[0].status}})
+        return;
+      } else {
+        // Process 2: Insert New Market
+        var newMarketId = result.length === 0 ? 1 : parseInt(result[0].market_id) + 1;
+
+        sqlQuery = "INSERT INTO markets (market_id, game_id, description, status, lastedit_date, edited_by) VALUES (?, ?, ?, ?,  NOW(), ?)";
+        db.query(sqlQuery, [newMarketId, gameId, description, 0, editor], (err, result2) => {
+          if (err) {
+            logger.error(`${req.originalUrl} request has an error during process 2, gameId:${gameId}, error:${err}`)
+            res.status(500).json({ message: "Server error" });
+          } else {
+            logger.info(`${req.originalUrl} request successful, gameId:${gameId} marketId: ${newMarketId} duration:${getDurationInMilliseconds(start)}`)
+            res.status(200).json({message: "Successfully created new market", data: {gameID: gameId, marketID: newMarketId, status: 0}})
+          }
+        })
+        return;
+      }
+    } 
+  })
+})
+
+app.post("/openTotalisatorMarket", (req, res) => {
+  const start = process.hrtime();
+  
+  const apiKey = req.header("Authorization");
+  const gameId = req.body.gameId;
+  const marketId = req.body.marketId;
+  const editor = req.body.editor;
+
+  // Check if body is complete
+  if (!gameId || !editor || !marketId) {
+    logger.warn(`${req.originalUrl} request has missing body parameters, gameId:${gameId}`);
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  // Process 1 - Get Current Status of the Market
+  sqlQuery = "SELECT * FROM markets WHERE game_id=? AND market_id=? ORDER BY lastedit_date DESC LIMIT 1";
+  db.query(sqlQuery, [gameId, marketId], (err, result) => {
+    if (err){
+      logger.error(`${req.originalUrl} request has an error during process 1, marketId:${marketId} gameId:${gameId}, error:${err}`)
+      res.status(500).json({ message: "Server error" });
+    } else if (result.length === 0){
+      logger.warn(`${req.originalUrl} request warning, market is not found in database, marketId:${marketId} gameId:${gameId}`)
+      res.status(409).json({ message: "No market found for marketId:" + marketId });
+    } else if (result[0].status !== 1){
+      logger.warn(`${req.originalUrl} request warning, market is already open or settled, marketId:${marketId} gameId:${gameId}`)
+      res.status(409).json({message: "Market is already open or settled",data: { marketId: marketId, status: result[0].status }});
+    } else {
+      
+      // Process 2 - Insert into markets with new market status
+      const description = result[0].description;
+      sqlQuery = "INSERT INTO markets (market_id, game_id, description, status, lastedit_date, edited_by) VALUES (?, ?, ?, ?, NOW(), ?);"
+      db.query(sqlQuery, [marketId, gameId, description, 0, editor], (err, result2) => {
+        if (err) {
+          logger.error(`${req.originalUrl} request has an error during process 2, marketId:${marketId} gameId:${gameId}, error:${err}`)
+          res.status(500).json({ message: "Server Error" });
+        } else if (result2.affectedRows > 0) {
+          logger.info(`${req.originalUrl} request successful, gameId:${gameId} marketId:${marketId} duration:${getDurationInMilliseconds(start)}`)
+          res.status(200).json({message: "Market opened successfully", data: { gameId: gameId, marketId: marketId, status: 0 }} )
+        }
+      });
+    }
+  })
+})
+
+
+app.post("/closeTotalisatorMarket", (req, res) => {
+  const start = process.hrtime();
+  
+  const apiKey = req.header("Authorization");
+  const gameId = req.body.gameId;
+  const marketId = req.body.marketId;
+  const editor = req.body.editor;
+
+  // Check if body is complete
+  if (!gameId || !editor || !marketId) {
+    logger.warn(`${req.originalUrl} request has missing body parameters, gameId:${gameId}`);
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  // Process 1 - Get Current Status of the Market
+  sqlQuery = "SELECT * FROM markets WHERE game_id=? AND market_id=? ORDER BY lastedit_date DESC LIMIT 1";
+  db.query(sqlQuery, [gameId, marketId], (err, result) => {
+    if (err){
+      logger.error(`${req.originalUrl} request has an error during process 1, marketId:${marketId} gameId:${gameId}, error:${err}`)
+      res.status(500).json({ message: "Server error" });
+    } else if (result.length === 0){
+      logger.warn(`${req.originalUrl} request warning, market is not found in database, marketId:${marketId} gameId:${gameId}`)
+      res.status(409).json({ message: "No market found for marketId:" + marketId });
+    } else if (result[0].status !== 0){
+      logger.warn(`${req.originalUrl} request warning, market is already open or settled, marketId:${marketId} gameId:${gameId}`)
+      res.status(409).json({message: "Market is already closed or settled",data: { marketId: marketId, status: result[0].status }});
+    } else {
+      
+      // Process 2 - Insert into markets with new market status
+      const description = result[0].description;
+      sqlQuery = "INSERT INTO markets (market_id, game_id, description, status, lastedit_date, edited_by) VALUES (?, ?, ?, ?, NOW(), ?);"
+      db.query(sqlQuery, [marketId, gameId, description, 1, editor], (err, result2) => {
+        if (err) {
+          logger.error(`${req.originalUrl} request has an error during process 2, marketId:${marketId} gameId:${gameId}, error:${err}`)
+          res.status(500).json({ message: "Server Error" });
+        } else if (result2.affectedRows > 0) {
+          logger.info(`${req.originalUrl} request successful, gameId:${gameId} marketId:${marketId} duration:${getDurationInMilliseconds(start)}`)
+          res.status(200).json({message: "Market closed successfully", data: { gameId: gameId, marketId: marketId, status: 0 }} )
+        }
+      });
+    }
+  })
+})
+
+
+app.post("/resultTotalisatorMarket", (req, res) => {
+  const start = process.hrtime();
+  
+  const apiKey = req.header("Authorization");
+  const gameId = req.body.gameId;
+  const marketId = req.body.marketId;
+  const marketResult = req.body.result;
+  const editor = req.body.editor;
+
+  // Check if body is complete
+  if (!gameId || !editor || !marketId || !marketResult) {
+    logger.warn(`${req.originalUrl} request has missing body parameters, gameId:${gameId}`);
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  // Process 1 - Get current status of market
+  sqlQuery = "SELECT * FROM markets WHERE game_id = ? AND market_id = ? ORDER BY lastedit_date DESC LIMIT 1;"
+  db.query(sqlQuery, [gameId, marketId], (err, result) => {
+    if (err) {
+      logger.error(`${req.originalUrl} request has an error during process 1, marketId:${marketId} gameId:${gameId}, error:${err}`);
+      res.status(500).json({ message: "Server error" });
+    } else if (result.length <= 0) {
+      logger.warn(`${req.originalUrl} request warning, market is not found in database, marketId:${marketId} gameId:${gameId}`);
+      res.status(409).json({ message: "No market found for marketId:" + marketId });
+    } else if (result[0].status !== 1) {
+      logger.warn(`${req.originalUrl} request warning, market is still open or already settled, marketId:${marketId} gameId:${gameId}`);
+      res.status(409).json({
+        message: "Market is still open or already settled",
+        data: { marketId: marketId, status: result[0].status },
+      });
+    } else {
+      const description = result[0].description;
+      const resultText = marketResult.toString();
+
+      sqlQuery = "INSERT INTO markets (market_id, game_id, description, status, result, settled_date, lastedit_date, edited_by) VALUES (?,?,?,2, ?, NOW(), NOW(), ?)"
+      db.query(sqlQuery, [marketId, gameId, description, marketResult, editor], (err, result2) => {
+        if (err) {
+          logger.error(`${req.originalUrl} request has an error during process 2, marketId:${marketId} gameId:${gameId}, error:${err}`);
+          res.status(500).json({ message: "Server Error" });
+        } else if (result2.affectedRows > 0) {
+          logger.info(`${req.originalUrl} request successful, gameId:${gameId} marketId:${marketId} duration:${getDurationInMilliseconds(start)}`);
+          res.status(200).json({
+            message: "Market resulted successfully",
+            data: {
+              gameId: gameId,
+              marketId: marketId,
+              status: 2,
+              result: resultText,
+            },
+          });
+        }
+      });
+    }
+  })
+});
+
+app.post("/updateTotalisatorOdds", (req, res) => {
+  const start = process.hrtime()
+  const apiKey = req.header("Authorization") 
+  const gameId = req.body.gameId
+  const marketId = req.body.marketId
+  const gameName = req.body.gameName
+  const commission = req.body.commission
+  const manipOdd1 = req.body.manipOdd1
+  const manipOdd2 = req.body.manipOdd2
+  const choice1 = req.body.choice1
+  const choice2 = req.body.choice2
+
+  // Check if body is complete
+  if (!gameId || !marketId || !commission || !gameName || !manipOdd1 || !manipOdd2 || !choice1 || !choice2) {
+    logger.warn(`${req.originalUrl} request has missing body parameters`)
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+
+  // Pula Puti
+  // Odd1 - Pula, Odd2 - Puti
+  var odd1Total = 0 
+  var odd2Total = 0
+  var drawTotal = 0
+  var odd1 = 0
+  var odd2 = 0
+
+
+  // Process 1
+  sqlQuery = `SELECT REPLACE(description, '${gameName} - ', '') as choice, SUM(stake) as total from bets where market_id = ? and game_id = ? group by description;`
+  db.query(sqlQuery, [marketId, gameId], (err, result) => {
+    if (err) {
+        logger.error(`${req.originalUrl} request has an error during process 1, error:${err}`)
+        res.status(500).json({ message: "Server error" });
+    } else {
+        for ( row in result ) {
+          console.log(result[row])
+          if (result[row].choice === choice1){
+            odd1Total += result[row].total
+          } else if (result[row].choice === choice2){
+            console.log(result[row].total)
+            odd2Total += result[row].total 
+          } else {
+            drawTotal = result[row].total 
+          }
+        }
+
+        odd1Total = odd1Total === 0 ? parseFloat(manipOdd1) : odd1Total
+        odd2Total = odd2Total === 0 ? parseFloat(manipOdd2) : odd2Total
+  
+        console.log(odd1Total, odd2Total)
+
+        var total = odd1Total + odd2Total + drawTotal
+        var totalAfterCommission = total - (total * (parseFloat(commission)) / 100)
+        
+        odd1 = (totalAfterCommission/odd1Total).toFixed(2)
+        odd2 = (totalAfterCommission/odd2Total).toFixed(2)
+        sqlInsertQuery = "INSERT INTO totalisator (market_id, game_id, odd1, odd2, placement_date) VALUES (?,?,?,?, NOW())"
+        db.query(sqlInsertQuery, [marketId, gameId, odd1, odd2], (err, result2) => {
+          if (err) {
+            logger.error(`${req.originalUrl} request has an error during process 3, marketId:${marketId} gameId:${gameId}, error:${err}`)
+            res.status(500).json({ message: "Server error" });
+          } else {
+            logger.info(`${req.originalUrl} successfully updated odds for market:${marketId} to odds: ${odd1} - ${odd2}`)
+            res.status(200).json({message: "Updates totalisator odds", odd1: odd1, odd2: odd2})
+          }
+        })
+    }       
+  })
+});
+
+app.post("/updateTotalisatorDrawMultiplier", (req, res) => {
+  const start = process.hrtime();
+
+  const apiKey = req.header("Authorization");
+  const gameId = req.body.gameId;
+  const multiplier = req.body.multiplier;
+  const editor = req.body.editor;
+
+  // Check if body is complete
+  if (!gameId || !multiplier || !editor) {
+    logger.warn(`${req.originalUrl} request has missing body parameters, gameId:${gameId}`);
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  // Process 1
+  // Update the commission
+  sqlQuery =  "UPDATE games set win_multip1 = ?, lastedit_date = NOW(), edited_by = ? WHERE game_id = ?";
+  db.query(sqlQuery, [multiplier, editor, gameId], (err, result) => {
+    if (err) {
+      logger.error(`${req.originalUrl} request has an error during process 1, gameId:${gameId}, error:${err}`);
+      res.status(500).json({ message: "Server error" });
+    } else if (result.affectedRows <= 0) {
+      logger.warn(`${req.originalUrl} request warning, game is not found in database, gameId:${gameId}`);
+      res.status(409).json({ message: "Nothing was updated, please check gameId" });
+    } else {
+      logger.info(`${req.originalUrl} request successful, gameId:${gameId} duration:${getDurationInMilliseconds(start)}`);
+      res.status(200).json({
+        message: "Request successful",
+        data: { gameId: gameId, multiplier: multiplier},
+      });
+    }
+  });
+});
+
+
 app.listen(4004, () => {
   console.log("Backend Game Manager listentning at port 4004");
 });

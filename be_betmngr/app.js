@@ -1048,6 +1048,431 @@ app.get("/getAccountBetslips/:accountId/:marketId", (req, res) => {
   });
 });
 
+
+
+app.post("/placeTotalisatorBet", (req, res) => {
+  const start = process.hrtime();
+  
+  const apiKey = req.header("Authorization");
+  const marketId = req.body.marketId;
+  const gameId = req.body.gameId;
+  const accountId = req.body.accountId;
+  const gameName = req.body.gameName;
+  const choice = req.body.choice;
+  const stake = req.body.stake;
+  const wallet = req.body.wallet;
+  const maxBet = req.body.maxBet;
+
+  // Check if body is complete
+  if (!marketId ||!gameId || !accountId || !gameName || !choice || !stake || !wallet) {
+    logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`);
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  sqlQuery = "SELECT status from markets WHERE game_id = ? AND market_id = ? ORDER BY lastedit_date DESC LIMIT 1";
+  db.query(sqlQuery, [gameId, marketId], (err, result) => {
+    if (err) {
+      logger.error(`${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`);
+      res.status(500).json({ message: "Server error" });
+    } else if (result.length <= 0 ){
+      logger.warn(`${req.originalUrl} request warning, market not found, marketId:${marketId} accountId:${accountId}`);
+      res.status(409).json({ message: "Market not found" });
+    } else if (result[0].status !== 0){
+      logger.warn(`${req.originalUrl} request warning, market not not open, marketId:${marketId} accountId:${accountId}`);
+      res.status(409).json({ message: "Market not open" });
+    } else {
+      
+      // Process 2 - Check if bet is still okay
+      sqlQuery = `SELECT REPLACE(description, '${gameName} - ', '') as choice, SUM(stake) AS total FROM bets WHERE market_id = ? GROUP BY description;`
+      db.query(sqlQuery, [marketId], (err, resultTotal) => {
+        if (err) {
+          logger.error(`${req.originalUrl} request has an error during process 2, marketId:${marketId} accountId:${accountId}, error:${err}`);
+          res.status(500).json({ message: "Error in checking quota" });
+        } else {
+
+          // Check if bet is supposed total is still okay
+          currentTotal = 0;
+          for (let i = 0; i < resultTotal.length; i++){
+            if (resultTotal[i].choices === choice) {
+              currentTotal = resultTotal[i].total;
+            }
+          }
+
+          var supposedTotal = parseFloat(currentTotal) + parseFloat(stake);
+          if (supposedTotal > parseFloat(maxBet)) {
+            logger.warn(`${req.originalUrl} request has an warning during process 2, bet is bigger than koto, marketId:${marketId} accountId:${accountId}, error:${err}`)
+            res.status(500).json({message: `Stake is bigger than accepted koto, available bet amount is ${parseFloat(maxBet) - parseFloat(currentTotal)}`})
+          }else{
+
+            // Process 3 - Decrease Player Wallet
+            const cummulative = (wallet - stake).toFixed(2);
+            sqlQuery = "UPDATE accounts SET wallet=? WHERE account_id=?";
+            db.query(sqlQuery, [cummulative, accountId], (err, result3) => {
+              if (err) {
+                logger.error(`${req.originalUrl} request has an error during process 3, marketId:${marketId} accountId:${accountId}, error:${err}`);
+                res.status(500).json({ message: "Error during managing player wallet" });
+              } else if (result3.affectedRows <= 0) {
+                logger.warn(`${req.originalUrl} request warning, player account cannot be found, marketId:${marketId} accountId:${accountId}`);
+                res.status(409).json({message:"Bet not placed successfully. Please check accountId"});
+              } else {
+
+                // Process 4 - Insert Bet in Bets Table
+                const description = gameName + " - " + choice;
+                sqlQuery = "INSERT INTO bets (description, market_id, game_id, account_id, stake, cummulative, status, placement_date) VALUES (?,?,?,?,?,?,?, NOW())";
+                db.query(sqlQuery, [description, marketId, gameId, accountId, stake, cummulative, 0], (err, result3) => {
+                  if (err) {
+                    logger.error(`${req.originalUrl} request has an error during process 4, marketId:${marketId} accountId:${accountId}, error:${err}`);
+                    res.status(500).json({ message: "Server error" });
+                  } else if (result3.affectedRows <= 0) {
+                    logger.warn(`${req.originalUrl} request warning, bet not placed, marketId:${marketId} accountId:${accountId}`);
+                    res.status(409).json({message:"Bet not placed successfully. Please try again"});
+                  } else {
+                    const betId = result3.insertId;
+                    logger.info(`${req.originalUrl} request successful, bet placed successfully, marketId:${marketId} accountId:${accountId} betId:${betId}`);
+                    res.status(200).json({message: "Bet Placed successfully", data: {betId: betId, description: description, stake: stake, cummulative: cummulative}});
+                  }
+                })
+              }
+            })
+          }
+        }
+      })
+
+    }
+  })
+})
+
+
+app.post("/sendAgentCommission", (req, res) => {
+  const apiKey = req.header("Authorization");
+  const betId = req.body.betId;
+  const stake = req.body.stake;
+  const playerId = req.body.playerId;
+
+  // Check if body is complete
+  if (!betId || !playerId || !stake) {
+    logger.warn(`${req.originalUrl} request has missing body parameters, marketId:${marketId}`);
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  // Process 1 Get Agent Details
+  sqlQuery = "SELECT account_id, commission, wallet FROM accounts WHERE account_id in (SELECT agent_id FROM accounts WHERE account_id = ?);"
+  db.query(sqlQuery, [playerId], (err, result) => {
+    if (err) {
+      logger.error(`${req.originalUrl} request has an error during process 1, error for account: ${playerId}, error:${err}`);
+      res.status(500).json({message: "Error in giving commission to agent", data:{error: err}})
+    } else if (result.length <= 0) {
+      logger.warn(`${req.originalUrl} request warning, no associated agent to give commission for account: ${playerId}`);
+      res.status(409).json({message: "Error in giving commission to agent"})
+    } else {
+      const agentCommission = (parseFloat(stake/100) * parseFloat(result[0].commission)).toFixed(2)
+      const agentCummulative = (parseFloat(result[0].wallet) + parseFloat(agentCommission)).toFixed(2)
+
+      // Process 2 Increase wallet and insert transaction
+      trDescription = "Commission from BetId " + betId;
+      sqlQueryIncrease = "UPDATE accounts SET wallet = ? WHERE account_id = ?; INSERT INTO transactions (description, account_id, amount, cummulative, status, placement_date, transaction_type) VALUES (?,?,?,?,1,NOW(), 6)";
+      db.query(sqlQueryIncrease, [agentCummulative, result[0].account_id, trDescription, result[0].account_id, agentCommission, agentCummulative], (err, result2) =>{
+        if (err){
+          logger.error(`${req.originalUrl} request has an error during process 2, missing agent for account: ${playerId}, error:${err}`);
+          res.status(500).json({message: "Error in giving commission to agent", data:{agentId: result[0].account_id, commission: agentCommission, error: err}})
+        } else if (result2.affectedRows <= 0) {
+          logger.warn(`${req.originalUrl} request warning, update was not successful in increase agent wallet, insert to transactions table, agent:${result[0].account_id}`);
+          res.status(409).json({message: "Error in giving commission to agent", data:{agentId: result[0].account_id, commission: agentCommission}})
+        } else {
+          logger.info(`${req.originalUrl} request successful, agent commission was inserted to transactions table and wallet updated, agent:${result[0].account_id} commission:${agentCommission} betId:${betId}`);
+          res.status(200).json({message: "Commission sent to agent", data:{agentId: result[0].account_id, commission: agentCommission}})
+        }
+      });
+    }
+  });
+});
+
+
+app.post("/sendMasterAgentCommission", (req, res) => {
+  const apiKey = req.header("Authorization");
+  const betId = req.body.betId;
+  const stake = req.body.stake;
+  const agentId = req.body.agentId;
+  const agentCommission = req.body.agentCommission;
+
+  // Check if body is complete
+  if (!betId || !agentId || !stake || !agentCommission) {
+    logger.warn(`${req.originalUrl} request has missing body parameters, marketId:${marketId}`);
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  // Process 1 Get Master Agent Details
+  sqlQuery = "SELECT account_id, commission, wallet FROM accounts WHERE account_id in (SELECT agent_id FROM accounts WHERE account_id = ?);"
+  db.query(sqlQuery, [agentId], (err, result) => {
+    if (err) {
+      logger.error(`${req.originalUrl} request has an error during process 1, error for agent: ${agentId}, error:${err}`);
+      res.status(500).json({message: "Error in giving commission to master agent", data:{error: err}})
+    } else if (result.length <= 0) {
+      logger.warn(`${req.originalUrl} request warning, no associated master agent to give commission for agent: ${agentId}`);
+      res.status(409).json({message: "Error in giving commission to master agent"})
+    } else {
+      const masterCommission = (parseFloat(stake/100) * parseFloat(result[0].commission)).toFixed(2) - parseFloat(agentCommission)
+      const masterCummulative = (parseFloat(result[0].wallet) + parseFloat(masterCommission)).toFixed(2)
+
+      // Process 2 Increase wallet and insert transaction
+      trDescription = "Commission from BetId " + betId;
+      sqlQueryIncrease = "UPDATE accounts SET wallet = ? WHERE account_id = ?; INSERT INTO transactions (description, account_id, amount, cummulative, status, placement_date, transaction_type) VALUES (?,?,?,?,1,NOW(), 6)";
+      db.query(sqlQueryIncrease, [masterCummulative, result[0].account_id, trDescription, result[0].account_id, masterCommission, masterCummulative], (err, result2) =>{
+        if (err){
+          logger.error(`${req.originalUrl} request has an error during process 2, missing master agent for agent: ${agentId}, error:${err}`);
+          res.status(500).json({message: "Error in giving commission to master agent", data:{masterAgentId: result[0].account_id, commission: masterCommission, error: err}})
+        } else if (result2.affectedRows <= 0) {
+          logger.warn(`${req.originalUrl} request warning, update was not successful in increase master agent wallet, insert to transactions table, masterAgent:${result[0].account_id}`);
+          res.status(409).json({message: "Error in giving commission to master agent", data:{masterAgentId: result[0].account_id, commission: masterCommission}})
+        } else {
+          logger.info(`${req.originalUrl} request successful, master agent commission was inserted to transactions table and wallet updated, agent:${result[0].account_id} commission:${masterCommission} betId:${betId}`);
+          res.status(200).json({message: "Commission sent to master agent", data:{masterAgentId: result[0].account_id, commission: masterCommission}})
+        }
+      });
+    }
+  });
+});
+
+
+
+app.post("/settleTotalisatorBets", (req, res) => {
+  const start = process.hrtime()
+
+  const apiKey = req.header("Authorization");
+  const gameId = req.body.gameId;
+  const marketId = req.body.marketId;
+  const choice1 = req.body.choice1;
+  const choice2 = req.body.choice2;
+  const oddChoice1 = req.body.oddChoice1;
+  const oddChoice2 = req.body.oddChoice2;
+  const oddDraw = req.body.oddDraw
+  const marketResult = req.body.marketResult;
+  const gameName = req.body.gameName;
+  const settler = req.body.settler
+
+  // Check if body is complete
+  if (!gameId || !marketId || !choice1 || !choice2 || !oddChoice1 || !oddChoice2 || !oddDraw || !marketResult || !gameName || !settler) {
+    logger.warn(`${req.originalUrl} request has missing body parameters, marketId:${marketId}`);
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, marketId:${marketId} received:${apiKey}`);
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  // Process 1 Get All unsettled bets
+  sqlQuery = "SELECT bet_id, account_id, description, stake FROM bets WHERE status = 0 AND game_id = ? AND market_id = ? ORDER BY bet_id ASC;";
+  db.query(sqlQuery, [gameId, marketId], (err, result) => {
+    if (err) {
+      logger.error(`${req.originalUrl} request has an error during process 1, gameId:${gameId} marketId:${marketId}, error:${err}`)
+      res.status(500).json({ message: "Server error" });
+    } else if (result.length > 0) {
+      logger.info(`${req.originalUrl} bet settlement has been triggered, marketId:${marketId} gameId:${gameId} betCount:${result.length}`)
+      
+      var updateBetWalletDetails = []
+      var unsettledBets = result;
+
+      if (marketResult === "DRAW"){
+        unsettledBets.forEach((bet) => {
+          var choice = bet.description.replace(`${gameName} - `, "");
+          var stake = bet.stake;
+          var accountId = bet.account_id;
+          var betId = bet.bet_id;
+
+          walletUpdate = (choice === marketResult) ? parseFloat(stake)*parseFloat(oddDraw) : parseFloat(stake)
+          var status = (choice === marketResult) ? 2 : 1
+          // console.log(betId, stake, accountId, choice, walletUpdate, status)
+
+          updateBetWalletDetails.push({
+            betId: betId,
+            winnings: parseFloat(walletUpdate).toFixed(2),
+            accountId : accountId,
+            choice: choice,
+            stake: stake,
+            status: status     
+          })
+        
+        })
+      } else if (marketResult === choice1){
+        unsettledBets.forEach((bet) => {
+          var choice = bet.description.replace(`${gameName} - `, "");
+          var stake = bet.stake;
+          var accountId = bet.account_id;
+          var betId = bet.bet_id;
+
+          walletUpdate = (choice === choice1) ? parseFloat(stake)*parseFloat(oddChoice1) : 0
+          var status = (choice === marketResult) ? 2 : 1
+          var status = 0
+          // console.log(bet.bet_id, stake, accountId, choice, walletUpdate, status)
+
+          updateBetWalletDetails.push({
+            betId: betId,
+            winnings: parseFloat(walletUpdate).toFixed(2),
+            accountId : accountId,
+            choice: choice,
+            stake: stake,
+            status: status     
+          })
+        
+        })
+      } else if (marketResult === choice2){
+        unsettledBets.forEach((bet) => {
+          var choice = bet.description.replace(`${gameName} - `, "");
+          var stake = bet.stake;
+          var accountId = bet.account_id;
+          var betId = bet.bet_id;
+
+          walletUpdate = (choice === choice2) ? parseFloat(stake)*parseFloat(oddChoice2) : 0
+          var status = (choice === marketResult) ? 2 : 1
+          var status = 0
+          // console.log(bet.bet_id, stake, accountId, choice, walletUpdate, status)
+
+          updateBetWalletDetails.push({
+            betId: betId,
+            winnings: parseFloat(walletUpdate).toFixed(2),
+            accountId : accountId,
+            choice: choice,
+            stake: stake,
+            status: status     
+          })
+        })
+      }
+
+  
+      var updateWalletQuery = "";
+      var updateWalletDetailString = "";
+      updateBetWalletDetails.forEach((entry) => {
+        updateWalletDetailString += `{betId: ${entry.betId}, accountId: ${entry.accountId}, choice: ${entry.choice}, stake: ${entry.stake}, winnings: ${entry.winnings}} `;
+        updateWalletQuery += db.format( "UPDATE accounts SET wallet=wallet+?, lastedit_date = NOW() WHERE account_id = ?; UPDATE bets SET cummulative = (SELECT wallet FROM accounts where account_id = ?), winnings=?, status = ?, settled_date = NOW() WHERE bet_id = ?;", [entry.winnings, entry.accountId, entry.accountId, entry.winnings, entry.status, entry.betId])
+      })
+      console.log(updateWalletQuery)
+      db.query(updateWalletQuery, (err, result2) => {
+        if (err) {
+          logger.error(`${req.originalUrl} request has an error during process 2, gameId:${gameId} marketId:${marketId}, error:${err}`)
+        } else {
+          logger.info(
+            `Wallet balance has been updated for settlement, marketId:${marketId} gameId:${gameId} result:${marketResult} duration:${getDurationInMilliseconds(
+              start
+            )} bets:${updateWalletDetailString}`
+          );
+          res.status(200).json({ message: "All bets has been setteled for the market", data: {gameId: gameId, marketId: marketId, betCount: result.length, bets: result}});
+        }
+      })   
+    } else {
+      res.status(200).json({ message: "No bets settled", data: {gameId: gameId, marketId: marketId, betCount: 0}});
+    }
+  })
+})
+
+
+app.post("/sendTotalisatorCommissions", (req, res) => {
+  const start = process.hrtime()
+
+  const apiKey = req.header("Authorization");
+  const gameId = req.body.gameId;
+  const marketId = req.body.marketId;
+  const choice1 = req.body.choice1;
+  const choice2 = req.body.choice2;
+  const oddChoice1 = req.body.oddChoice1;
+  const oddChoice2 = req.body.oddChoice2;
+  const oddDraw = req.body.oddDraw
+  const marketResult = req.body.marketResult;
+  const gameName = req.body.gameName;
+  const settler = req.body.settler
+
+  // Check if body is complete
+  if (!gameId || !marketId || !choice1 || !choice2 || !oddChoice1 || !oddChoice2 || !oddDraw || !marketResult || !gameName || !settler) {
+    logger.warn(`${req.originalUrl} request has missing body parameters, marketId:${marketId}`);
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, marketId:${marketId} received:${apiKey}`);
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  // Process 1 Get All unsettled bets
+  sqlQuery = "SELECT bet_id, account_id, description, stake FROM bets WHERE game_id = ? AND market_id = ? ORDER BY bet_id ASC;";
+
+  db.query(sqlQuery, [gameId, marketId], (err, result) => {
+    if (err) {
+      logger.error(`${req.originalUrl} request has an error during process 1, gameId:${gameId} marketId:${marketId}, error:${err}`)
+      res.status(500).json({ message: "Server error" });
+    } else if (result.length > 0) {
+      logger.info(`${req.originalUrl} commission settlement has been triggered, marketId:${marketId} gameId:${gameId} betCount:${result.length}`)
+      var bets = result
+
+      // Agent Part
+      var agentCommissionArr = []
+      sqlQueryIncreaseStr = []
+      bets.forEach((bet) => {
+        sqlGetAccountDetail = "SELECT account_id, commission, wallet FROM accounts WHERE account_id in (SELECT agent_id FROM accounts WHERE account_id = ?);"
+        db.query(sqlGetAccountDetail, (bet.account_id), (err, resultAgentDetail) => {
+          if (err) {
+            logger.error(`${req.originalUrl} request has an error during process 1, error for account: ${bet.account_id}, error:${err}`);
+            res.status(500).json({message: "Error in giving commission to agent", data:{error: err}})
+            return
+          } else {
+            var stake = bet.stake
+            var commissionsPercentage = resultAgentDetail[0].commission
+            var agentCommission = (parseFloat(stake/100) * parseFloat(commissionsPercentage)).toFixed(2)
+            var agentCummulative = (parseFloat(resultAgentDetail[0].wallet) + parseFloat(agentCommission)).toFixed(2)
+            var agentId = resultAgentDetail[0].account_id
+            var trAgentDescription = "Commission from BetId " + bet.bet_id
+            agentCommissionArr.push({agentCommission: agentCommission, agentId: agentId, description: trAgentDescription})
+
+            logger.info(`Sending commission to agent: ${agentId} commission: ${agentCommission} agentCummulative: ${agentCummulative} stake:${stake} betId: ${bet.bet_id}`)
+
+            sqlQueryIncrease = "UPDATE accounts SET wallet = wallet + ? WHERE account_id = ?; INSERT INTO transactions (description, account_id, amount, cummulative, status, placement_date, transaction_type) VALUES (?,?,?,?,1,NOW(), 6)";
+            db.query(sqlQueryIncrease, [agentCommission, agentId, trAgentDescription, agentId, agentCommission, agentCummulative], (err, result2) =>{
+              if (err){
+                logger.error(`${req.originalUrl} request has an error during process 2, missing agent for account: ${bet.account_id}, error:${err}`);
+              } else if (result2.affectedRows <= 0) {
+                logger.warn(`Update was not successful in increase agent wallet, insert to transactions table, agent:${agentId}`);
+              } else {
+                logger.info(`Agent commission was inserted to transactions table and wallet updated, agent:${agentId} commission:${agentCommission} betId:${bet.bet_id}`);
+              }
+
+            });
+          }
+        })
+      })     
+    }
+  })
+});
+
+
 app.listen(4005, () => {
   console.log("Backend Bet Manager listentning at port 4005");
 });
