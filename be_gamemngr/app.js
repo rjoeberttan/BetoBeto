@@ -76,7 +76,7 @@ app.get("/getGamesList", (req, res) => {
   }
 
   // Process 1. Get All games from database
-  var sqlQuery = "SELECT game_id, name, min_bet, max_bet, is_live FROM games";
+  var sqlQuery = "SELECT game_id, name, min_bet, max_bet, is_live, type FROM games";
   db.query(sqlQuery, [], (err, result) => {
     if (err) {
       logger.error(

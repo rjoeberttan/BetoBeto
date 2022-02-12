@@ -2,6 +2,8 @@ import { React, useState, useEffect } from "react";
 import "./PlayerGameRoom.css";
 import PlayerGameRoomList from "./PlayerGameRoomList";
 import colorGameLogo from "./colorgame.png"
+import pulaPutiLogo from "./pulaputi.png"
+import hiloLogo from "./hilo.png"
 const axios = require("axios");
 
 function GameRoom() {
@@ -31,11 +33,12 @@ function GameRoom() {
         {gameList.map((game) => (
           <PlayerGameRoomList
             key={game.game_id}
-            sampleImgUrl={colorGameLogo}
+            sampleImgUrl={ game.type === 0 ? colorGameLogo : (game.type === 1 ? pulaPutiLogo : hiloLogo ) }
             name={game.name}
             min_bet={game.min_bet}
             max_bet={game.max_bet}
             game_id={game.game_id}
+            game_type={game.type}
           />
         ))}
       </div>

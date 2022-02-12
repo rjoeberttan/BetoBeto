@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import AdminGameRoomList from "./AdminGameRoomList";
 import colorGameLogo from "./colorgame.png"
+import pulaPutiLogo from "./pulaputi.png"
+import hiloLogo from "./hilo.png"
 import "./AdminGameRoom.css";
 const axios = require("axios").default;
 
@@ -30,11 +32,12 @@ function AdminGameRoom() {
         {gameList.map((game) => (
           <AdminGameRoomList
             key={game.game_id}
-            sampleImgUrl={colorGameLogo}
+            sampleImgUrl={ game.type === 0 ? colorGameLogo : (game.type === 1 ? pulaPutiLogo : hiloLogo ) }
             name={game.name}
             min_bet={game.min_bet}
             max_bet={game.max_bet}
             game_id={game.game_id}
+            game_type={game.type}
           />
         ))}
       </div>
