@@ -8,6 +8,9 @@ import socket from "../Websocket/socket";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/dist/ReactToastify.min.css";
+import PlayerTotalisator from "../Totalisator/PlayerTotalisator";
+import InputTotalisator from "../Totalisator/InputTotalisator";
+import PotentialWin from "../Totalisator/PotentialWin";
 const axios = require("axios");
 
 function LiveRoom() {
@@ -59,6 +62,7 @@ function LiveRoom() {
     "Authorization": process.env.REACT_APP_KEY_ACCOUNT,
   };
   const betAuthorization = { "Authorization": process.env.REACT_APP_KEY_BET };
+  const [bet, setBet] = useState();
 
   //===========================================
   // UseEffect
@@ -397,26 +401,9 @@ function LiveRoom() {
   }
 
   function handleChange(e) {
-    const { value } = e.target;
-    setColor(value);
-  }
-
-  const style = {
-    backgroundColor: "",
-  };
-
-  if (color === "red") {
-    style.backgroundColor = "#db2828";
-  } else if (color === "blue") {
-    style.backgroundColor = "#2185d0";
-  } else if (color === "green") {
-    style.backgroundColor = "#21ba45";
-  } else if (color === "yellow") {
-    style.backgroundColor = "#fbbd08";
-  } else if (color === "white") {
-    style.backgroundColor = "aliceblue";
-  } else if (color === "purple") {
-    style.backgroundColor = "#a333c8";
+    console.log(e.target.value);
+    setBet(e.target.value);
+    console.log(bet, "hehe");
   }
 
   function renderBetslips() {
@@ -457,10 +444,12 @@ function LiveRoom() {
       </div>
       <div className="row">
         <div className="col-md-12 banner-message">
-          <TextScroller text={gameDetails.banner} />
+          {/* <TextScroller text={gameDetails.banner} /> */}
+          <TextScroller text="Sample text" />
         </div>
         <div className="col-md-8">
-          <YoutubeEmbed embedId={gameDetails.youtube_url} />
+          {/* <YoutubeEmbed embedId={gameDetails.youtube_url} /> */}
+          <YoutubeEmbed embedId="5qap5aO4i9A" />
         </div>
         <div className="col-md-4 live-room-colorbox">
           <div className="card txt-black">
@@ -480,88 +469,70 @@ function LiveRoom() {
                 Min/Max Bet: ₱{parseFloat(gameDetails.min_bet).toFixed(2)} - ₱
                 {parseFloat(gameDetails.max_bet).toFixed(2)}
               </p>
-              <div className="row text-center">
-                <label className="col-sm-3 col-5 red-box radio-button fix-padding-left">
-                  <input
-                    className="radio-card"
-                    type="radio"
-                    name="colors"
-                    value="red"
-                    onChange={handleChange}
-                  />
-                  <label className="color-name">Total: ₱ {betTotals.RED}</label>
-                </label>
-                <label className="col-sm-3 col-5 blue-box radio-button fix-padding-left">
-                  <input
-                    className="radio-card"
-                    type="radio"
-                    name="colors"
-                    value="blue"
-                    onChange={handleChange}
-                  />
-                  <label className="color-name">
-                    Total: ₱ {betTotals.BLUE}
+              <PlayerTotalisator handleChange={handleChange} bet={bet} />
+              {/* <div className="row" style={{ marginTop: "30px" }}>
+                <label>Place Bet:</label>
+
+                <div className="row text-center place-bet-boxes">
+                  <label
+                    className="col-md-3 placebet-styles-low"
+                    style={bet === "low" ? { border: "3px solid green" } : {}}
+                  >
+                    LOW
+                    <p>1.99</p>
+                    <input
+                      class="checked"
+                      type="radio"
+                      name="bet"
+                      value="low"
+                      onChange={handleChange}
+                    />
                   </label>
-                </label>
-                <label className="col-sm-3 col-5 green-box radio-button fix-padding-left">
-                  <input
-                    className="radio-card"
-                    type="radio"
-                    name="colors"
-                    value="green"
-                    onChange={handleChange}
-                  />
-                  <label htmlFor="huey" className="color-name">
-                    Total: ₱ {betTotals.GREEN}
+                  <label
+                    className="col-md-3 placebet-styles-draw"
+                    style={bet === "draw" ? { border: "3px solid green" } : {}}
+                  >
+                    DRAW
+                    <p>1.92</p>
+                    <input
+                      class="checked"
+                      type="radio"
+                      name="bet"
+                      value="draw"
+                      onChange={handleChange}
+                    />
                   </label>
-                </label>
-                <label className="col-sm-3 col-5 yellow-box radio-button fix-padding-left">
-                  <input
-                    className="radio-card"
-                    type="radio"
-                    name="colors"
-                    value="yellow"
-                    onChange={handleChange}
-                  />
-                  <label htmlFor="huey" className="color-name">
-                    Total: ₱ {betTotals.YELLOW}
+                  <label
+                    className="col-md-3 placebet-styles-high"
+                    style={bet === "high" ? { border: "3px solid green" } : {}}
+                  >
+                    HIGH
+                    <p>1.92</p>
+                    <input
+                      class="checked"
+                      type="radio"
+                      name="bet"
+                      value="high"
+                      onChange={handleChange}
+                    />
                   </label>
-                </label>
-                <label className="col-sm-3 col-5 white-box radio-button fix-padding-left">
-                  <input
-                    className="radio-card"
-                    type="radio"
-                    name="colors"
-                    value="white"
-                    onChange={handleChange}
-                  />
-                  <label htmlFor="huey" className="color-name">
-                    Total: ₱ {betTotals.WHITE}
-                  </label>
-                </label>
-                <label className="col-sm-3 col-5 purple-box radio-button fix-padding-left">
-                  <input
-                    className="radio-card"
-                    type="radio"
-                    name="colors"
-                    value="purple"
-                    onChange={handleChange}
-                  />
-                  <label htmlFor="huey" className="color-name">
-                    Total: ₱ {betTotals.PURPLE}
-                  </label>
-                </label>
-              </div>
-              <div className="row wallet-box">
-                <div className="col-md-4 col-3">
-                  <div className="stake-box" style={style}>
-                    Stake
-                  </div>
                 </div>
-                <div className="col-md-7 col-8 input-box">
+              </div> */}
+
+              <InputTotalisator
+                gameDetails={gameDetails.min_bet}
+                gameDetailsMaxBet={gameDetails.max_bet}
+                handleStakeChange={handleStakeChange}
+                stake={stake}
+                placeBetDisabled={placeBetDisabled}
+                placeBet={placeBet}
+                placeBetText={placeBetText}
+              />
+              {/* <div className="row wallet-box wage-box">
+                <div className="col-md-6 col-8">
                   <input
                     type="number"
-                    className="form-control"
+                    className="form-control wage-input"
                     onWheel={(e) => e.target.blur()}
                     placeholder={`₱${parseFloat(gameDetails.min_bet).toFixed(
                       2
@@ -570,17 +541,21 @@ function LiveRoom() {
                     value={stake}
                   />
                 </div>
-              </div>
-              <div className="col-md-12 text-center">
-                <button
-                  type="submit"
-                  className="btn btn-color game-btn text-light"
-                  disabled={placeBetDisabled}
-                  onClick={placeBet}
-                >
-                  {placeBetText}
-                </button>
-              </div>
+                <div className="col-md-6 col-4">
+                  <button
+                    type="submit"
+                    className="btn btn-color text-light wage-button"
+                    disabled={placeBetDisabled}
+                    onClick={placeBet}
+                  >
+                    {placeBetText}
+                  </button>
+                </div>
+              </div> */}
+              <PotentialWin money="9999" />
+              {/* <div className="text potential-text">
+                <label>Potential Win: P9000</label>
+              </div> */}
             </div>
           </div>
         </div>
@@ -621,8 +596,8 @@ function LiveRoom() {
           <div className="text-center">
             <div className="card text-black">
               <div className="card-body table-responsive-sm">
-                <h4 className="card-title">Market Trends</h4>
-                <table class="table table-bordered border-dark col-md-8">
+                <h4 className="card-title">Result Box:</h4>
+                {/* <table class="table table-bordered border-dark col-md-8">
                   <thead>
                     <tr>
                       {trends.map((x) => (
@@ -641,7 +616,13 @@ function LiveRoom() {
                       </tr>
                     ))}
                   </tbody>
-                </table>
+                </table> */}
+                <p>
+                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
+                  do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                  Ut enim ad minim veniam, quis nostrud exercitation ullamco
+                  laboris nisi ut aliquip ex ea commodo consequat.{" "}
+                </p>
               </div>
             </div>
           </div>
