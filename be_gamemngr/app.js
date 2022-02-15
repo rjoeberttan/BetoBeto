@@ -1345,7 +1345,6 @@ app.get("/getColorGameBetTotals/:gameId/:marketId", (req, res) => {
 //****************************************************************
 app.post("/createTotalisatorMarket", (req, res) => {
   const start = process.hrtime();
-  console.log("asd")
   
   const apiKey = req.header("Authorization");
   const gameId = req.body.gameId;
@@ -1503,7 +1502,7 @@ app.post("/closeTotalisatorMarket", (req, res) => {
           res.status(500).json({ message: "Server Error" });
         } else if (result2.affectedRows > 0) {
           logger.info(`${req.originalUrl} request successful, gameId:${gameId} marketId:${marketId} duration:${getDurationInMilliseconds(start)}`)
-          res.status(200).json({message: "Market closed successfully", data: { gameId: gameId, marketId: marketId, status: 0 }} )
+          res.status(200).json({message: "Market closed successfully", data: { gameId: gameId, marketId: marketId, status: 1 }} )
         }
       });
     }
@@ -1588,7 +1587,7 @@ app.post("/updateTotalisatorOdds", (req, res) => {
   const choice2 = req.body.choice2
 
   // Check if body is complete
-  if (!gameId || !marketId || !commission || !gameName || !manipOdd1 || !manipOdd2 || !choice1 || !choice2) {
+  if (!gameId || !marketId || !commission || !gameName || !choice1 || !choice2) {
     logger.warn(`${req.originalUrl} request has missing body parameters`)
     res.status(400).json({ message: "Missing body parameters" });
     return;
@@ -1691,6 +1690,51 @@ app.post("/updateTotalisatorDrawMultiplier", (req, res) => {
       res.status(200).json({
         message: "Request successful",
         data: { gameId: gameId, multiplier: multiplier},
+      });
+    }
+  });
+});
+
+app.get("/getTotalisatorOdds/:gameId/:marketId", (req, res) => {
+  const start = process.hrtime();
+
+  const apiKey = req.header("Authorization");
+  const gameId = req.params.gameId;
+  const marketId = req.params.marketId;
+
+  // Check if body is complete
+  if (!gameId || !marketId ) {
+    logger.warn(`${req.originalUrl} request has missing body parameters, gameId:${gameId}`);
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  // Process 1
+  // Update the commission
+  sqlQuery =  "SELECT * FROM totalisator WHERE market_id = ? AND game_id = ? ORDER BY placement_date DESC LIMIT 1";
+  db.query(sqlQuery, [marketId, gameId], (err, result) => {
+    if (err) {
+      logger.error(`${req.originalUrl} request has an error during process 1, gameId:${gameId}, error:${err}`);
+      res.status(500).json({ message: "Server error" });
+    } else if (result.length <= 0){
+      logger.info(`${req.originalUrl} request successful, gameId:${gameId} duration:${getDurationInMilliseconds(start)}`);
+      res.status(200).json({
+        message: "Request successful",
+        data: { gameId: gameId, marketId: marketId, odds: result},
+      });
+    } 
+    else {
+      logger.info(`${req.originalUrl} request successful, gameId:${gameId} duration:${getDurationInMilliseconds(start)}`);
+      res.status(200).json({
+        message: "Request successful",
+        data: { gameId: gameId, marketId: marketId, odds: result},
       });
     }
   });

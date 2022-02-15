@@ -130,7 +130,7 @@ function App() {
                 component={PlayerLiveRoom}
               />
               <Route
-                path="/player/gameRoom/TotalisatorSettings/:gameId"
+                path="/player/gameRoom/TotalisatorSettings/:gameid"
                 exact
                 component={Totalisator}
               />
@@ -235,7 +235,7 @@ function App() {
                 component={TransactionsPage}
               />
               <Route
-                path="/admin/gameroom/TotalisatorSettings/:gameId"
+                path="/admin/gameroom/TotalisatorSettings/:gameid"
                 exact
                 component={AdminGameSettingsTotalisator}
               />

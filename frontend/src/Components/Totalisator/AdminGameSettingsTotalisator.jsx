@@ -17,10 +17,10 @@ function AdminGameSettingsTotalisator() {
     max_bet: "",
     min_bet: "",
     name: "",
-    win_multip1: "",
-    win_multip2: "",
-    win_multip3: "",
+    draw_multip: "",
     youtube_url: "",
+    commission: "",
+    type: ""
   });
   //set state for market variables
   const [marketDetails, setMarketDetails] = useState({
@@ -29,23 +29,29 @@ function AdminGameSettingsTotalisator() {
     status: "",
     result: "",
   });
-  //set state for manipulate colors
-  const [manipulateColors, setManipualteColors] = useState({
-    bb_manip_blue: 0,
-    bb_manip_yellow: 0,
-    bb_manip_red: 0,
-    bb_manip_white: 0,
-    bb_manip_green: 0,
-    bb_manip_purple: 0,
-  });
   const [settingsText, setSettingsText] = useState({
     create: "CREATE MARKET",
     open: "OPEN MARKET",
     close: "CLOSE MARKET",
     result: "RESULT MARKET",
   });
+  const [choices, setChoices] = useState({
+    choice1: "",
+    choice2: "",
+    choiceDraw: "DRAW"
+  });
+  const [totalisatorOdds, setTotalisatorOdds] = useState({
+    odd1: 0,
+    odd2: 0,
+    oddDraw: 0
+  });
+  const [oddManip, setOddManip] = useState({
+    odd1: 0,
+    odd2: 0,
+  });
   const [betList, setBetList] = useState([]);
   const [statusChangeDisabled, setStatusChangeDisabled] = useState(false);
+  const [resultChoice, setResultchoice] = useState("")
 
   let { gameid } = useParams();
 
@@ -55,8 +61,6 @@ function AdminGameSettingsTotalisator() {
   console.log(process.env.REACT_APP_HEADER_WEBSOCKET);
 
   useEffect(() => {
-    socket.emit("join_room", "colorGame");
-
     const token = localStorage.getItem("token");
     //get user auth
     axios({
@@ -83,11 +87,28 @@ function AdminGameSettingsTotalisator() {
           max_bet: data.max_bet,
           min_bet: data.min_bet,
           name: data.name,
-          win_multip1: data.win_multip1,
-          win_multip2: data.win_multip2,
-          win_multip3: data.win_multip3,
           youtube_url: data.youtube_url,
+          draw_multiplier: data.win_multip1,
+          commission: data.commission,
+          type: data.type
         });
+
+        setTotalisatorOdds((prev) => {
+          return {
+            ...prev,
+            oddDraw: data.win_multip1
+          }
+        })
+
+        setOddManip({odd1: Math.floor(Math.random() * data.max_bet), odd2: Math.floor(Math.random() * data.max_bet)})
+
+        var gameType = data.type
+        if (gameType === 1) {
+          setChoices({choice1: "PULA", choice2: "PUTI", choiceDraw: "DRAW"})
+        } else if (gameType === 2) {
+          setChoices({choice1: "LOW", choice2: "HIGH", choiceDraw: "DRAW"})
+        }
+
       });
 
       //get market details
@@ -115,24 +136,77 @@ function AdminGameSettingsTotalisator() {
             boxThree: colors[2],
           });
         }
-        //get manipulate values
+
+        // Get Latest Totalisator Odds
         axios({
           method: "get",
-          url: `${gameHeader}/getManipulateValues/${gameid}/${market.market_id}`,
+          url: `${gameHeader}/getTotalisatorOdds/${gameid}/${market.market_id}`,
           headers: {
             "Authorization": process.env.REACT_APP_KEY_GAME,
           },
-        }).then((res2) => {
-          const manip_values = res2.data.data.market;
-          setManipualteColors(manip_values);
-        });
+        }).then((res) => {
+          var odds = res.data.data.odds[0]
+          console.log(odds)
+          setTotalisatorOdds((prev) => {
+            return {
+              ...prev,
+              odd1: parseFloat(odds.odd1),
+              odd2: parseFloat(odds.odd2)
+            }
+          })
+        })
       });
+
+
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      console.log(totalisatorOdds)
+      if (marketDetails.status === 0 && parseFloat(totalisatorOdds.odd1) === 0 && parseFloat(totalisatorOdds.odd2) === 0) {
+        // Get Generate Totalisator Odds
+        axios({
+          method: "post",
+          url: `${gameHeader}/updateTotalisatorOdds`,
+          headers: {
+            "Authorization": process.env.REACT_APP_KEY_GAME
+          },
+          data: {
+            gameId: gameid,
+            marketId: marketDetails.market_id,
+            gameName: gameDetails.name,
+            commission: gameDetails.commission,
+            manipOdd1: oddManip.odd1,
+            manipOdd2: oddManip.odd2,
+            choice1: choices.choice1,
+            choice2: choices.choice2
+          },
+        }).then((res) => {
+          // var odds = res.data.data.odds[0]
+          console.log(res.data)
+
+          setTotalisatorOdds((prev) => {
+            return {
+              ...prev,
+              odd1: res.data.odd1,
+              odd2: res.data.odd2
+            }
+          })
+        })
+      }
+      
+    }, 3000);
+
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [marketDetails, betList, totalisatorOdds]);
+
   function handleGameChange(e) {
     const { name, value } = e.target;
+    console.log(name, value)
 
     setGameDetails((prev) => {
       return {
@@ -147,32 +221,6 @@ function AdminGameSettingsTotalisator() {
     boxTwo: "RED",
     boxThree: "RED",
   });
-
-  const isSelected = (color, boxNum) => {
-    if (boxNum === 1) {
-      if (color === boxColor.boxOne) {
-        return { "selected": "selected" };
-      }
-    } else if (boxNum === 2) {
-      if (color === boxColor.boxTwo) {
-        return { "selected": "selected" };
-      }
-    } else if (boxNum === 3) {
-      if (color === boxColor.boxThree) {
-        return { "selected": "selected" };
-      }
-    }
-  };
-
-  function handleColorChange(e) {
-    const { name, value } = e.target;
-    setBoxColor((prev) => {
-      return {
-        ...prev,
-        [name]: value,
-      };
-    });
-  }
 
   function handleGameSettingsClick(e) {
     if (gameDetails.name.length === 0) {
@@ -202,45 +250,6 @@ function AdminGameSettingsTotalisator() {
           toast.error(err);
         });
     }
-    e.preventDefault();
-  }
-
-  function handleWinSettingsClick(e) {
-    if (
-      gameDetails.win_multip1 <= 0 ||
-      gameDetails.win_multip2 <= 0 ||
-      gameDetails.win_multip3 <= 0
-    ) {
-      toast.error("Invalid Win Multiplier Settings");
-    } else {
-      axios({
-        method: "post",
-        url: `${gameHeader}/updateColorGameWinMultiplier`,
-        headers: {
-          "Authorization": process.env.REACT_APP_KEY_GAME,
-        },
-        data: {
-          gameId: gameid,
-          editor: ctx.user.username,
-          winMultiplier: [
-            gameDetails.win_multip1,
-            gameDetails.win_multip2,
-            gameDetails.win_multip3,
-          ],
-        },
-      })
-        .then((res) => {
-          toast.success("Win settings saved");
-        })
-        .catch((err) => {
-          toast.error(
-            <p>
-              Incomplete Multipliers <br></br> Please try again
-            </p>
-          );
-        });
-    }
-
     e.preventDefault();
   }
 
@@ -282,6 +291,36 @@ function AdminGameSettingsTotalisator() {
     e.preventDefault();
   }
 
+  function handleDrawCommissionClick(e) {
+    console.log(gameDetails.draw_multiplier);
+    if (parseFloat(gameDetails.draw_multiplier) <= 1 ) {
+      toast.error("Dra");
+    } else {
+      axios({
+        method: "post",
+        url: `${gameHeader}/updateTotalisatorDrawMultiplier`,
+        headers: {
+          "Authorization": process.env.REACT_APP_KEY_GAME,
+        },
+        data: {
+          gameId: gameid,
+          editor: ctx.user.username,
+          multiplier: gameDetails.draw_multiplier
+        },
+      })
+        .then((res) => {
+          toast.success("Draw Multiplier Changed");
+        })
+        .catch((err) => {
+          toast.error(
+            "Server Error"
+          );
+        });
+    }
+
+    e.preventDefault();
+  }
+
   function DisableSettings() {
     setSettingsText({
       create: "PLEASE WAIT",
@@ -307,7 +346,7 @@ function AdminGameSettingsTotalisator() {
     if (name === "createMarket") {
       axios({
         method: "post",
-        url: `${gameHeader}/createColorGameMarket`,
+        url: `${gameHeader}/createTotalisatorMarket`,
         headers: {
           "Authorization": process.env.REACT_APP_KEY_GAME,
         },
@@ -318,15 +357,8 @@ function AdminGameSettingsTotalisator() {
         },
       })
         .then((res) => {
-          setManipualteColors({
-            bb_manip_blue: 0,
-            bb_manip_yellow: 0,
-            bb_manip_red: 0,
-            bb_manip_white: 0,
-            bb_manip_green: 0,
-            bb_manip_purple: 0,
-          });
           const { data } = res.data;
+          console.log(data)
           setMarketDetails((prev) => {
             return {
               ...prev,
@@ -334,10 +366,38 @@ function AdminGameSettingsTotalisator() {
               status: data.status,
             };
           });
-          socket.emit("color_game_market_update", {
-            marketId: data.marketID,
-            status: data.status,
-          });
+
+            // // Get Latest Totalisator Odds
+            // axios({
+            //   method: "post",
+            //   url: `${gameHeader}/updateTotalisatorOdds`,
+            //   headers: {
+            //     "Authorization": process.env.REACT_APP_KEY_GAME,
+            //   },
+            //   data: {
+            //     gameId: gameid,
+            //     marketId: marketDetails.market_id,
+            //     gameName: gameDetails.name,
+            //     commission: gameDetails.commission,
+            //     manipOdd1: Math.floor(Math.random() * gameDetails.max_bet),
+            //     manipOdd2: Math.floor(Math.random() * gameDetails.max_bet),
+            //     choice1: choices.choice1,
+            //     choice2: choices.choice2
+            //   },
+            // }).then((res) => {
+            //   // var odds = res.data.data.odds[0]
+            //   console.log(res)
+
+            //   setTotalisatorOdds((prev) => {
+            //     return {
+            //       ...prev,
+            //       odd1: res.data.odd1,
+            //       odd2: res.data.odd2
+            //     }
+            //   })
+            // })
+
+          
           toast.success("Success Create Market");
           DisableSettings();
         })
@@ -351,7 +411,7 @@ function AdminGameSettingsTotalisator() {
     } else if (name === "openMarket") {
       axios({
         method: "post",
-        url: `${gameHeader}/openMarket`,
+        url: `${gameHeader}/openTotalisatorMarket`,
         headers: {
           "Authorization": process.env.REACT_APP_KEY_GAME,
         },
@@ -371,10 +431,10 @@ function AdminGameSettingsTotalisator() {
               status: data.status,
             };
           });
-          socket.emit("color_game_market_update", {
-            marketId: data.marketId,
-            status: data.status,
-          });
+          // socket.emit("color_game_market_update", {
+          //   marketId: data.marketId,
+          //   status: data.status,
+          // });
           toast.success("Success Open Market");
           DisableSettings();
         })
@@ -388,7 +448,7 @@ function AdminGameSettingsTotalisator() {
     } else if (name === "closeMarket") {
       axios({
         method: "post",
-        url: `${gameHeader}/closeMarket`,
+        url: `${gameHeader}/closeTotalisatorMarket`,
         headers: {
           "Authorization": process.env.REACT_APP_KEY_GAME,
         },
@@ -408,14 +468,15 @@ function AdminGameSettingsTotalisator() {
               status: data.status,
             };
           });
-          socket.emit("color_game_market_update", {
-            marketId: data.marketId,
-            status: data.status,
-          });
+          // socket.emit("color_game_market_update", {
+          //   marketId: data.marketId,
+          //   status: data.status,
+          // });
           toast.success("Success Closed Market");
           DisableSettings();
         })
         .catch((err) => {
+          console.log(marketDetails.status)
           if (marketDetails.status === 1) {
             toast.error("Market is already closed");
           } else {
@@ -426,10 +487,10 @@ function AdminGameSettingsTotalisator() {
   }
 
   function handleResultMarket(e) {
-    if (window.confirm("Are you sure to result this market?")) {
+    if (window.confirm("Are you sure to result this market?" || resultChoice !== "")) {
       axios({
         method: "post",
-        url: `${gameHeader}/resultMarket`,
+        url: `${gameHeader}/resultTotalisatorMarket`,
         headers: {
           "Authorization": process.env.REACT_APP_KEY_GAME,
         },
@@ -437,7 +498,7 @@ function AdminGameSettingsTotalisator() {
           gameId: gameid,
           marketId: marketDetails.market_id,
           editor: ctx.user.username,
-          result: [boxColor.boxOne, boxColor.boxTwo, boxColor.boxThree],
+          result: resultChoice,
         },
       })
         .then((res) => {
@@ -447,33 +508,44 @@ function AdminGameSettingsTotalisator() {
               status: res.data.data.status,
             };
           });
-          socket.emit("color_game_market_update", {
-            marketId: res.data.data.marketId,
-            status: res.data.data.status,
-          });
-          toast.success("Success Result Market");
-          DisableSettings();
 
-          // Settle Bets
-          axios({
-            method: "post",
-            url: `${betHeader}/settleColorGameBets`,
-            headers: {
-              "Authorization": process.env.REACT_APP_KEY_BET,
-            },
-            data: {
-              gameId: gameid,
-              marketId: marketDetails.market_id,
-              gameName: gameDetails.name,
-              result: [boxColor.boxOne, boxColor.boxTwo, boxColor.boxThree],
-            },
+          setResultchoice("")
+
+          setTotalisatorOdds((prev) => {
+            return {
+              ...prev,
+              odd1: 0,
+              odd2: 0
+            }
           })
-            .then((res) => {
-              // console.log(res);
-            })
-            .catch((err) => {
-              // console.log(err);
-            });
+          
+          // socket.emit("color_game_market_update", {
+          //   marketId: res.data.data.marketId,
+          //   status: res.data.data.status,
+          // });
+          // toast.success("Success Result Market");
+          // DisableSettings();
+
+          // // Settle Bets
+          // axios({
+          //   method: "post",
+          //   url: `${betHeader}/settleColorGameBets`,
+          //   headers: {
+          //     "Authorization": process.env.REACT_APP_KEY_BET,
+          //   },
+          //   data: {
+          //     gameId: gameid,
+          //     marketId: marketDetails.market_id,
+          //     gameName: gameDetails.name,
+          //     result: [boxColor.boxOne, boxColor.boxTwo, boxColor.boxThree],
+          //   },
+          // })
+          //   .then((res) => {
+          //     // console.log(res);
+          //   })
+          //   .catch((err) => {
+          //     // console.log(err);
+          //   });
         })
         .catch((err) => {
           if (marketDetails.status === 2) {
@@ -483,44 +555,7 @@ function AdminGameSettingsTotalisator() {
           }
         });
     } else {
-      toast.info("Result Market Cancelled");
-    }
-
-    e.preventDefault();
-  }
-
-  function handleManipulateValues(e) {
-    const { name, value } = e.target;
-    setManipualteColors((prev) => {
-      return {
-        ...prev,
-        [name]: value,
-      };
-    });
-  }
-
-  function handleManipulateBetClick(e) {
-    if (Object.values(manipulateColors).some((el) => el < 0)) {
-      toast.error("Invalid Manipulate Values");
-    } else {
-      axios({
-        method: "post",
-        url: `${gameHeader}/manipulateBetTotals`,
-        headers: {
-          "Authorization": process.env.REACT_APP_KEY_GAME,
-        },
-        data: {
-          marketId: marketDetails.market_id,
-          editor: ctx.user.username,
-          bb_manip: Object.values(manipulateColors),
-        },
-      })
-        .then((res) => {
-          toast.success("Bets Manipulated Success");
-        })
-        .catch((err) => {
-          toast.error("Incomplete Bet Manipulation");
-        });
+      toast.info("Result Market Cancelled or no winning choice selected");
     }
 
     e.preventDefault();
@@ -547,12 +582,9 @@ function AdminGameSettingsTotalisator() {
     getBetList(marketDetails.market_id);
   }
 
-  const [bet, setBet] = useState();
-
   function handleChange(e) {
     console.log(e.target.value);
-    setBet(e.target.value);
-    console.log(bet, "hehe");
+    setResultchoice(e.target.value);
   }
 
   return (
@@ -592,7 +624,6 @@ function AdminGameSettingsTotalisator() {
                 <input
                   className="form-control"
                   type="text"
-                  placeholder="Welcome to Master Gamblr"
                   name="banner"
                   value={gameDetails.banner}
                   onChange={handleGameChange}
@@ -604,6 +635,26 @@ function AdminGameSettingsTotalisator() {
                     onClick={handleGameSettingsClick}
                   >
                     Save Game Settings
+                  </button>
+                </div>
+                <h5 className="card-title">Pot Commssion</h5>
+                <h6 className="card-subtitle mb-2 label-margin">
+                  Commission:
+                </h6>
+                <input
+                  className="form-control"
+                  type="number"
+                  name="commission"
+                  onChange={handleGameChange}
+                  value={gameDetails.commission}
+                ></input>
+                <div className="text-center">
+                  <button
+                    className="btn btn-color text-light"
+                    style={{ marginTop: "15px" }}
+                    onClick={handleDrawCommissionClick}
+                  >
+                    Save Draw Commission
                   </button>
                 </div>
               </form>
@@ -653,15 +704,17 @@ function AdminGameSettingsTotalisator() {
                 <input
                   className="form-control"
                   type="number"
-                  name="drawWinMultiplier"
+                  name="draw_multiplier"
                   onChange={handleGameChange}
+                  value={gameDetails.draw_multiplier}
                 ></input>
                 <div className="text-center">
                   <button
                     className="btn btn-color text-light"
                     style={{ marginTop: "15px" }}
+                    onClick={handleDrawCommissionClick}
                   >
-                    Save Win Settings
+                    Save Draw Commission
                   </button>
                 </div>
               </form>
@@ -726,43 +779,43 @@ function AdminGameSettingsTotalisator() {
                 <div className="row text-center place-bet-boxes">
                   <label
                     className="col-md-3 col-4 placebet-styles-low"
-                    style={bet === "low" ? { border: "3px solid green" } : {}}
+                    style={resultChoice === choices.choice1 ? { border: "3px solid green" } : {}}
                   >
-                    LOW
-                    <p>1.99</p>
+                    {choices.choice1}
+                    <p>{parseFloat(totalisatorOdds.odd1).toFixed(2)}</p>
                     <input
                       class="checked"
                       type="radio"
                       name="bet"
-                      value="low"
+                      value={choices.choice1}
                       onChange={handleChange}
                     />
                   </label>
                   <label
                     className="col-md-3 col-4 placebet-styles-draw"
-                    style={bet === "draw" ? { border: "3px solid green" } : {}}
+                    style={resultChoice === choices.choiceDraw ? { border: "3px solid green" } : {}}
                   >
-                    DRAW
-                    <p>1.92</p>
+                    {choices.choiceDraw}
+                    <p>{parseFloat(totalisatorOdds.oddDraw).toFixed(2)}</p>
                     <input
                       class="checked"
                       type="radio"
                       name="bet"
-                      value="draw"
+                      value={choices.choiceDraw}
                       onChange={handleChange}
                     />
                   </label>
                   <label
                     className="col-md-3 col-4 placebet-styles-high"
-                    style={bet === "high" ? { border: "3px solid green" } : {}}
+                    style={resultChoice === choices.choice2 ? { border: "3px solid green" } : {}}
                   >
-                    HIGH
-                    <p>1.92</p>
+                    {choices.choice2}
+                    <p>{parseFloat(totalisatorOdds.odd2).toFixed(2)}</p>
                     <input
                       class="checked"
                       type="radio"
                       name="bet"
-                      value="high"
+                      value={choices.choice2}
                       onChange={handleChange}
                     />
                   </label>
