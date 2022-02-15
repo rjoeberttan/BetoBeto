@@ -30,9 +30,7 @@ function LiveRoom() {
     max_bet: "",
     min_bet: "",
     name: "",
-    win_multip1: "",
-    win_multip2: "",
-    win_multip3: "",
+    draw_multip: 0.00,
     youtube_url: "",
   });
   const [marketDetails, setMarketDetails] = useState({
@@ -53,7 +51,7 @@ function LiveRoom() {
   const [stake, setStake] = useState();
   const [tip, setTip] = useState();
   const [betslip, setBetslip] = useState([]);
-  const { gameId } = useParams();
+  const { gameid } = useParams();
   const gameHeader = process.env.REACT_APP_HEADER_GAME;
   const betHeader = process.env.REACT_APP_HEADER_BET;
   const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT;
@@ -63,7 +61,16 @@ function LiveRoom() {
   };
   const betAuthorization = { "Authorization": process.env.REACT_APP_KEY_BET };
   const [bet, setBet] = useState();
-
+  const [choices, setChoices] = useState({
+    choice1: "",
+    choice2: "",
+    choiceDraw: "DRAW",
+  });
+  const [totalisatorOdds, setTotalisatorOdds] = useState({
+    odd1: 0,
+    odd2: 0,
+    oddDraw: 0,
+  });
   //===========================================
   // UseEffect
   //===========================================
@@ -87,7 +94,7 @@ function LiveRoom() {
   function getMarketTrend() {
     axios({
       method: "get",
-      url: `${gameHeader}/getMarketTrend/${gameId}`,
+      url: `${gameHeader}/getMarketTrend/${gameid}`,
       headers: gameAuthorization,
     }).then((res) => {
       setTrends(res.data.data.trends.reverse());
@@ -113,7 +120,7 @@ function LiveRoom() {
   function getLatestGameDetails() {
     axios({
       method: "get",
-      url: `${gameHeader}/getGameDetails/${gameId}`,
+      url: `${gameHeader}/getGameDetails/${gameid}`,
       headers: gameAuthorization,
     }).then((res) => {
       //get game details
@@ -125,12 +132,28 @@ function LiveRoom() {
         max_bet: data.max_bet,
         min_bet: data.min_bet,
         name: data.name,
-        win_multip1: data.win_multip1,
-        win_multip2: data.win_multip2,
-        win_multip3: data.win_multip3,
+        draw_multip: data.win_multip1, //draw
         youtube_url: data.youtube_url,
+        
       });
+
+      setTotalisatorOdds((prev) => {
+        return {
+          ...prev,
+          oddDraw: parseFloat(data.win_multip1).toFixed(2),
+        };
+      });  
+
+      var gameType = data.type;
+        if (gameType === 1) {
+          setChoices({ choice1: "PULA", choice2: "PUTI", choiceDraw: "DRAW" });
+        } else if (gameType === 2) {
+          setChoices({ choice1: "LOW", choice2: "HIGH", choiceDraw: "DRAW" });
+        }
+
+        
     });
+
   }
 
   function getBetSlips(marketid) {
@@ -161,7 +184,7 @@ function LiveRoom() {
     //get market details
     axios({
       method: "get",
-      url: `${gameHeader}/getLatestMarketDetails/${gameId}/${gameDetails.name}`,
+      url: `${gameHeader}/getLatestMarketDetails/${gameid}/${gameDetails.name}`,
       headers: gameAuthorization,
     }).then((res) => {
       //get game details
@@ -175,13 +198,33 @@ function LiveRoom() {
       manageStatusStyle(market.status);
       handlePlaceBetButtonStatus(market.status);
       getBetSlips(market.market_id);
+
+      axios({
+        method: "get",
+        url: `${gameHeader}/getTotalisatorOdds/${gameid}/${market.market_id}`,
+        headers: {
+          "Authorization": process.env.REACT_APP_KEY_GAME,
+        },
+      }).then((res) => {
+        var odds = res.data.data.odds[0];
+        console.log(odds);
+        setTotalisatorOdds((prev) => {
+          return {
+            ...prev,
+            odd1: parseFloat(odds.odd1),
+            odd2: parseFloat(odds.odd2),
+          };
+        });
+      });
     });
+
+    
   }
 
   function getColorGameBetTotals() {
     axios({
       method: "get",
-      url: `${gameHeader}/getColorGameBetTotals/${gameId}/${marketDetails.market_id}`,
+      url: `${gameHeader}/getColorGameBetTotals/${gameid}/${marketDetails.market_id}`,
       headers: {
         "Authorization": process.env.REACT_APP_KEY_GAME,
       },
@@ -248,12 +291,13 @@ function LiveRoom() {
   // Handle Change and Button Click Functions
   //===========================================
   function placeBet(e) {
+    handlePotentialWin();
     const data = {
       marketId: marketDetails.market_id,
-      gameId: gameId,
+      gameId: gameid,
       accountId: ctx.user.accountID,
       gameName: gameDetails.name,
-      choice: color.toUpperCase(),
+      choice: bet,
       stake: stake,
       wallet: ctx.walletBalance,
       maxBet: gameDetails.max_bet,
@@ -317,6 +361,7 @@ function LiveRoom() {
   }
 
   function handleStakeChange(e) {
+    handlePotentialWin(e.target.value);
     const currentStake = parseFloat(e.target.value).toFixed(0);
     const walletBalance = parseFloat(ctx.walletBalance);
 
@@ -401,9 +446,7 @@ function LiveRoom() {
   }
 
   function handleChange(e) {
-    console.log(e.target.value);
     setBet(e.target.value);
-    console.log(bet, "hehe");
   }
 
   function renderBetslips() {
@@ -434,6 +477,19 @@ function LiveRoom() {
     }
   }
 
+  const [potentialWin, setPotentialWin] = useState();
+
+  function handlePotentialWin(amount){
+    if (bet === choices.choice1){
+      setPotentialWin(totalisatorOdds.odd1*amount)
+    } else if (bet === choices.choice2) {
+      setPotentialWin(totalisatorOdds.odd2*amount)
+    }
+    else if (bet === choices.choiceDraw) {
+      setPotentialWin(totalisatorOdds.oddDraw*amount)
+    }
+  }
+
   return (
     <div className="container text-light container-game-room">
       <ToastContainer />
@@ -444,12 +500,10 @@ function LiveRoom() {
       </div>
       <div className="row">
         <div className="col-md-12 banner-message">
-          {/* <TextScroller text={gameDetails.banner} /> */}
-          <TextScroller text="Sample text" />
+          <TextScroller text={gameDetails.banner} />
         </div>
         <div className="col-md-8">
-          {/* <YoutubeEmbed embedId={gameDetails.youtube_url} /> */}
-          <YoutubeEmbed embedId="5qap5aO4i9A" />
+          <YoutubeEmbed embedId={gameDetails.youtube_url} />
         </div>
         <div className="col-md-4 live-room-colorbox">
           <div className="card txt-black">
@@ -469,66 +523,58 @@ function LiveRoom() {
                 Min/Max Bet: ₱{parseFloat(gameDetails.min_bet).toFixed(2)} - ₱
                 {parseFloat(gameDetails.max_bet).toFixed(2)}
               </p>
-              <PlayerTotalisator handleChange={handleChange} bet={bet} />
-              {/* <div className="row" style={{ marginTop: "30px" }}>
+
+              <div className="row" style={{ marginTop: "30px" }}>
                 <label>Place Bet:</label>
 
                 <div className="row text-center place-bet-boxes">
                   <label
                     className="col-md-3 placebet-styles-low"
-                    style={bet === "low" ? { border: "3px solid green" } : {}}
+                    style={bet === choices.choice1 ? { border: "3px solid green" } : {}}
                   >
-                    LOW
-                    <p>1.99</p>
+                    {choices.choice1}
+                    <p>{totalisatorOdds.odd1}</p>
                     <input
                       class="checked"
                       type="radio"
                       name="bet"
-                      value="low"
+                      value={choices.choice1}
                       onChange={handleChange}
                     />
                   </label>
                   <label
                     className="col-md-3 placebet-styles-draw"
-                    style={bet === "draw" ? { border: "3px solid green" } : {}}
+                    style={bet === "DRAW" ? { border: "3px solid green" } : {}}
                   >
                     DRAW
-                    <p>1.92</p>
+                    <p>{totalisatorOdds.oddDraw}</p>
                     <input
                       class="checked"
                       type="radio"
                       name="bet"
-                      value="draw"
+                      value="DRAW"
                       onChange={handleChange}
                     />
                   </label>
                   <label
                     className="col-md-3 placebet-styles-high"
-                    style={bet === "high" ? { border: "3px solid green" } : {}}
+                    style={bet === choices.choice2 ? { border: "3px solid green" } : {}}
                   >
-                    HIGH
-                    <p>1.92</p>
+                    {choices.choice2}
+                    <p>{totalisatorOdds.odd2}</p>
                     <input
                       class="checked"
                       type="radio"
                       name="bet"
-                      value="high"
+                      value={choices.choice2}
                       onChange={handleChange}
                     />
                   </label>
                 </div>
-              </div> */}
+              </div>
 
-              <InputTotalisator
-                gameDetails={gameDetails.min_bet}
-                gameDetailsMaxBet={gameDetails.max_bet}
-                handleStakeChange={handleStakeChange}
-                stake={stake}
-                placeBetDisabled={placeBetDisabled}
-                placeBet={placeBet}
-                placeBetText={placeBetText}
-              />
-              {/* <div className="row wallet-box wage-box">
+              
+              <div className="row wallet-box wage-box">
                 <div className="col-md-6 col-8">
                   <input
                     type="number"
@@ -551,11 +597,10 @@ function LiveRoom() {
                     {placeBetText}
                   </button>
                 </div>
-              </div> */}
-              <PotentialWin money="9999" />
-              {/* <div className="text potential-text">
-                <label>Potential Win: P9000</label>
-              </div> */}
+              </div>
+              <div className="text potential-text">
+                <label>Potential Win: {potentialWin}</label>
+              </div>
             </div>
           </div>
         </div>

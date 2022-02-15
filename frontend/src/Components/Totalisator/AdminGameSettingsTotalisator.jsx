@@ -20,7 +20,7 @@ function AdminGameSettingsTotalisator() {
     draw_multip: "",
     youtube_url: "",
     commission: "",
-    type: ""
+    type: "",
   });
   //set state for market variables
   const [marketDetails, setMarketDetails] = useState({
@@ -38,12 +38,12 @@ function AdminGameSettingsTotalisator() {
   const [choices, setChoices] = useState({
     choice1: "",
     choice2: "",
-    choiceDraw: "DRAW"
+    choiceDraw: "DRAW",
   });
   const [totalisatorOdds, setTotalisatorOdds] = useState({
     odd1: 0,
     odd2: 0,
-    oddDraw: 0
+    oddDraw: 0,
   });
   const [oddManip, setOddManip] = useState({
     odd1: 0,
@@ -51,7 +51,7 @@ function AdminGameSettingsTotalisator() {
   });
   const [betList, setBetList] = useState([]);
   const [statusChangeDisabled, setStatusChangeDisabled] = useState(false);
-  const [resultChoice, setResultchoice] = useState("")
+  const [resultChoice, setResultchoice] = useState("");
 
   let { gameid } = useParams();
 
@@ -90,25 +90,27 @@ function AdminGameSettingsTotalisator() {
           youtube_url: data.youtube_url,
           draw_multiplier: data.win_multip1,
           commission: data.commission,
-          type: data.type
+          type: data.type,
         });
 
         setTotalisatorOdds((prev) => {
           return {
             ...prev,
-            oddDraw: data.win_multip1
-          }
-        })
+            oddDraw: data.win_multip1,
+          };
+        });
 
-        setOddManip({odd1: Math.floor(Math.random() * data.max_bet), odd2: Math.floor(Math.random() * data.max_bet)})
+        setOddManip({
+          odd1: Math.floor(Math.random() * data.max_bet),
+          odd2: Math.floor(Math.random() * data.max_bet),
+        });
 
-        var gameType = data.type
+        var gameType = data.type;
         if (gameType === 1) {
-          setChoices({choice1: "PULA", choice2: "PUTI", choiceDraw: "DRAW"})
+          setChoices({ choice1: "PULA", choice2: "PUTI", choiceDraw: "DRAW" });
         } else if (gameType === 2) {
-          setChoices({choice1: "LOW", choice2: "HIGH", choiceDraw: "DRAW"})
+          setChoices({ choice1: "LOW", choice2: "HIGH", choiceDraw: "DRAW" });
         }
-
       });
 
       //get market details
@@ -145,34 +147,31 @@ function AdminGameSettingsTotalisator() {
             "Authorization": process.env.REACT_APP_KEY_GAME,
           },
         }).then((res) => {
-          var odds = res.data.data.odds[0]
-          console.log(odds)
+          var odds = res.data.data.odds[0];
+          console.log(odds);
           setTotalisatorOdds((prev) => {
             return {
               ...prev,
               odd1: parseFloat(odds.odd1),
-              odd2: parseFloat(odds.odd2)
-            }
-          })
-        })
+              odd2: parseFloat(odds.odd2),
+            };
+          });
+        });
       });
-
-
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-
   useEffect(() => {
     const interval = setInterval(() => {
-      console.log(totalisatorOdds)
-      if (marketDetails.status === 0 && parseFloat(totalisatorOdds.odd1) === 0 && parseFloat(totalisatorOdds.odd2) === 0) {
+      // console.log(totalisatorOdds);
+      if (marketDetails.status === 0) {
         // Get Generate Totalisator Odds
         axios({
           method: "post",
           url: `${gameHeader}/updateTotalisatorOdds`,
           headers: {
-            "Authorization": process.env.REACT_APP_KEY_GAME
+            "Authorization": process.env.REACT_APP_KEY_GAME,
           },
           data: {
             gameId: gameid,
@@ -182,22 +181,21 @@ function AdminGameSettingsTotalisator() {
             manipOdd1: oddManip.odd1,
             manipOdd2: oddManip.odd2,
             choice1: choices.choice1,
-            choice2: choices.choice2
+            choice2: choices.choice2,
           },
         }).then((res) => {
           // var odds = res.data.data.odds[0]
-          console.log(res.data)
+          // console.log(res.data);
 
           setTotalisatorOdds((prev) => {
             return {
               ...prev,
               odd1: res.data.odd1,
-              odd2: res.data.odd2
-            }
-          })
-        })
+              odd2: res.data.odd2,
+            };
+          });
+        });
       }
-      
     }, 3000);
 
     return () => clearInterval(interval);
@@ -206,7 +204,7 @@ function AdminGameSettingsTotalisator() {
 
   function handleGameChange(e) {
     const { name, value } = e.target;
-    console.log(name, value)
+    console.log(name, value);
 
     setGameDetails((prev) => {
       return {
@@ -293,7 +291,7 @@ function AdminGameSettingsTotalisator() {
 
   function handleDrawCommissionClick(e) {
     console.log(gameDetails.draw_multiplier);
-    if (parseFloat(gameDetails.draw_multiplier) <= 1 ) {
+    if (parseFloat(gameDetails.draw_multiplier) <= 1) {
       toast.error("Dra");
     } else {
       axios({
@@ -305,16 +303,14 @@ function AdminGameSettingsTotalisator() {
         data: {
           gameId: gameid,
           editor: ctx.user.username,
-          multiplier: gameDetails.draw_multiplier
+          multiplier: gameDetails.draw_multiplier,
         },
       })
         .then((res) => {
           toast.success("Draw Multiplier Changed");
         })
         .catch((err) => {
-          toast.error(
-            "Server Error"
-          );
+          toast.error("Server Error");
         });
     }
 
@@ -358,7 +354,7 @@ function AdminGameSettingsTotalisator() {
       })
         .then((res) => {
           const { data } = res.data;
-          console.log(data)
+          console.log(data);
           setMarketDetails((prev) => {
             return {
               ...prev,
@@ -367,37 +363,36 @@ function AdminGameSettingsTotalisator() {
             };
           });
 
-            // // Get Latest Totalisator Odds
-            // axios({
-            //   method: "post",
-            //   url: `${gameHeader}/updateTotalisatorOdds`,
-            //   headers: {
-            //     "Authorization": process.env.REACT_APP_KEY_GAME,
-            //   },
-            //   data: {
-            //     gameId: gameid,
-            //     marketId: marketDetails.market_id,
-            //     gameName: gameDetails.name,
-            //     commission: gameDetails.commission,
-            //     manipOdd1: Math.floor(Math.random() * gameDetails.max_bet),
-            //     manipOdd2: Math.floor(Math.random() * gameDetails.max_bet),
-            //     choice1: choices.choice1,
-            //     choice2: choices.choice2
-            //   },
-            // }).then((res) => {
-            //   // var odds = res.data.data.odds[0]
-            //   console.log(res)
+          // // Get Latest Totalisator Odds
+          // axios({
+          //   method: "post",
+          //   url: `${gameHeader}/updateTotalisatorOdds`,
+          //   headers: {
+          //     "Authorization": process.env.REACT_APP_KEY_GAME,
+          //   },
+          //   data: {
+          //     gameId: gameid,
+          //     marketId: marketDetails.market_id,
+          //     gameName: gameDetails.name,
+          //     commission: gameDetails.commission,
+          //     manipOdd1: Math.floor(Math.random() * gameDetails.max_bet),
+          //     manipOdd2: Math.floor(Math.random() * gameDetails.max_bet),
+          //     choice1: choices.choice1,
+          //     choice2: choices.choice2
+          //   },
+          // }).then((res) => {
+          //   // var odds = res.data.data.odds[0]
+          //   console.log(res)
 
-            //   setTotalisatorOdds((prev) => {
-            //     return {
-            //       ...prev,
-            //       odd1: res.data.odd1,
-            //       odd2: res.data.odd2
-            //     }
-            //   })
-            // })
+          //   setTotalisatorOdds((prev) => {
+          //     return {
+          //       ...prev,
+          //       odd1: res.data.odd1,
+          //       odd2: res.data.odd2
+          //     }
+          //   })
+          // })
 
-          
           toast.success("Success Create Market");
           DisableSettings();
         })
@@ -476,7 +471,7 @@ function AdminGameSettingsTotalisator() {
           DisableSettings();
         })
         .catch((err) => {
-          console.log(marketDetails.status)
+          console.log(marketDetails.status);
           if (marketDetails.status === 1) {
             toast.error("Market is already closed");
           } else {
@@ -487,7 +482,11 @@ function AdminGameSettingsTotalisator() {
   }
 
   function handleResultMarket(e) {
-    if (window.confirm("Are you sure to result this market?" || resultChoice !== "")) {
+    if (
+      window.confirm(
+        "Are you sure to result this market?" || resultChoice !== ""
+      )
+    ) {
       axios({
         method: "post",
         url: `${gameHeader}/resultTotalisatorMarket`,
@@ -509,16 +508,16 @@ function AdminGameSettingsTotalisator() {
             };
           });
 
-          setResultchoice("")
+          setResultchoice("");
 
           setTotalisatorOdds((prev) => {
             return {
               ...prev,
               odd1: 0,
-              odd2: 0
-            }
-          })
-          
+              odd2: 0,
+            };
+          });
+
           // socket.emit("color_game_market_update", {
           //   marketId: res.data.data.marketId,
           //   status: res.data.data.status,
@@ -638,9 +637,7 @@ function AdminGameSettingsTotalisator() {
                   </button>
                 </div>
                 <h5 className="card-title">Pot Commssion</h5>
-                <h6 className="card-subtitle mb-2 label-margin">
-                  Commission:
-                </h6>
+                <h6 className="card-subtitle mb-2 label-margin">Commission:</h6>
                 <input
                   className="form-control"
                   type="number"
@@ -779,7 +776,11 @@ function AdminGameSettingsTotalisator() {
                 <div className="row text-center place-bet-boxes">
                   <label
                     className="col-md-3 col-4 placebet-styles-low"
-                    style={resultChoice === choices.choice1 ? { border: "3px solid green" } : {}}
+                    style={
+                      resultChoice === choices.choice1
+                        ? { border: "3px solid green" }
+                        : {}
+                    }
                   >
                     {choices.choice1}
                     <p>{parseFloat(totalisatorOdds.odd1).toFixed(2)}</p>
@@ -793,7 +794,11 @@ function AdminGameSettingsTotalisator() {
                   </label>
                   <label
                     className="col-md-3 col-4 placebet-styles-draw"
-                    style={resultChoice === choices.choiceDraw ? { border: "3px solid green" } : {}}
+                    style={
+                      resultChoice === choices.choiceDraw
+                        ? { border: "3px solid green" }
+                        : {}
+                    }
                   >
                     {choices.choiceDraw}
                     <p>{parseFloat(totalisatorOdds.oddDraw).toFixed(2)}</p>
@@ -807,7 +812,11 @@ function AdminGameSettingsTotalisator() {
                   </label>
                   <label
                     className="col-md-3 col-4 placebet-styles-high"
-                    style={resultChoice === choices.choice2 ? { border: "3px solid green" } : {}}
+                    style={
+                      resultChoice === choices.choice2
+                        ? { border: "3px solid green" }
+                        : {}
+                    }
                   >
                     {choices.choice2}
                     <p>{parseFloat(totalisatorOdds.odd2).toFixed(2)}</p>
