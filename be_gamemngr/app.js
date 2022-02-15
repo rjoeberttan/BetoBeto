@@ -1639,16 +1639,36 @@ app.post("/updateTotalisatorOdds", (req, res) => {
         
         odd1 = (totalAfterCommission/odd1Total).toFixed(2)
         odd2 = (totalAfterCommission/odd2Total).toFixed(2)
-        sqlInsertQuery = "INSERT INTO totalisator (market_id, game_id, odd1, odd2, placement_date) VALUES (?,?,?,?, NOW())"
-        db.query(sqlInsertQuery, [marketId, gameId, odd1, odd2], (err, result2) => {
+
+        // Process 1
+        // Update the commission
+        sqlQuery =  "SELECT * FROM totalisator WHERE market_id = ? AND game_id = ? ORDER BY placement_date DESC LIMIT 1";
+        db.query(sqlQuery, [marketId, gameId], (err, result4) => {
           if (err) {
-            logger.error(`${req.originalUrl} request has an error during process 3, marketId:${marketId} gameId:${gameId}, error:${err}`)
-            res.status(500).json({ message: "Server error" });
+            logger.error(`${req.originalUrl} request has an error during process 1, gameId:${gameId}, error:${err}`);
           } else {
-            logger.info(`${req.originalUrl} successfully updated odds for market:${marketId} to odds: ${odd1} - ${odd2}`)
-            res.status(200).json({message: "Updates totalisator odds", odd1: odd1, odd2: odd2})
+            console.log(result4)
+            var oldOdd1 = parseFloat(result4[0].odd1)
+            var oldOdd2 = parseFloat(result4[0].odd2)
+            console.log(odd1, oldOdd1, odd2, oldOdd2)
+
+            if (parseFloat(odd1) !== oldOdd1 || parseFloat(odd2) !== oldOdd2){
+              sqlInsertQuery = "INSERT INTO totalisator (market_id, game_id, odd1, odd2, placement_date) VALUES (?,?,?,?, NOW())"
+              db.query(sqlInsertQuery, [marketId, gameId, odd1, odd2], (err, result2) => {
+                if (err) {
+                  logger.error(`${req.originalUrl} request has an error during process 3, marketId:${marketId} gameId:${gameId}, error:${err}`)
+                  res.status(500).json({ message: "Server error" });
+                } else {
+                  logger.info(`${req.originalUrl} successfully updated odds for market:${marketId} to odds: ${odd1} - ${odd2}`)
+                  res.status(200).json({message: "Updates totalisator odds", odd1: odd1, odd2: odd2})
+                }
+              })
+            } else {
+              res.status(200).json({message: "Updates totalisator odds but nothing changed", odd1: odd1, odd2: odd2})
+            }
+
           }
-        })
+        });
     }       
   })
 });
