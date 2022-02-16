@@ -1574,6 +1574,9 @@ app.post("/resultTotalisatorMarket", (req, res) => {
   })
 });
 
+
+
+// Manipulate Bet will still change on refresh of admin as long as both has bets
 app.post("/updateTotalisatorOdds", (req, res) => {
   const start = process.hrtime()
   const apiKey = req.header("Authorization") 
@@ -1618,11 +1621,9 @@ app.post("/updateTotalisatorOdds", (req, res) => {
         res.status(500).json({ message: "Server error" });
     } else {
         for ( row in result ) {
-          console.log(result[row])
           if (result[row].choice === choice1){
             odd1Total += result[row].total
           } else if (result[row].choice === choice2){
-            console.log(result[row].total)
             odd2Total += result[row].total 
           } else {
             drawTotal = result[row].total 
@@ -1632,8 +1633,6 @@ app.post("/updateTotalisatorOdds", (req, res) => {
         odd1Total = odd1Total === 0 ? parseFloat(manipOdd1) : odd1Total
         odd2Total = odd2Total === 0 ? parseFloat(manipOdd2) : odd2Total
   
-        console.log(odd1Total, odd2Total)
-
         var total = odd1Total + odd2Total + drawTotal
         var totalAfterCommission = total - (total * (parseFloat(commission)) / 100)
         
@@ -1646,13 +1645,25 @@ app.post("/updateTotalisatorOdds", (req, res) => {
         db.query(sqlQuery, [marketId, gameId], (err, result4) => {
           if (err) {
             logger.error(`${req.originalUrl} request has an error during process 1, gameId:${gameId}, error:${err}`);
+          } else if (result4.length <= 0) {
+            console.log(result4, "process1")
+            // If no existing entry for totalisator, insert with manipulated
+            sqlInsertQuery = "INSERT INTO totalisator (market_id, game_id, odd1, odd2, placement_date) VALUES (?,?,?,?, NOW())"
+            db.query(sqlInsertQuery, [marketId, gameId, odd1, odd2], (err, result2) => {
+              if (err) {
+                logger.error(`${req.originalUrl} request has an error during process 3, marketId:${marketId} gameId:${gameId}, error:${err}`)
+                res.status(500).json({ message: "Server error" });
+              } else {
+                logger.info(`${req.originalUrl} successfully updated odds for market:${marketId} to odds: ${odd1} - ${odd2}`)
+                res.status(200).json({message: "Updates totalisator odds", odd1: odd1, odd2: odd2})
+              }
+            })
           } else {
-            console.log(result4)
+            // Check if old is same as new before inserting
             var oldOdd1 = parseFloat(result4[0].odd1)
             var oldOdd2 = parseFloat(result4[0].odd2)
-            console.log(odd1, oldOdd1, odd2, oldOdd2)
 
-            if (parseFloat(odd1) !== oldOdd1 || parseFloat(odd2) !== oldOdd2){
+            if (parseFloat(odd1).toFixed(2) !== oldOdd1.toFixed(2) || parseFloat(odd2).toFixed(2) !== oldOdd2.toFixed(2)){
               sqlInsertQuery = "INSERT INTO totalisator (market_id, game_id, odd1, odd2, placement_date) VALUES (?,?,?,?, NOW())"
               db.query(sqlInsertQuery, [marketId, gameId, odd1, odd2], (err, result2) => {
                 if (err) {
@@ -1666,7 +1677,6 @@ app.post("/updateTotalisatorOdds", (req, res) => {
             } else {
               res.status(200).json({message: "Updates totalisator odds but nothing changed", odd1: odd1, odd2: odd2})
             }
-
           }
         });
     }       

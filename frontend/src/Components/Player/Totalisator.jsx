@@ -75,7 +75,7 @@ function LiveRoom() {
   // UseEffect
   //===========================================
   useEffect(() => {
-    socket.emit("join_room", "colorGame");
+    socket.emit("join_room", "totalisatorGame");
     getLatestGameDetails();
     getLatestMarketDetails();
     getMarketTrend();
@@ -249,39 +249,51 @@ function LiveRoom() {
   // Websocket Functions
   //===========================================
   useEffect(() => {
-    socket.on("received_market_update", (data) => {
-      setMarketDetails((prev) => {
-        return {
-          ...prev,
-          market_id: data.marketId,
-          status: data.status,
-        };
-      });
-      manageStatusStyle(data.status);
-      handlePlaceBetButtonStatus(data.status);
-      setTimeout(() => {
-        getBetSlips();
-      }, 1000);
-
-      var newStatus = data.status;
-      // Update wallet Balance if Market is Resulted
-      if (newStatus === 2) {
+    socket.on("received_totalisator_market_update", (data) => {
+      if (data.gameId === gameid) {
+        setMarketDetails((prev) => {
+          return {
+            ...prev,
+            market_id: data.marketId,
+            status: data.status,
+          };
+        });
+        manageStatusStyle(data.status);
+        handlePlaceBetButtonStatus(data.status);
         setTimeout(() => {
-          getMarketTrend();
-          axios({
-            method: "get",
-            url: `${accountHeader}/getWalletBalance/${ctx.user.accountID}`,
-            headers: accAuthorization,
-          })
-            .then((res) => {
-              const walletBalance = res.data.wallet;
-              ctx.walletHandler(walletBalance);
-              toast.info("Wallet Balance Updated");
+          getBetSlips();
+        }, 1000);
+  
+        var newStatus = data.status;
+        // Update wallet Balance if Market is Resulted
+        if (newStatus === 2) {
+          setTimeout(() => {
+            getMarketTrend();
+            axios({
+              method: "get",
+              url: `${accountHeader}/getWalletBalance/${ctx.user.accountID}`,
+              headers: accAuthorization,
             })
-            .catch((err) => {
-              console.log(err);
-            });
-        }, 2000);
+              .then((res) => {
+                const walletBalance = res.data.wallet;
+                ctx.walletHandler(walletBalance);
+                toast.info("Wallet Balance Updated");
+              })
+              .catch((err) => {
+                console.log(err);
+              });
+          }, 2000);
+        }
+      }
+    });
+
+    socket.on("received_totalisator_odds_update", (data) => {
+      if (data.gameId === gameid) {
+        setTotalisatorOdds({
+          odd1: data.odd1,
+          odd2: data.odd2,
+          oddDraw: data.oddDraw
+        })
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps

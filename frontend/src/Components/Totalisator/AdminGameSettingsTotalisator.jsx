@@ -17,7 +17,7 @@ function AdminGameSettingsTotalisator() {
     max_bet: "",
     min_bet: "",
     name: "",
-    draw_multip: "",
+    draw_multiplier: "",
     youtube_url: "",
     commission: "",
     type: "",
@@ -41,9 +41,9 @@ function AdminGameSettingsTotalisator() {
     choiceDraw: "DRAW",
   });
   const [totalisatorOdds, setTotalisatorOdds] = useState({
-    odd1: 0,
-    odd2: 0,
-    oddDraw: 0,
+    odd1: parseFloat(0).toFixed(2),
+    odd2: parseFloat(0).toFixed(2),
+    oddDraw: parseFloat(0).toFixed(2),
   });
   const [oddManip, setOddManip] = useState({
     odd1: 0,
@@ -156,6 +156,7 @@ function AdminGameSettingsTotalisator() {
               odd2: parseFloat(odds.odd2),
             };
           });
+
         });
       });
     });
@@ -184,8 +185,7 @@ function AdminGameSettingsTotalisator() {
             choice2: choices.choice2,
           },
         }).then((res) => {
-          // var odds = res.data.data.odds[0]
-          // console.log(res.data);
+          console.log(res)
 
           setTotalisatorOdds((prev) => {
             return {
@@ -193,6 +193,15 @@ function AdminGameSettingsTotalisator() {
               odd1: res.data.odd1,
               odd2: res.data.odd2,
             };
+          });
+
+          socket.emit("totalisator_odds_update", {
+            marketId: marketDetails.market_id,
+            gameId: gameid,
+            status: 0,
+            odd1: res.data.odd1,
+            odd2: res.data.odd2,
+            oddDraw: gameDetails.draw_multiplier
           });
         });
       }
@@ -292,7 +301,7 @@ function AdminGameSettingsTotalisator() {
   function handleDrawCommissionClick(e) {
     console.log(gameDetails.draw_multiplier);
     if (parseFloat(gameDetails.draw_multiplier) <= 1) {
-      toast.error("Dra");
+      toast.error("Draw errpr");
     } else {
       axios({
         method: "post",
@@ -308,6 +317,14 @@ function AdminGameSettingsTotalisator() {
       })
         .then((res) => {
           toast.success("Draw Multiplier Changed");
+          socket.emit("totalisator_odds_update", {
+            marketId: marketDetails.market_id,
+            gameId: gameid,
+            status: 0,
+            odd1: totalisatorOdds.odd1,
+            odd2: totalisatorOdds.odd2,
+            oddDraw: gameDetails.draw_multiplier
+          });
         })
         .catch((err) => {
           toast.error("Server Error");
@@ -362,37 +379,11 @@ function AdminGameSettingsTotalisator() {
               status: data.status,
             };
           });
-
-          // // Get Latest Totalisator Odds
-          // axios({
-          //   method: "post",
-          //   url: `${gameHeader}/updateTotalisatorOdds`,
-          //   headers: {
-          //     "Authorization": process.env.REACT_APP_KEY_GAME,
-          //   },
-          //   data: {
-          //     gameId: gameid,
-          //     marketId: marketDetails.market_id,
-          //     gameName: gameDetails.name,
-          //     commission: gameDetails.commission,
-          //     manipOdd1: Math.floor(Math.random() * gameDetails.max_bet),
-          //     manipOdd2: Math.floor(Math.random() * gameDetails.max_bet),
-          //     choice1: choices.choice1,
-          //     choice2: choices.choice2
-          //   },
-          // }).then((res) => {
-          //   // var odds = res.data.data.odds[0]
-          //   console.log(res)
-
-          //   setTotalisatorOdds((prev) => {
-          //     return {
-          //       ...prev,
-          //       odd1: res.data.odd1,
-          //       odd2: res.data.odd2
-          //     }
-          //   })
-          // })
-
+          socket.emit("totalisator_market_update", {
+            marketId: data.marketID,
+            status: 0,
+            gameId: gameid
+          });
           toast.success("Success Create Market");
           DisableSettings();
         })
@@ -426,10 +417,11 @@ function AdminGameSettingsTotalisator() {
               status: data.status,
             };
           });
-          // socket.emit("color_game_market_update", {
-          //   marketId: data.marketId,
-          //   status: data.status,
-          // });
+          socket.emit("totalisator_market_update", {
+            marketId: data.marketId,
+            status: data.status,
+            gameId: gameid
+          });
           toast.success("Success Open Market");
           DisableSettings();
         })
@@ -463,10 +455,11 @@ function AdminGameSettingsTotalisator() {
               status: data.status,
             };
           });
-          // socket.emit("color_game_market_update", {
-          //   marketId: data.marketId,
-          //   status: data.status,
-          // });
+          socket.emit("totalisator_market_update", {
+            marketId: data.marketId,
+            status: data.status,
+            gameId: gameid
+          });
           toast.success("Success Closed Market");
           DisableSettings();
         })
@@ -508,43 +501,162 @@ function AdminGameSettingsTotalisator() {
             };
           });
 
-          setResultchoice("");
+          // Get Latest Odds first before resulting market
+          axios({
+            method: "post",
+            url: `${gameHeader}/updateTotalisatorOdds`,
+            headers: {
+              "Authorization": process.env.REACT_APP_KEY_GAME,
+            },
+            data: {
+              gameId: gameid,
+              marketId: marketDetails.market_id,
+              gameName: gameDetails.name,
+              commission: gameDetails.commission,
+              manipOdd1: oddManip.odd1,
+              manipOdd2: oddManip.odd2,
+              choice1: choices.choice1,
+              choice2: choices.choice2,
+            },
+          }).then((res) => {
+            console.log(res)
+  
+            setTotalisatorOdds((prev) => {
+              return {
+                ...prev,
+                odd1: res.data.odd1,
+                odd2: res.data.odd2,
+              };
+            });
+  
+            socket.emit("totalisator_odds_update", {
+              marketId: marketDetails.market_id,
+              gameId: gameid,
+              status: 0,
+              odd1: res.data.odd1,
+              odd2: res.data.odd2,
+              oddDraw: gameDetails.draw_multiplier
+            });
 
+
+            // Settle Totalisator Bets
+            axios({
+              method: "post",
+              url: `${betHeader}/settleTotalisatorBets`,
+              headers: {
+                "Authorization": process.env.REACT_APP_KEY_BET,
+              },
+              data: {
+                gameId: gameid,
+                marketId: marketDetails.market_id,
+                gameName: gameDetails.name,
+                choice1: choices.choice1,
+                choice2: choices.choice2,
+                oddChoice1: res.data.odd1,
+                oddChoice2: res.data.odd2,
+                oddDraw: gameDetails.draw_multiplier,
+                marketResult: resultChoice,
+                settler: ctx.user.username
+              },
+            })
+              .then((res) => {
+                if (resultChoice === "DRAW"){
+                  toast.info("No commission to be sent since result is 'DRAW'")
+                } else{
+                  console.log(res)
+                  var settledBets = res.data.data.bets
+
+                  settledBets.forEach((bet) => {
+                      // Send GM Commission
+                    const gmData = {
+                      betId: bet.bet_id,
+                      playerId: bet.account_id,
+                      amount: bet.stake,
+                    };
+                    axios({
+                      method: "post",
+                      url: `${betHeader}/sendGrandMasterCommission`,
+                      headers: {
+                        "Authorization": process.env.REACT_APP_KEY_BET,
+                      },
+                      data: gmData,
+                    }).then((res) => {console.log("gm sent")}).catch((err) => {console.log("gm", err)});
+  
+  
+                    // Send Agent Commission
+                    const agentData = {
+                      betId: bet.bet_id,
+                      playerId: bet.account_id,
+                      stake: bet.stake,
+                    };
+                    axios({
+                      method: "post",
+                      url: `${betHeader}/sendAgentCommission`,
+                      headers: {
+                        "Authorization": process.env.REACT_APP_KEY_BET,
+                      },
+                      data: agentData,
+                    }).then((res) => {
+                      console.log("agent sent")
+                      var agentId = res.data.data.agentId
+                      var commission = res.data.data.commission
+                      // Send Master Agent Commission
+                      const maData = {
+                        betId: bet.bet_id,
+                        stake: bet.stake,
+                        agentId: agentId,
+                        agentCommission: commission
+                      };
+                      console.log(maData)
+                      axios({
+                        method: "post",
+                        url: `${betHeader}/sendMasterAgentCommission`,
+                        headers: {
+                          "Authorization": process.env.REACT_APP_KEY_BET,
+                        },
+                        data: maData,
+                      }).then((res) => {console.log("ma sent")}).catch((err) => {console.log("ma", err)});
+
+                    }).catch((err) => {console.log("agent", err)});
+
+                  })
+                  toast.info("All Commissions has been given")
+                }
+              })
+              .catch((err) => {
+                // console.log(err);
+              });
+
+
+
+
+          });
+
+
+
+
+
+          //State Resets
+          setResultchoice("");
           setTotalisatorOdds((prev) => {
             return {
               ...prev,
-              odd1: 0,
-              odd2: 0,
+              odd1: parseFloat(0).toFixed(2),
+              odd2: parseFloat(0).toFixed(2),
             };
           });
+          setOddManip({
+            odd1: Math.floor(Math.random() * gameDetails.max_bet),
+            odd2: Math.floor(Math.random() * gameDetails.max_bet),
+          });
+          socket.emit("totalisator_market_update", {
+            marketId: res.data.data.marketId,
+            status: res.data.data.status,
+            gameId: gameid
+          });
 
-          // socket.emit("color_game_market_update", {
-          //   marketId: res.data.data.marketId,
-          //   status: res.data.data.status,
-          // });
-          // toast.success("Success Result Market");
-          // DisableSettings();
 
-          // // Settle Bets
-          // axios({
-          //   method: "post",
-          //   url: `${betHeader}/settleColorGameBets`,
-          //   headers: {
-          //     "Authorization": process.env.REACT_APP_KEY_BET,
-          //   },
-          //   data: {
-          //     gameId: gameid,
-          //     marketId: marketDetails.market_id,
-          //     gameName: gameDetails.name,
-          //     result: [boxColor.boxOne, boxColor.boxTwo, boxColor.boxThree],
-          //   },
-          // })
-          //   .then((res) => {
-          //     // console.log(res);
-          //   })
-          //   .catch((err) => {
-          //     // console.log(err);
-          //   });
+
         })
         .catch((err) => {
           if (marketDetails.status === 2) {

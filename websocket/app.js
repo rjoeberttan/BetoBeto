@@ -35,6 +35,34 @@ io.on("connection", (socket) => {
         socket.to("colorGame").emit("received_market_update", data)
     })
 
+    socket.on("totalisator_market_update", (data) => {
+        console.log(data)
+
+        const status = data.status;
+        const marketId = data.marketId;
+        const gameId = data.gameId
+        // const gameId = data.gameId
+        // const date = data.date
+        
+        if (status === 0) {
+            console.log(`Market has been Created/Opened with marketId:${marketId}`)
+        } else if (status === 1) {
+            console.log(`Market has been Closed with marketId:${marketId} `)
+        } else if (status === 2) {
+            console.log(`Market has been Resulted with marketId:${marketId} `)
+        }
+        socket.to("totalisatorGame").emit("received_totalisator_market_update", data)
+    })
+
+    socket.on("totalisator_odds_update", (data) => {
+        const status = data.status;
+        const marketId = data.marketId;
+        const gameId = data.gameId
+        // const gameId = data.gameId
+        // const date = data.date
+        socket.to("totalisatorGame").emit("received_totalisator_odds_update", data)
+    })
+
     // Socket IO Method when a market update on color game is received
     socket.on("bet_placement", (data) => {
         console.log(`Received bet placement from ${data.accountId}`)
