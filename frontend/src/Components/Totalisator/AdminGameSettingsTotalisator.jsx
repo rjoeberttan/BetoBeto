@@ -637,7 +637,7 @@ function AdminGameSettingsTotalisator() {
 
 
           //State Resets
-          setResultchoice("");
+          
           setTotalisatorOdds((prev) => {
             return {
               ...prev,
@@ -668,7 +668,8 @@ function AdminGameSettingsTotalisator() {
     } else {
       toast.info("Result Market Cancelled or no winning choice selected");
     }
-
+    setResultchoice("");
+    console.log(resultChoice, "hello result");
     e.preventDefault();
   }
 
@@ -694,6 +695,7 @@ function AdminGameSettingsTotalisator() {
   }
 
   function handleChange(e) {
+    
     console.log(e.target.value);
     setResultchoice(e.target.value);
   }
@@ -902,6 +904,7 @@ function AdminGameSettingsTotalisator() {
                       name="bet"
                       value={choices.choice1}
                       onChange={handleChange}
+                      checked={resultChoice === choices.choice1}
                     />
                   </label>
                   <label
@@ -920,6 +923,7 @@ function AdminGameSettingsTotalisator() {
                       name="bet"
                       value={choices.choiceDraw}
                       onChange={handleChange}
+                      checked={resultChoice === choices.choiceDraw}
                     />
                   </label>
                   <label
@@ -938,6 +942,7 @@ function AdminGameSettingsTotalisator() {
                       name="bet"
                       value={choices.choice2}
                       onChange={handleChange}
+                      checked={resultChoice === choices.choice2}
                     />
                   </label>
                 </div>

@@ -75,10 +75,11 @@ function LiveRoom() {
   // UseEffect
   //===========================================
   useEffect(() => {
-    socket.emit("join_room", "totalisatorGame");
+    
     getLatestGameDetails();
     getLatestMarketDetails();
     getMarketTrend();
+    socket.emit("join_room", "totalisatorGame");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -207,7 +208,6 @@ function LiveRoom() {
         },
       }).then((res) => {
         var odds = res.data.data.odds[0];
-        console.log(odds);
         setTotalisatorOdds((prev) => {
           return {
             ...prev,
@@ -217,8 +217,6 @@ function LiveRoom() {
         });
       });
     });
-
-    
   }
 
   function getColorGameBetTotals() {
@@ -244,7 +242,7 @@ function LiveRoom() {
         console.log(err);
       });
   }
-
+  const [blink, setBlink] = useState();
   //===========================================
   // Websocket Functions
   //===========================================
@@ -286,14 +284,27 @@ function LiveRoom() {
         }
       }
     });
-
+   
+    
     socket.on("received_totalisator_odds_update", (data) => {
       if (data.gameId === gameid) {
-        setTotalisatorOdds({
-          odd1: data.odd1,
-          odd2: data.odd2,
-          oddDraw: data.oddDraw
-        })
+        if (totalisatorOdds.odd1 < data.odd1){
+          console.log("up");
+          setBlink("up");
+          setTotalisatorOdds({
+            odd1: data.odd1,
+            odd2: data.odd2,
+            oddDraw: data.oddDraw
+          })
+        } else {
+          console.log("down");
+          setBlink("down")
+          setTotalisatorOdds({
+            odd1: data.odd1,
+            odd2: data.odd2,
+            oddDraw: data.oddDraw
+          })
+        }
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -370,6 +381,7 @@ function LiveRoom() {
           toast.error(err.response.data.message);
         });
     }
+    setBet("");
   }
 
   function handleStakeChange(e) {
@@ -502,6 +514,8 @@ function LiveRoom() {
     }
   }
 
+  
+
   return (
     <div className="container text-light container-game-room">
       <ToastContainer />
@@ -542,35 +556,38 @@ function LiveRoom() {
                 <div className="row text-center place-bet-boxes">
                   <label
                     className="col-md-3 placebet-styles-low"
-                    style={bet === choices.choice1 ? { border: "3px solid green" } : {}}
+                    style={bet === choices.choice1 ? { border: "3px solid orange" } : blink === "up" ? {border: "3px solid green"} : {}}
                   >
                     {choices.choice1}
                     <p>{totalisatorOdds.odd1}</p>
+
                     <input
                       class="checked"
                       type="radio"
                       name="bet"
                       value={choices.choice1}
                       onChange={handleChange}
+                      checked={bet === choices.choice1}
                     />
                   </label>
                   <label
                     className="col-md-3 placebet-styles-draw"
-                    style={bet === "DRAW" ? { border: "3px solid green" } : {}}
+                    style={bet === "DRAW" ? { border: "3px solid orange" } : {}}
                   >
                     DRAW
-                    <p>{totalisatorOdds.oddDraw}</p>
+                    <p>{parseFloat(totalisatorOdds.oddDraw).toFixed(2)}</p>
                     <input
                       class="checked"
                       type="radio"
                       name="bet"
                       value="DRAW"
                       onChange={handleChange}
+                      checked={bet === choices.choiceDraw}
                     />
                   </label>
                   <label
                     className="col-md-3 placebet-styles-high"
-                    style={bet === choices.choice2 ? { border: "3px solid green" } : {}}
+                    style={bet === choices.choice2 ? { border: "3px solid orange" } : {}}
                   >
                     {choices.choice2}
                     <p>{totalisatorOdds.odd2}</p>
@@ -580,6 +597,7 @@ function LiveRoom() {
                       name="bet"
                       value={choices.choice2}
                       onChange={handleChange}
+                      checked={bet === choices.choice2}
                     />
                   </label>
                 </div>
