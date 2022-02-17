@@ -172,6 +172,23 @@ input.checked[type="radio"] {
   margin-left: 40px;
 }
 
+.results-margin{
+  margin-right: 1px;
+  margin-bottom: 1px;
+}
+
+.results-padding{
+  padding-left: 50px;
+  white-space: nowrap;
+}
+
+.results-box-padding{
+  padding-left: 0px !important;
+  padding-right: 0px !important;
+  color: white;
+  font-weight: 500;
+}
+
 @media (min-width: 320px) and (max-width: 1199px) {
   .stake-box {
     margin-left: 18px;
@@ -238,6 +255,12 @@ input.checked[type="radio"] {
   .placebet-styles-high {
     margin-left: 0px !important;
   }
+  .results-margin{
+    margin-right: 0px;
+  }
+  .results-padding{
+    padding-left: 0px;
+  }
 }
 
 @media (min-width: 320px) and (max-width: 991px) {
@@ -301,6 +324,14 @@ input.checked[type="radio"] {
 
   .placebet-styles-high {
     margin-left: 0px !important;
+  }
+
+  .results-padding{
+    padding-left: 0px;
+  }
+
+  .results-margin{
+    margin-right: 0px;
   }
 }
 
@@ -366,6 +397,12 @@ input.checked[type="radio"] {
   .placebet-styles-high {
     margin-left: 0px !important;
   }
+  .results-padding{
+    padding-left: 0px;
+  }
+  .results-margin{
+    margin-right: 0px;
+  }
 }
 
 @media (min-width: 320px) and (max-width: 767px) {
@@ -429,6 +466,12 @@ input.checked[type="radio"] {
 
   .placebet-styles-high {
     margin-left: 0px !important;
+  }
+  .results-padding{
+    padding-left: 0px;
+  }
+  .results-margin{
+    margin-right: 0px;
   }
 }
 
@@ -494,5 +537,11 @@ input.checked[type="radio"] {
 
   .placebet-styles-high {
     margin-left: 0px !important;
+  }
+  .results-padding{
+    padding-left: 0px;
+  }
+  .results-margin{
+    margin-right: 0px;
   }
 }

@@ -620,13 +620,13 @@ function LiveRoom() {
         <div className="label-margin col-md-4">
           <div className="text-center">
             <div className="card text-black">
-              <div className="card-body table-responsive-sm">
+              <div className="card-body table-responsive">
                 <h4 className="card-title">Market Trends</h4>
                 <table class="table table-bordered border-dark col-md-8">
                   <thead>
                     <tr>
                       {trends.map((x) => (
-                        <th>{x.market_id}</th>
+                        <th>{x.market_id+"00"}</th>
                       ))}
                     </tr>
                   </thead>

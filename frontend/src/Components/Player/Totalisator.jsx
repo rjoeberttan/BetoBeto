@@ -22,7 +22,7 @@ function LiveRoom() {
   const [placeBetDisabled, setPlaceBetDisabled] = useState(false);
   const [placeTipDisabled, setPlaceTipDisabled] = useState(false);
   const [placeBetText, setPlaceBetText] = useState("Place Bet");
-  const [trends, setTrends] = useState([]);
+  const [results, setResults] = useState([]);
   const [gameDetails, setGameDetails] = useState({
     banner: "",
     description: "",
@@ -97,24 +97,9 @@ function LiveRoom() {
       url: `${gameHeader}/getMarketTrend/${gameid}`,
       headers: gameAuthorization,
     }).then((res) => {
-      setTrends(res.data.data.trends.reverse());
+      console.log(res.data.data.trends);
+      setResults(res.data.data.trends)
     });
-  }
-
-  function generateResultsArray() {
-    var res1 = [];
-    var res2 = [];
-    var res3 = [];
-
-    trends.map((x) => {
-      var resultLong = x.result;
-      var resSplit = resultLong.split(",");
-      res1.push(resSplit[0]);
-      res2.push(resSplit[1]);
-      res3.push(resSplit[2]);
-    });
-
-    return [res1, res2, res3];
   }
 
   function getLatestGameDetails() {
@@ -534,9 +519,7 @@ function LiveRoom() {
     else if (betChoice === choices.choiceDraw) {
       setPotentialWin(totalisatorOdds.oddDraw*amount)
     }
-  }
-
-  
+  }  
 
   return (
     <div className="container text-light container-game-room">
@@ -715,12 +698,17 @@ function LiveRoom() {
                     ))}
                   </tbody>
                 </table> */}
-                <p>
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed
-                  do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-                  Ut enim ad minim veniam, quis nostrud exercitation ullamco
-                  laboris nisi ut aliquip ex ea commodo consequat.{" "}
-                </p>
+                <div class="row results-padding">
+                  {results.map((x) => {
+                    return (
+                      <div class="col-md-2 col-6 results-margin results-box-padding" style={x.result === "PUTI" ? {backgroundColor: "rgb(119, 196, 226)", border: "1px solid black"} : x.result === "PULA" ? {backgroundColor: "#dd3d3d", border: "1px solid black"} : {backgroundColor: "#a333c8", border: "1px solid black"}}>
+                        {x.market_id+"00"}
+                      </div>
+                    )
+                    
+                  })}
+
+                </div>
               </div>
             </div>
           </div>
