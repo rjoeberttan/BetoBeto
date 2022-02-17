@@ -185,15 +185,11 @@ function AdminGameSettingsTotalisator() {
             choice2: choices.choice2,
           },
         }).then((res) => {
-          console.log(res)
+          var odd1Change = parseFloat(totalisatorOdds.odd1).toFixed(2) - parseFloat(res.data.odd1).toFixed(2)
+          var odd2Change = parseFloat(totalisatorOdds.odd2).toFixed(2) - parseFloat(res.data.odd2).toFixed(2)
 
-          setTotalisatorOdds((prev) => {
-            return {
-              ...prev,
-              odd1: res.data.odd1,
-              odd2: res.data.odd2,
-            };
-          });
+          var odd1Status = odd1Change > 0 ? "DOWN" : (odd1Change < 0) ? "UP" : "EQUAL"
+          var odd2Status = odd2Change > 0 ? "DOWN" : (odd2Change < 0) ? "UP" : "EQUAL"
 
           socket.emit("totalisator_odds_update", {
             marketId: marketDetails.market_id,
@@ -201,7 +197,17 @@ function AdminGameSettingsTotalisator() {
             status: 0,
             odd1: res.data.odd1,
             odd2: res.data.odd2,
-            oddDraw: gameDetails.draw_multiplier
+            oddDraw: gameDetails.draw_multiplier,
+            odd1Change: odd1Status,
+            odd2Change: odd2Status
+          });
+
+          setTotalisatorOdds((prev) => {
+            return {
+              ...prev,
+              odd1: parseFloat(res.data.odd1).toFixed(2),
+              odd2: parseFloat(res.data.odd2).toFixed(2),
+            };
           });
         });
       }
@@ -524,8 +530,8 @@ function AdminGameSettingsTotalisator() {
             setTotalisatorOdds((prev) => {
               return {
                 ...prev,
-                odd1: res.data.odd1,
-                odd2: res.data.odd2,
+                odd1: parseFloat(res.data.odd1).toFixed(2),
+                odd2: parseFloat(res.data.odd2).toFixed(2),
               };
             });
   
@@ -979,6 +985,7 @@ function AdminGameSettingsTotalisator() {
                     <th scope="col">Account ID</th>
                     <th scope="col">Description</th>
                     <th scope="col">Stake</th>
+                    <th scope="col">Winnings</th>
                     <th scope="col">Status</th>
                   </tr>
                 </thead>
@@ -989,6 +996,7 @@ function AdminGameSettingsTotalisator() {
                       <td>{bet.account_id}</td>
                       <td>{bet.description}</td>
                       <td>{bet.stake}</td>
+                      <td>{bet.winnings === null ? "0.00" : bet.winnings}</td>
                       <td>
                         {bet.status === 0
                           ? "Pending"

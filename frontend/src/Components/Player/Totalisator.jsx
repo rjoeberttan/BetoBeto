@@ -40,15 +40,7 @@ function LiveRoom() {
     result: "",
   });
   const [statusStyle, setStatusStyle] = useState({ color: "" });
-  const [betTotals, setBetTotals] = useState({
-    RED: "0.00",
-    BLUE: "0.00",
-    GREEN: "0.00",
-    WHITE: "0.00",
-    PURPLE: "0.00",
-    YELLOW: "0.00",
-  });
-  const [stake, setStake] = useState();
+  const [stake, setStake] = useState(0);
   const [tip, setTip] = useState();
   const [betslip, setBetslip] = useState([]);
   const { gameid } = useParams();
@@ -71,6 +63,13 @@ function LiveRoom() {
     odd2: 0,
     oddDraw: 0,
   });
+  
+  // Styles
+  const [odd1Up, setOdd1Up] = useState(false)
+  const [odd1Down, setOdd1Down] = useState(false)
+  const [odd2Up, setOdd2Up] = useState(false)
+  const [odd2Down, setOdd2Down] = useState(false)
+
   //===========================================
   // UseEffect
   //===========================================
@@ -229,14 +228,6 @@ function LiveRoom() {
     })
       .then((res) => {
         const values = res.data.data;
-        setBetTotals({
-          BLUE: values[0].total,
-          WHITE: values[1].total,
-          RED: values[2].total,
-          GREEN: values[3].total,
-          YELLOW: values[4].total,
-          PURPLE: values[5].total,
-        });
       })
       .catch((err) => {
         console.log(err);
@@ -258,15 +249,18 @@ function LiveRoom() {
         });
         manageStatusStyle(data.status);
         handlePlaceBetButtonStatus(data.status);
-        setTimeout(() => {
-          getBetSlips();
-        }, 1000);
+        console.log(data.marketId)
+        getBetSlips(data.marketId)
+        // setTimeout(() => {
+        //   getBetSlips(data.market_id);
+        // }, 1000);
   
         var newStatus = data.status;
         // Update wallet Balance if Market is Resulted
         if (newStatus === 2) {
           setTimeout(() => {
             getMarketTrend();
+            getBetSlips(data.marketId)
             axios({
               method: "get",
               url: `${accountHeader}/getWalletBalance/${ctx.user.accountID}`,
@@ -285,26 +279,49 @@ function LiveRoom() {
       }
     });
    
-    
+  // Styles
+  // const [odd1Up, setOdd1Up] = useState(false)
+  // const [odd1Down, setOdd1Down] = useState(false)
+  // const [odd2Up, setOdd2Up] = useState(false)
+  // const [odd2Down, setOdd2Down] = useState(false)
     socket.on("received_totalisator_odds_update", (data) => {
       if (data.gameId === gameid) {
-        if (totalisatorOdds.odd1 < data.odd1){
-          console.log("up");
-          setBlink("up");
-          setTotalisatorOdds({
-            odd1: data.odd1,
-            odd2: data.odd2,
-            oddDraw: data.oddDraw
-          })
-        } else {
-          console.log("down");
-          setBlink("down")
-          setTotalisatorOdds({
-            odd1: data.odd1,
-            odd2: data.odd2,
-            oddDraw: data.oddDraw
-          })
+        // console.log(data.odd1Change, data.odd2Change)
+
+        if (data.odd1Change === "UP") {
+          setOdd1Up(true)
+          setTimeout(() => {
+            setOdd1Up(false)
+          }, 2000)        
         }
+        if (data.odd1Change === "DOWN") {
+          setOdd1Down(true)
+          setTimeout(() => {
+            setOdd1Down(false)
+          }, 2000)
+          console.log("Odd1 Down")
+        }
+
+        if (data.odd2Change === "UP") {
+          setOdd2Up(true)
+          setTimeout(() => {
+            setOdd2Up(false)
+          }, 2000)
+          console.log("Odd2 Up")
+        }
+        if (data.odd2Change === "DOWN") {
+          setOdd2Down(true)
+          setTimeout(() => {
+            setOdd2Down(false)
+          }, 2000)
+          console.log("Odd2 Down")
+        }
+
+        setTotalisatorOdds({
+          odd1: data.odd1,
+          odd2: data.odd2,
+          oddDraw: data.oddDraw
+        })
       }
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -351,7 +368,6 @@ function LiveRoom() {
           setTimeout(() => {
             setPlaceBetText("Place Bet");
             setPlaceBetDisabled(false);
-            setStake("");
           }, 5000);
           toast.success(
             `Placed Bet successfully. BetId: ${res.data.data.betId}`,
@@ -382,10 +398,11 @@ function LiveRoom() {
         });
     }
     setBet("");
+    setPotentialWin(0)
   }
 
   function handleStakeChange(e) {
-    handlePotentialWin(e.target.value);
+    handlePotentialWin(e.target.value, bet);
     const currentStake = parseFloat(e.target.value).toFixed(0);
     const walletBalance = parseFloat(ctx.walletBalance);
 
@@ -471,6 +488,7 @@ function LiveRoom() {
 
   function handleChange(e) {
     setBet(e.target.value);
+    handlePotentialWin(stake, e.target.value)
   }
 
   function renderBetslips() {
@@ -494,6 +512,10 @@ function LiveRoom() {
               </p>
               <p style={{ margin: "0px" }}>Stake: ₱{x.stake.toFixed(2)}</p>
               {x.status === 2 && <p>Winnings: ₱{x.winnings.toFixed(2)}</p>}
+              {(x.description).replace(gameDetails.name + " - ", "") === choices.choice1 ?  <p style={{ margin: "0px" }}>Potential Win: ₱{(x.stake * totalisatorOdds.odd1).toFixed(2)}</p> :
+              (x.description).replace(gameDetails.name + " - ", "") === choices.choice2 ? <p style={{ margin: "0px" }}>Potential Win: ₱{(x.stake * totalisatorOdds.odd2).toFixed(2)}</p> :
+              <p style={{ margin: "0px" }}>Potential Win: ₱{(x.stake * totalisatorOdds.oddDraw).toFixed(2)}</p>
+              }
             </div>
           ))}
         </div>
@@ -501,15 +523,15 @@ function LiveRoom() {
     }
   }
 
-  const [potentialWin, setPotentialWin] = useState();
+  const [potentialWin, setPotentialWin] = useState(0);
 
-  function handlePotentialWin(amount){
-    if (bet === choices.choice1){
+  function handlePotentialWin(amount, betChoice){
+    if (betChoice === choices.choice1){
       setPotentialWin(totalisatorOdds.odd1*amount)
-    } else if (bet === choices.choice2) {
+    } else if (betChoice === choices.choice2) {
       setPotentialWin(totalisatorOdds.odd2*amount)
     }
-    else if (bet === choices.choiceDraw) {
+    else if (betChoice === choices.choiceDraw) {
       setPotentialWin(totalisatorOdds.oddDraw*amount)
     }
   }
@@ -538,7 +560,7 @@ function LiveRoom() {
                 Current Market ID: {marketDetails.market_id}
               </h4>
               <h5 className="card-text" style={statusStyle}>
-                Betting Status:{" "}
+                <b>Betting Status:</b>{" "}
                 {marketDetails.status === 0
                   ? " OPEN"
                   : marketDetails.status === 1
@@ -546,20 +568,21 @@ function LiveRoom() {
                   : " RESULTED"}
               </h5>
               <p className="card-text">
-                Min/Max Bet: ₱{parseFloat(gameDetails.min_bet).toFixed(2)} - ₱
+                <b>Min/Max Bet:</b> ₱{parseFloat(gameDetails.min_bet).toFixed(2)} - ₱
                 {parseFloat(gameDetails.max_bet).toFixed(2)}
               </p>
 
               <div className="row" style={{ marginTop: "30px" }}>
-                <label>Place Bet:</label>
+                <label><b>Place Bet:</b></label>
 
                 <div className="row text-center place-bet-boxes">
                   <label
                     className="col-md-3 placebet-styles-low"
-                    style={bet === choices.choice1 ? { border: "3px solid orange" } : blink === "up" ? {border: "3px solid green"} : {}}
+                    style={bet === choices.choice1 ? { border: "3px solid orange" } : odd1Up ? {border: "3px solid green"} : odd1Down ? {border: "3px solid red"} : {}}
                   >
                     {choices.choice1}
                     <p>{totalisatorOdds.odd1}</p>
+
 
                     <input
                       class="checked"
@@ -572,7 +595,7 @@ function LiveRoom() {
                   </label>
                   <label
                     className="col-md-3 placebet-styles-draw"
-                    style={bet === "DRAW" ? { border: "3px solid orange" } : {}}
+                    style={bet === "DRAW" ? { border: `3px solid orange` } : {}}
                   >
                     DRAW
                     <p>{parseFloat(totalisatorOdds.oddDraw).toFixed(2)}</p>
@@ -587,7 +610,7 @@ function LiveRoom() {
                   </label>
                   <label
                     className="col-md-3 placebet-styles-high"
-                    style={bet === choices.choice2 ? { border: "3px solid orange" } : {}}
+                    style={bet === choices.choice2 ? { border: "3px solid orange" } : odd2Up ? {border: "3px solid green"} : odd2Down ? {border: "3px solid red"} : {}}
                   >
                     {choices.choice2}
                     <p>{totalisatorOdds.odd2}</p>
@@ -614,7 +637,7 @@ function LiveRoom() {
                       2
                     )}-₱${parseFloat(gameDetails.max_bet).toFixed(2)} `}
                     onChange={handleStakeChange}
-                    value={stake}
+                    value={stake === 0 ? "" : stake}
                   />
                 </div>
                 <div className="col-md-6 col-4">
@@ -629,7 +652,7 @@ function LiveRoom() {
                 </div>
               </div>
               <div className="text potential-text">
-                <label>Potential Win: {potentialWin}</label>
+                <label>Potential Win: ₱{potentialWin.toFixed(2)}</label>
               </div>
             </div>
           </div>

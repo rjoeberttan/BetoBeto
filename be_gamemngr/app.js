@@ -1655,7 +1655,7 @@ app.post("/updateTotalisatorOdds", (req, res) => {
                 res.status(500).json({ message: "Server error" });
               } else {
                 logger.info(`${req.originalUrl} successfully updated odds for market:${marketId} to odds: ${odd1} - ${odd2}`)
-                res.status(200).json({message: "Updates totalisator odds", odd1: odd1, odd2: odd2})
+                res.status(200).json({message: "Updates totalisator odds", odd1: parseFloat(odd1), odd2: parseFloat(odd2)})
               }
             })
           } else {
@@ -1671,11 +1671,11 @@ app.post("/updateTotalisatorOdds", (req, res) => {
                   res.status(500).json({ message: "Server error" });
                 } else {
                   logger.info(`${req.originalUrl} successfully updated odds for market:${marketId} to odds: ${odd1} - ${odd2}`)
-                  res.status(200).json({message: "Updates totalisator odds", odd1: odd1, odd2: odd2})
+                  res.status(200).json({message: "Updates totalisator odds", odd1: parseFloat(odd1), odd2: parseFloat(odd2)})
                 }
               })
             } else {
-              res.status(200).json({message: "Updates totalisator odds but nothing changed", odd1: odd1, odd2: odd2})
+              res.status(200).json({message: "Updates totalisator odds but nothing changed", odd1: parseFloat(odd1), odd2: parseFloat(odd2)})
             }
           }
         });

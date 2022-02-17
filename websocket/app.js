@@ -58,8 +58,7 @@ io.on("connection", (socket) => {
         const status = data.status;
         const marketId = data.marketId;
         const gameId = data.gameId
-        // const gameId = data.gameId
-        // const date = data.date
+
         socket.to("totalisatorGame").emit("received_totalisator_odds_update", data)
     })
 
