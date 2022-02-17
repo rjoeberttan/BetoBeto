@@ -1308,8 +1308,7 @@ app.post("/settleTotalisatorBets", (req, res) => {
           var betId = bet.bet_id;
 
           walletUpdate = (choice === marketResult) ? parseFloat(stake)*parseFloat(oddDraw) : parseFloat(stake)
-          // var status = (choice === marketResult) ? 2 : 1
-          var status = 0
+          var status = (choice === marketResult) ? 2 : 1
           // console.log(betId, stake, accountId, choice, walletUpdate, status)
 
           updateBetWalletDetails.push({
@@ -1330,8 +1329,7 @@ app.post("/settleTotalisatorBets", (req, res) => {
           var betId = bet.bet_id;
 
           walletUpdate = (choice === choice1) ? parseFloat(stake)*parseFloat(oddChoice1) : 0
-          // var status = (choice === marketResult) ? 2 : 1
-          var status = 0
+          var status = (choice === marketResult) ? 2 : 1
           // console.log(bet.bet_id, stake, accountId, choice, walletUpdate, status)
 
           updateBetWalletDetails.push({
@@ -1352,8 +1350,7 @@ app.post("/settleTotalisatorBets", (req, res) => {
           var betId = bet.bet_id;
 
           walletUpdate = (choice === choice2) ? parseFloat(stake)*parseFloat(oddChoice2) : 0
-          // var status = (choice === marketResult) ? 2 : 1
-          var status = 0
+          var status = (choice === marketResult) ? 2 : 1
           // console.log(bet.bet_id, stake, accountId, choice, walletUpdate, status)
 
           updateBetWalletDetails.push({
