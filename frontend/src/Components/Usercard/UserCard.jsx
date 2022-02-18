@@ -3,6 +3,7 @@ import { AuthContext } from "../../store/auth-context";
 import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import  { AiOutlineEyeInvisible, AiOutlineEye} from 'react-icons/ai';
+import ShowTransactionsModal from "./Modal";
 import './UserCardstyles.css';
 
 function UserCard({
@@ -435,6 +436,7 @@ function UserCard({
                 {lockStatusText}
               </button>
             </div>
+            <ShowTransactionsModal username={username} accountId={accountId}/>
           </div>
         </div>
       </div>
