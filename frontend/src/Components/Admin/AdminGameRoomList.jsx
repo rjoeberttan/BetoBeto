@@ -3,7 +3,6 @@ import { AuthContext } from "../../store/auth-context";
 import { Link } from "react-router-dom";
 
 
-
 export default function AdminGameRoomList(props) {
 
   const ctx = useContext(AuthContext);
@@ -19,11 +18,7 @@ export default function AdminGameRoomList(props) {
           </p>
           <div className="text-center">
             <Link
-              // to={{
-              //     pathname: "/admin/gameroom/settings",
-              //     state: { gameid: props.gameid }
-              // }}
-              to={`/${ctx.user.accountType}/gameroom/settings/${props.game_id}`}
+              to={props.game_type === 0 ? `/${ctx.user.accountType}/gameroom/settings/${props.game_id}` : `/${ctx.user.accountType}/gameroom/TotalisatorSettings/${props.game_id}`}
               className="btn btn-color register-btn text-light"
             >
               Enter

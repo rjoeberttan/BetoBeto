@@ -98,7 +98,7 @@ function AdminGrandMasters() {
             walletBalance={x.wallet}
             editor={ctx.user.username}
             editorId={ctx.user.accountID}
-            accountType="1"
+            accountType="5"
           />
         ))}
       </div>

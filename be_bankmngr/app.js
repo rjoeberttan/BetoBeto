@@ -200,12 +200,14 @@ app.post("/acceptDeposit", (req, res) => {
                       
                       // Process 5
                       // Insert acceptDeposit to the transactions table
-                      sqlQuery5 =
+                      sqlGetUsername = `SELECT username FROM accounts WHERE account_id = ${accountId}`
+                      db.query(sqlGetUsername, (err, username) => {
+                        sqlQuery5 =
                         "INSERT INTO transactions (description, account_id, transaction_type, amount, status, placement_date, settled_date, settled_by, cummulative) VALUES (?, ?, 1, ?, 1, NOW(), NOW(), ?, (SELECT wallet FROM accounts where account_id = ?)); ";
                       db.query(
                         sqlQuery5,
                         [
-                          "Accept Deposit - " + accountId + ":" + transactionId,
+                          "Accept Deposit - " + username[0].username + " - " + transactionId,
                           accepterAccountId,
                           amount,
                           accepterUsername,
@@ -220,6 +222,8 @@ app.post("/acceptDeposit", (req, res) => {
                           }
                         }
                       );
+                      })
+
                     }
                   }
                 );
@@ -467,14 +471,16 @@ app.post("/acceptWithdrawal", (req, res) => {
 
                       // Process 5
                       // Insert acceptWithdrawal to the transactions table
-                      sqlQuery5 =
+                      sqlGetUsername = `SELECT username FROM accounts WHERE account_id = ${accountId}`
+                      db.query(sqlGetUsername, (err, username) => {
+                        sqlQuery5 =
                         "INSERT INTO transactions (description, account_id, transaction_type, amount, status, placement_date, settled_date, settled_by, cummulative) VALUES (?, ?, 3, ?, 1, NOW(), NOW(), ?, (SELECT wallet FROM accounts where account_id = ?)); ";
                       db.query(
                         sqlQuery5,
                         [
                           "Accept Withdrawal - " +
-                            accountId +
-                            ":" +
+                            username[0].username +
+                            " - " +
                             transactionId,
                           accepterAccountId,
                           amount,
@@ -490,6 +496,8 @@ app.post("/acceptWithdrawal", (req, res) => {
                           }
                         }
                       );
+                      })
+
                     }
                   }
                 );
@@ -590,12 +598,14 @@ app.post("/transferFunds", (req, res) => {
           // Process 3
           // Insert the transaction in the transactions table
           // From
-          sqlQuery3 =
+          sqlGetUsername = `SELECT username FROM accounts WHERE account_id = ${toAccountId}`
+          db.query(sqlGetUsername, (err, resultUsernameTo) => {
+            sqlQuery3 =
             "INSERT INTO transactions (description, account_id, transaction_type, amount, status, placement_date, settled_date, settled_by, cummulative) VALUES (?, ?, 4, ?, 1, NOW(), NOW(), ?, (SELECT wallet FROM accounts where account_id = ?)); ";
           db.query(
             sqlQuery3,
             [
-              "Transfer funds to: " + toAccountId,
+              "Transfer funds to: " + resultUsernameTo[0].username,
               fromAccountId,
               amount,
               fromUsername,
@@ -610,16 +620,22 @@ app.post("/transferFunds", (req, res) => {
               }
             }
           );
+          })
+
+
+
 
           // Process 4
           // Insert the transaction in the transactions table
           // To
-          sqlQuery4 =
+          sqlGetUsernameFrom = `SELECT username FROM accounts WHERE account_id = ${fromAccountId}`
+          db.query(sqlGetUsernameFrom, (err, resultFrom) => {
+            sqlQuery4 =
             "INSERT INTO transactions (description, account_id, transaction_type, amount, status, placement_date, settled_date, settled_by, cummulative) VALUES (?, ?, 5, ?, 1, NOW(), NOW(), ?, (SELECT wallet FROM accounts where account_id = ?)); ";
           db.query(
             sqlQuery4,
             [
-              "Fund Increase from: " + fromAccountId,
+              "Fund Increase from: " + resultFrom[0].username,
               toAccountId,
               amount,
               fromUsername,
@@ -634,6 +650,8 @@ app.post("/transferFunds", (req, res) => {
               }
             }
           );
+          })
+
           logger.info(`${req.originalUrl} request completed, duration:${getDurationInMilliseconds(start)}`)
           res.status(200).json({ message: "Fund transfer successful" });
         }
@@ -766,10 +784,10 @@ app.get("/getAllTransactionHistory/:accountId/:accountType/:dateFrom/:dateTo", (
   var sqlQuery = ""
   // Generate SQL Query
   if (accountType === "admin") {
-    sqlQuery = "SELECT tr.placement_date, tr.transaction_id, tr.description, ac.username, tr.amount, tr.cummulative, tr.status, tr.settled_by, ac.account_type from transactions tr LEFT JOIN accounts ac ON tr.account_id=ac.account_id WHERE tr.placement_date BETWEEN ? AND ? ORDER BY tr.placement_date DESC;"
+    sqlQuery = "SELECT tr.placement_date, tr.transaction_id, tr.description, ac.username, tr.amount, tr.cummulative, tr.status, tr.settled_by, tr.transaction_type, ac.account_type from transactions tr LEFT JOIN accounts ac ON tr.account_id=ac.account_id WHERE tr.placement_date BETWEEN ? AND ? ORDER BY tr.placement_date DESC;"
     sqlQuery = db.format(sqlQuery, [dateFrom, dateTo])
   } else if (accountType === "grandmaster") {
-    sqlQuery = `SELECT tr.placement_date, tr.transaction_id, tr.description, ac.username, ac.account_type, tr.amount, tr.cummulative, tr.status, tr.settled_by FROM transactions tr LEFT JOIN accounts ac ON tr.account_id=ac.account_id WHERE ac.account_id IN
+    sqlQuery = `SELECT tr.placement_date, tr.transaction_id, tr.description, ac.username, ac.account_type, tr.amount, tr.cummulative, tr.transaction_type, tr.status, tr.settled_by FROM transactions tr LEFT JOIN accounts ac ON tr.account_id=ac.account_id WHERE ac.account_id IN
     (SELECT account_id FROM accounts WHERE agent_id = ?
     UNION
     SELECT account_id FROM accounts WHERE agent_id IN (SELECT account_id FROM accounts WHERE agent_id = ?)
@@ -777,11 +795,11 @@ app.get("/getAllTransactionHistory/:accountId/:accountType/:dateFrom/:dateTo", (
     SELECT account_id FROM accounts WHERE agent_id IN (SELECT account_id FROM accounts WHERE agent_id IN (SELECT account_id FROM accounts WHERE agent_id = ?))) AND placement_date BETWEEN ? AND ? ORDER BY tr.placement_date DESC;`
     sqlQuery = db.format(sqlQuery, [accountId, accountId, accountId, dateFrom, dateTo])
   } else if (accountType === "masteragent") {
-    sqlQuery = `SELECT tr.placement_date, tr.transaction_id, tr.description, ac.username, ac.account_type, tr.amount, tr.cummulative, tr.status, tr.settled_by FROM transactions tr LEFT JOIN accounts ac ON tr.account_id=ac.account_id WHERE ac.account_id IN
+    sqlQuery = `SELECT tr.placement_date, tr.transaction_id, tr.description, ac.username, ac.account_type, tr.amount, tr.transaction_type,  tr.cummulative, tr.status, tr.settled_by FROM transactions tr LEFT JOIN accounts ac ON tr.account_id=ac.account_id WHERE ac.account_id IN
     (SELECT account_id FROM accounts WHERE agent_id = ? OR agent_id IN (SELECT account_id FROM accounts WHERE agent_id = ?)) AND placement_date BETWEEN ? AND ? ORDER BY tr.placement_date DESC;`
     sqlQuery = db.format(sqlQuery, [accountId, accountId, dateFrom, dateTo])
   } else if (accountType === "agent") {
-    sqlQuery = `SELECT tr.placement_date, tr.transaction_id, tr.description, ac.username, ac.account_type, tr.amount, tr.cummulative, tr.status, tr.settled_by FROM transactions tr LEFT JOIN accounts ac ON tr.account_id=ac.account_id WHERE ac.account_id IN
+    sqlQuery = `SELECT tr.placement_date, tr.transaction_id, tr.description, ac.username, ac.account_type, tr.transaction_type,  tr.amount, tr.cummulative, tr.status, tr.settled_by FROM transactions tr LEFT JOIN accounts ac ON tr.account_id=ac.account_id WHERE ac.account_id IN
     (SELECT account_id FROM accounts WHERE agent_id = ?) AND placement_date BETWEEN ? AND ? ORDER BY tr.placement_date DESC;`
     sqlQuery = db.format(sqlQuery, [accountId, dateFrom, dateTo])
   }

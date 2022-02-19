@@ -13,7 +13,7 @@ export default function PlayerGameRoomList(props) {
           </p>
           <div className="text-center">
             <Link
-              to={`/player/GameRoom/live/${props.game_id}`}
+              to={props.game_type === 0 ? `/player/gameroom/live/${props.game_id}` : `/player/gameroom/TotalisatorSettings/${props.game_id}`}
               className="btn btn-color register-btn text-light"
             >
               Enter
