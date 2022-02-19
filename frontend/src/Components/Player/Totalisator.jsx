@@ -82,15 +82,6 @@ function LiveRoom() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      getColorGameBetTotals();
-    }, 5000);
-
-    return () => clearInterval(interval);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [marketDetails]);
-
   function getMarketTrend() {
     axios({
       method: "get",
@@ -134,9 +125,7 @@ function LiveRoom() {
           setChoices({ choice1: "PULA", choice2: "PUTI", choiceDraw: "DRAW" });
         } else if (gameType === 2) {
           setChoices({ choice1: "LOW", choice2: "HIGH", choiceDraw: "DRAW" });
-        }
-
-        
+        }        
     });
 
   }
@@ -203,21 +192,6 @@ function LiveRoom() {
     });
   }
 
-  function getColorGameBetTotals() {
-    axios({
-      method: "get",
-      url: `${gameHeader}/getColorGameBetTotals/${gameid}/${marketDetails.market_id}`,
-      headers: {
-        "Authorization": process.env.REACT_APP_KEY_GAME,
-      },
-    })
-      .then((res) => {
-        const values = res.data.data;
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  }
   const [blink, setBlink] = useState();
   //===========================================
   // Websocket Functions
@@ -337,7 +311,7 @@ function LiveRoom() {
     } else {
       axios({
         method: "post",
-        url: `${betHeader}/placeBet`,
+        url: `${betHeader}/placeTotalisatorBet`,
         headers: betAuthorization,
         data: data,
       })
@@ -361,22 +335,6 @@ function LiveRoom() {
             }
           );
 
-          // Send GM Commission
-          const gmData = {
-            betId: res.data.data.betId,
-            playerId: ctx.user.accountID,
-            amount: stake,
-          };
-          axios({
-            method: "post",
-            url: `${betHeader}/sendGrandMasterCommission`,
-            headers: betAuthorization,
-            data: gmData,
-          })
-            .then((res) => {})
-            .catch((err) => {
-              console.log(err.response.data.message);
-            });
         })
         .catch((err) => {
           toast.error(err.response.data.message);
@@ -701,8 +659,8 @@ function LiveRoom() {
                 <div class="row results-padding">
                   {results.map((x) => {
                     return (
-                      <div class="col-md-2 col-6 results-margin results-box-padding" style={x.result === "PUTI" ? {backgroundColor: "rgb(119, 196, 226)", border: "1px solid black"} : x.result === "PULA" ? {backgroundColor: "#dd3d3d", border: "1px solid black"} : {backgroundColor: "#a333c8", border: "1px solid black"}}>
-                        {x.market_id+"00"}
+                      <div class="col-md-2 col-6 results-margin results-box-padding" style={(x.result === "PUTI" || x.result === "HIGH") ? {backgroundColor: "rgb(119, 196, 226)", border: "1px solid black"} : (x.result === "PULA" || x.result === "LOW") ? {backgroundColor: "#dd3d3d", border: "1px solid black"} : {backgroundColor: "#a333c8", border: "1px solid black"}}>
+                        {x.market_id}
                       </div>
                     )
                     

@@ -147,13 +147,15 @@ function AdminGameSettingsTotalisator() {
             "Authorization": process.env.REACT_APP_KEY_GAME,
           },
         }).then((res) => {
-          var odds = res.data.data.odds[0];
-          console.log(odds);
+          var odds = res.data.data.odds[0] === null ? {odd1: 0, odd2: 0}: res.data.data.odds[0];
+          console.log(odds)
           setTotalisatorOdds((prev) => {
             return {
               ...prev,
               odd1: parseFloat(odds.odd1),
               odd2: parseFloat(odds.odd2),
+              // odd1: 0,
+              // odd2: odds.odd2 === null ? 0 : parseFloat(odds.odd2),
             };
           });
 

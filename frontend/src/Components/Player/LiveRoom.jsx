@@ -212,9 +212,7 @@ function LiveRoom() {
       });
       manageStatusStyle(data.status);
       handlePlaceBetButtonStatus(data.status);
-      setTimeout(() => {
-        getBetSlips();
-      }, 1000);
+      getBetSlips(data.marketId);
 
       var newStatus = data.status;
       // Update wallet Balance if Market is Resulted
@@ -626,7 +624,7 @@ function LiveRoom() {
                   <thead>
                     <tr>
                       {trends.map((x) => (
-                        <th>{x.market_id+"00"}</th>
+                        <th>{x.market_id}</th>
                       ))}
                     </tr>
                   </thead>

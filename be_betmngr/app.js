@@ -919,32 +919,55 @@ app.get("/getAllBetHistory/:accountId/:accountType/:dateFrom/:dateTo", (req, res
   var sqlQuery = ""
   // Generate SQL Query
   if (accountType === "admin") {
-    sqlQuery = "SELECT bt.*, (SELECT result FROM markets WHERE market_id=bt.market_id AND settled_date IS NOT NULL) AS result, (SELECT username FROM accounts ac WHERE ac.account_id = bt.account_id) AS username FROM bets bt WHERE bt.placement_date BETWEEN ? AND ? ORDER BY bt.placement_date DESC;"
+    sqlQuery = "SELECT bt.*, m.result, ac.username FROM bets bt \
+    LEFT JOIN markets m ON \
+    bt.market_id = m.market_id \
+    LEFT JOIN accounts ac ON \
+    bt.account_id = ac.account_id \
+    WHERE bt.placement_date BETWEEN ? AND ? ORDER BY bt.placement_date DESC ;"
     sqlQuery = db.format(sqlQuery, [dateFrom, dateTo])
   } else if (accountType === "grandmaster") {
-    sqlQuery = `SELECT bt.*, (SELECT result FROM markets WHERE market_id=bt.market_id AND settled_date IS NOT NULL) AS result, (SELECT username FROM accounts ac WHERE ac.account_id = bt.account_id) AS username FROM bets bt 
-    WHERE account_id IN
-    (SELECT account_id FROM accounts WHERE agent_id IN (SELECT account_id FROM accounts WHERE agent_id IN (SELECT account_id FROM accounts WHERE agent_id = ?))) AND placement_date BETWEEN ? AND ? ORDER BY bt.placement_date DESC;`
-    sqlQuery = db.format(sqlQuery, [accountId, dateFrom, dateTo])
+    sqlQuery = "SELECT  bt.*, m.result, ac.username FROM bets bt  \
+    LEFT JOIN markets m ON \
+    bt.market_id = m.market_id \
+    LEFT JOIN accounts ac ON \
+    bt.account_id = ac.account_id \
+    WHERE ac.agent_id = ? OR ac.agent_id IN (SELECT account_id FROM accounts WHERE agent_id IN (SELECT account_id FROM accounts WHERE agent_id = ?)) AND placement_date BETWEEN ? AND ? ORDER BY bt.placement_date DESC ;"   
+    sqlQuery = db.format(sqlQuery, [accountId, accountId, dateFrom, dateTo])
   } else if (accountType === "masteragent") {
-    sqlQuery = `SELECT bt.*, (SELECT result FROM markets WHERE market_id=bt.market_id AND settled_date IS NOT NULL) AS result, (SELECT username FROM accounts ac WHERE ac.account_id = bt.account_id) AS username FROM bets bt 
-    WHERE account_id IN
-    (SELECT account_id FROM accounts WHERE agent_id = ? OR agent_id IN (SELECT account_id FROM accounts WHERE agent_id = ?)) AND placement_date BETWEEN ? AND ? ORDER BY bt.placement_date DESC;`
+    sqlQuery = "SELECT  bt.*, m.result, ac.username FROM bets bt  \
+    LEFT JOIN markets m ON \
+    bt.market_id = m.market_id \
+    LEFT JOIN accounts ac ON \
+    bt.account_id = ac.account_id \
+    WHERE ac.agent_id = ? OR ac.agent_id IN (SELECT account_id FROM accounts WHERE agent_id = ?)AND placement_date BETWEEN ? AND ? ORDER BY bt.placement_date DESC ;"   
     sqlQuery = db.format(sqlQuery, [accountId, accountId, dateFrom, dateTo])
   } else if (accountType === "agent") {
-    sqlQuery = `SELECT bt.*, (SELECT result FROM markets WHERE market_id=bt.market_id AND settled_date IS NOT NULL) AS result, (SELECT username FROM accounts ac WHERE ac.account_id = bt.account_id) AS username FROM bets bt 
-    WHERE account_id IN
-    (SELECT account_id FROM accounts WHERE agent_id = ?) AND placement_date BETWEEN ? AND ? ORDER BY bt.placement_date DESC;`
+    sqlQuery =  "SELECT  bt.*, m.result, ac.username FROM bets bt  \
+    LEFT JOIN markets m ON \
+    bt.market_id = m.market_id \
+    LEFT JOIN accounts ac ON \
+    bt.account_id = ac.account_id \
+    WHERE ac.agent_id = ? AND placement_date BETWEEN ? AND ? ORDER BY bt.placement_date DESC ;"    
     sqlQuery = db.format(sqlQuery, [accountId, dateFrom, dateTo])
   }
 
+  console.log(sqlQuery)
   if (sqlQuery !== "") {
     db.query(sqlQuery, (err, result) => {
       if (err) {
         logger.error(
-          `${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`
+          `${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err} sqlQuery:${sqlQuery}`
         );
       } else {
+        var finalResult = []
+        result.forEach((bet) => {
+          if (finalResult.some(e => e.bet_id === bet.bet_id)){
+            // console.log(bet.bet_id, "found")
+          } else {
+            finalResult.push(bet)
+          }
+        })
         logger.info(
           `${
             req.originalUrl
@@ -952,7 +975,7 @@ app.get("/getAllBetHistory/:accountId/:accountType/:dateFrom/:dateTo", (req, res
             start
           )}`
         );
-        res.status(200).json({ message: "Request Successful", data: result });
+        res.status(200).json({ message: "Request Successful", data: finalResult });
       }
     });
   } else {

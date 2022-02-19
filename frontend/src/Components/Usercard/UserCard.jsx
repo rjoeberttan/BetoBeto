@@ -29,6 +29,7 @@ function UserCard({
   const bankAuthorization = { "Authorization": process.env.REACT_APP_KEY_BANK };
 
   const ctx = useContext(AuthContext);
+  const [numPlayersGM, setNumPlayersGM] = useState(0);
   const [numUsersUnder, setNumUsersUnder] = useState(0);
   const [numUsersUnderUnder, setNumUsersUnderUnder] = useState(0);
   const [commissionNew, setCommission] = useState();
@@ -48,6 +49,7 @@ function UserCard({
   useEffect(() => {
     getNumUsersUnder()
     getNumUsersUnderUnder()
+    getNumPlayersGM()
 
     getAgentName();
     if (status === "LOCKED") {
@@ -77,6 +79,30 @@ function UserCard({
     })
       .then((res) => {
         setNumUsersUnderUnder(res.data.count);
+      })
+      .catch((err) => {});
+  }
+
+  function getNumPlayersGM() {
+    axios({
+      method: "get",
+      url: `${accountHeader}/getPlayersCountOfGM/${accountId}`,
+      headers: accAuthorization,
+    })
+      .then((res) => {
+        setNumPlayersGM(res.data.count);
+      })
+      .catch((err) => {});
+  }
+
+  function getAgentName() {
+    axios({
+      method: "get",
+      url: `${accountHeader}/getAgentName/${accountId}`,
+      headers: accAuthorization,
+    })
+      .then((res) => {
+        setAgentName(res.data.agentName);
       })
       .catch((err) => {});
   }
@@ -230,6 +256,18 @@ function UserCard({
   //============================================
   // Conditional Rendering Stuff
   //============================================
+  function renderNoOfMasterAgents(accountType) {
+    if (accountType === "5") {
+      return (
+        <div className="col-md-12 text-spacing">
+          <b>No. of Masteragent:</b> {numUsersUnder}
+        </div>
+      );
+    } else {
+      return;
+    }
+  }
+
   function renderNoOfAgents(accountType) {
     if (accountType === "1") {
       return (
@@ -237,8 +275,12 @@ function UserCard({
           <b>No. of Agents:</b> {numUsersUnder}
         </div>
       );
-    } else {
-      return;
+    } else if (accountType === "5") {
+      return (
+        <div className="col-md-12 text-spacing">
+          <b>No. of Agents:</b> {numUsersUnderUnder}
+        </div>
+      );
     }
   }
 
@@ -255,7 +297,13 @@ function UserCard({
           <b>No. of Players:</b> {numUsersUnder}
         </div>
       ); 
-    }
+    } else if (accountType === "5") {
+      return (
+        <div className="col-md-12  text-spacing">
+          <b>No. of Players:</b> {numPlayersGM}
+        </div>
+      ); 
+    } 
     else {
       return;
     }
@@ -310,16 +358,14 @@ function UserCard({
     }
   }
 
-  function renderAgentName(accountType) {
-    if (accountType === "2" || accountType === "3") {
-      return (
-        <div className="col-md-12  text-spacing">
-          <b>Agent Name:</b> {agentName}
-        </div>
-      );
-    } else {
-      return;
-    }
+  function renderAgentName(accountType){
+    var title = accountType === "5" ? "Admin:" : accountType === "1" ? "Admin/GM:" : accountType === "2" ? "Master Agent:" : "Agent:" 
+
+    return (
+      <div className="col-md-12  text-spacing">
+        <b>{title}</b> {agentName}
+      </div>
+    )
   }
 
   const [state, setstate] = useState(false);
@@ -345,6 +391,7 @@ function UserCard({
           <h3>{username}</h3>
           <div className="row">
             {renderAgentName(accountType)}
+            {renderNoOfMasterAgents(accountType)}
             {renderNoOfAgents(accountType)}
             {renderNoOfPlayers(accountType)}
             <div className="col-md-12 text-spacing">

@@ -943,7 +943,7 @@ app.get("/getMarketTrend/:gameId", (req, res) => {
   const apiKey = req.header("Authorization");
   const gameId = req.params.gameId;
   const status = 2;
-  const limit = 7;
+  const limit = ( gameId === '4' || gameId === '5' ) ? 25 : 7;
 
   // Check if body is complete
   if (!gameId) {
@@ -1374,33 +1374,107 @@ app.post("/createTotalisatorMarket", (req, res) => {
   sqlQuery = "SELECT * FROM markets WHERE game_id = ? ORDER BY lastedit_date DESC LIMIT 1;"
   db.query(sqlQuery, [gameId], (err, result) => {
     if (err) {
-      logger.error(`${req.originalUrl} request has an error during process 1, gameId:${gameId}, error:${err}`)
+      logger.error(
+        `${req.originalUrl} request has an error during process 1, gameId:${gameId}, error:${err}`
+      );
       res.status(500).json({ message: "Server error" });
-      return;
-    } else {
-
-      // Check if latest market has resulted state
-      if (result.length > 0 && result[0].status !== 2){
-        logger.warn(`${req.originalUrl} request warning, there is an unsettled market, marketId:${result[0].market_id} gameId:${gameId}`)
-        res.status(409).json({message: "There are still unsettled market for this game. Settle first before creating new market", data: {gameId: gameId, marketID: result[0].market_id, status: result[0].status}})
-        return;
-      } else {
-        // Process 2: Insert New Market
-        var newMarketId = result.length === 0 ? 1 : parseInt(result[0].market_id) + 1;
-
-        sqlQuery = "INSERT INTO markets (market_id, game_id, description, status, lastedit_date, edited_by) VALUES (?, ?, ?, ?,  NOW(), ?)";
-        db.query(sqlQuery, [newMarketId, gameId, description, 0, editor], (err, result2) => {
+    } else if (result.length === 0) {
+      // Process 2
+      // Insert new Market. No Previous Market
+      var newMarketId = 1;
+      sqlQuery =
+        "INSERT INTO markets (market_id, game_id, description, status, lastedit_date, edited_by) VALUES (?, ?, ?, ?,  NOW(), ?)";
+      db.query(
+        sqlQuery,
+        [newMarketId, gameId, description, 0, editor],
+        (err, result2) => {
           if (err) {
-            logger.error(`${req.originalUrl} request has an error during process 2, gameId:${gameId}, error:${err}`)
-            res.status(500).json({ message: "Server error" });
-          } else {
-            logger.info(`${req.originalUrl} request successful, gameId:${gameId} marketId: ${newMarketId} duration:${getDurationInMilliseconds(start)}`)
-            res.status(200).json({message: "Successfully created new market", data: {gameID: gameId, marketID: newMarketId, status: 0}})
+            logger.error(
+              `${req.originalUrl} request has an error during process 2, gameId:${gameId}, error:${err}`
+            );
+            res.status(500).json({ message: "Server Error" });
+          } else if (result2.affectedRows > 0) {
+            logger.info(
+              `${
+                req.originalUrl
+              } request successful, gameId:${gameId} marketId:${newMarketId} duration:${getDurationInMilliseconds(
+                start
+              )}`
+            );
+            res.status(200).json({
+              message: "Successfully Created New Market.",
+              data: { gameID: gameId, marketID: newMarketId, status: 0 },
+            });
           }
-        })
-        return;
-      }
-    } 
+        }
+      );
+    } else if (result[0].status === 2) {
+      // Insert new market if latest found is already settled
+    
+      // Process 3
+      // Get latest marketid for game
+      sqlQuery =
+        "SELECT distinct market_id from markets ORDER BY market_id DESC LIMIT 1";
+      db.query(sqlQuery, [], (err, result3) => {
+        if (err) {
+          logger.error(
+            `${req.originalUrl} request has an error during process 3, gameId:${gameId}, error:${err}`
+          );
+          res.status(500).json({ message: "Server Error" });
+        } else {
+          // Process 4
+          // Insert new market. Previous Market is unsettled
+          var newMarketId = result3[0].market_id + 1;
+          console.log(newMarketId);
+          sqlQuery4 =
+            "INSERT INTO markets (market_id, game_id, description, status, lastedit_date, edited_by) VALUES (?, ?, ?, ?,  NOW(), ?)";
+          db.query(
+            sqlQuery4,
+            [newMarketId, gameId, description, 0, editor],
+            (err, result4) => {
+              if (err) {
+                logger.error(
+                  `${req.originalUrl} request has an error during process 4, gameId:${gameId}, error:${err}`
+                );
+                res.status(500).json({ message: "Server Error" });
+              } else if (result4.affectedRows > 0) {
+                logger.info(
+                  `${
+                    req.originalUrl
+                  } request successful, gameId:${gameId} marketId:${newMarketId} duration:${getDurationInMilliseconds(
+                    start
+                  )}`
+                );
+                res.status(200).json({
+                  msg: "Successfully Created New Market.",
+                  data: { gameID: gameId, marketID: newMarketId, status: 0 },
+                });
+                socketData = {
+                  gameId: gameId,
+                  marketID: newMarketId,
+                  status: 0,
+                  date: new Date(),
+                };
+                // socket.emit("color_game_market_update", socketData);
+              }
+            }
+          );
+        }
+      });
+    } else if (result[0].status < 2) {
+      logger.warn(
+        `${req.originalUrl} request warning, there is an unsettled market, marketId:${result[0].market_id} gameId:${gameId}`
+      );
+      res.status(409).json({
+        message:
+          "There are still unsettled market for the game. Settle first before creating new market",
+        data: {
+          gameId: gameId,
+          marketID: result[0].market_id,
+          status: result[0].status,
+        },
+      });
+    }
   })
 })
 
