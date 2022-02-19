@@ -16,6 +16,7 @@ import PlayerGameRoom from "./Components/Player/PlayerGameRoom";
 import PlayerAccount from "./Components/Player/PlayerAccount";
 import PlayerLiveRoom from "./Components/Player/LiveRoom";
 import PlayerWallet from "./Components/Player/PlayerWallet";
+import Totalisator from "./Components/Player/Totalisator";
 //AGENT IMPORTS
 import AgentPlayers from "./Components/Agent/AgentPlayers";
 import AgentWallet from "./Components/Agent/AgentWallet";
@@ -31,6 +32,7 @@ import AdminAgents from "./Components/Admin/AdminAgents";
 import AdminPlayers from "./Components/Admin/AdminPlayers";
 import AdminWallet from "./Components/Admin/AdminWallet";
 import AdminGrandMasters from "./Components/Admin/AdminGrandMaster";
+import AdminGameSettingsTotalisator from "./Components/Totalisator/AdminGameSettingsTotalisator";
 //Grandmaster IMPORTS
 import GMMasteragents from "./Components/Grandmaster/GMMasteragents";
 import GMAgents from "./Components/Grandmaster/GMAgents";
@@ -126,6 +128,11 @@ function App() {
                 path="/player/gameRoom/live/:gameId"
                 exact
                 component={PlayerLiveRoom}
+              />
+              <Route
+                path="/player/gameRoom/TotalisatorSettings/:gameid"
+                exact
+                component={Totalisator}
               />
               <Route path="*" component={ErrorPage} />
             </Switch>
@@ -226,6 +233,11 @@ function App() {
                 path="/admin/transactions"
                 exact
                 component={TransactionsPage}
+              />
+              <Route
+                path="/admin/gameroom/TotalisatorSettings/:gameid"
+                exact
+                component={AdminGameSettingsTotalisator}
               />
               <Route path="/admin/account" exact component={MyAccount} />
               <Route path="*" component={ErrorPage} />

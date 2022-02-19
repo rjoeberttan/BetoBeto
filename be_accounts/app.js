@@ -75,6 +75,7 @@ const saltRounds = parseInt(process.env.SALT_ROUNDS);
 //    409: Agent account type error
 //    200: Success
 app.post("/register", (req, res) => {
+  console.log("here")
   //Set Duration
   const start = process.hrtime();
 
@@ -164,7 +165,7 @@ app.post("/register", (req, res) => {
         } else {
           // Prepare values to be inserted
           // username, email, phone, password, agent_id, account_type, account_status, wallet, created_date, lastedit_date, edited_by
-          const account_status = newUserAccountType === 3 ? 1 : 0;
+          const account_status = 0;
           const commission =
             newUserAccountType === 1
               ? 4.5

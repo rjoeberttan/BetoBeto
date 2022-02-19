@@ -924,7 +924,7 @@ export default function TransactionsPage() {
             <ul className="pagination">
                 <li className = "page-item"><p className="page-link" onClick={ () => pagination("first")}> &lt;&lt; </p> </li>
                 <li className = "page-item"><p className="page-link" onClick={ () => pagination("prev")}> &lt; </p> </li>
-                <li className = "page-item"><p className="page-link"> {currentPage} </p> </li>
+                <li className = "page-item"><p className="page-link"> {currentPage}/{pages.length} </p> </li>
                 <li className = "page-item"><p className="page-link" onClick={ () => pagination("next")}> &gt; </p> </li>
                 <li className = "page-item"><p className="page-link" onClick={ () => pagination("last")}> &gt;&gt; </p> </li>
             </ul>
@@ -979,7 +979,7 @@ export default function TransactionsPage() {
               <ul className="pagination">
                   <li className = "page-item"><p className="page-link" onClick={ () => betPagination("first")}> &lt;&lt; </p> </li>
                   <li className = "page-item"><p className="page-link" onClick={ () => betPagination("prev")}> &lt; </p> </li>
-                  <li className = "page-item"><p className="page-link"> {currentBetPage} </p> </li>
+                  <li className = "page-item"><p className="page-link"> {currentBetPage}/{BetPages.length} </p> </li>
                   <li className = "page-item"><p className="page-link" onClick={ () => betPagination("next")}> &gt; </p> </li>
                   <li className = "page-item"><p className="page-link" onClick={ () => betPagination("last")}> &gt;&gt; </p> </li>
               </ul>
@@ -995,6 +995,7 @@ export default function TransactionsPage() {
                 <th scope="col">Market ID</th>
                 <th scope="col">Description</th>
                 <th scope="col">Stake</th>
+                <th scope="col">Winnings</th>
                 <th scope="col">Cummulative</th>
                 <th scope="col">Status</th>
                 <th scope="col">Result</th>
@@ -1010,6 +1011,7 @@ export default function TransactionsPage() {
                   <td>{x.market_id}</td>
                   <td>{x.description}</td>
                   <td>₱ {x.stake.toFixed(2)}</td>
+                  <td>₱ {x.winnings === null ? 0.00 : x.winnings.toFixed(2)}</td>
                   <td>₱ {x.cummulative ? x.cummulative.toFixed(2) : "-"}</td>
                   <td>
                     {x.status === 0

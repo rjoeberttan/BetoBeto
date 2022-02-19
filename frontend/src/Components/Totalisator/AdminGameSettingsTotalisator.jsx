@@ -1,14 +1,13 @@
 import React, { useEffect, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
 import { AuthContext } from "../../store/auth-context";
-import "./AdminGameSettings.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/dist/ReactToastify.min.css";
 import socket from "../Websocket/socket";
 const axios = require("axios").default;
 
-function AdminGameSettings() {
+function AdminGameSettingsTotalisator() {
   const ctx = useContext(AuthContext);
   //set state for game variables
   const [gameDetails, setGameDetails] = useState({
@@ -18,10 +17,10 @@ function AdminGameSettings() {
     max_bet: "",
     min_bet: "",
     name: "",
-    win_multip1: "",
-    win_multip2: "",
-    win_multip3: "",
+    draw_multiplier: "",
     youtube_url: "",
+    commission: "",
+    type: "",
   });
   //set state for market variables
   const [marketDetails, setMarketDetails] = useState({
@@ -30,23 +29,29 @@ function AdminGameSettings() {
     status: "",
     result: "",
   });
-  //set state for manipulate colors
-  const [manipulateColors, setManipualteColors] = useState({
-    bb_manip_blue: 0,
-    bb_manip_yellow: 0,
-    bb_manip_red: 0,
-    bb_manip_white: 0,
-    bb_manip_green: 0,
-    bb_manip_purple: 0,
-  });
   const [settingsText, setSettingsText] = useState({
     create: "CREATE MARKET",
     open: "OPEN MARKET",
     close: "CLOSE MARKET",
     result: "RESULT MARKET",
   });
+  const [choices, setChoices] = useState({
+    choice1: "",
+    choice2: "",
+    choiceDraw: "DRAW",
+  });
+  const [totalisatorOdds, setTotalisatorOdds] = useState({
+    odd1: parseFloat(0).toFixed(2),
+    odd2: parseFloat(0).toFixed(2),
+    oddDraw: parseFloat(0).toFixed(2),
+  });
+  const [oddManip, setOddManip] = useState({
+    odd1: 0,
+    odd2: 0,
+  });
   const [betList, setBetList] = useState([]);
   const [statusChangeDisabled, setStatusChangeDisabled] = useState(false);
+  const [resultChoice, setResultchoice] = useState("");
 
   let { gameid } = useParams();
 
@@ -56,8 +61,6 @@ function AdminGameSettings() {
   console.log(process.env.REACT_APP_HEADER_WEBSOCKET);
 
   useEffect(() => {
-    socket.emit("join_room", "colorGame");
-
     const token = localStorage.getItem("token");
     //get user auth
     axios({
@@ -84,11 +87,30 @@ function AdminGameSettings() {
           max_bet: data.max_bet,
           min_bet: data.min_bet,
           name: data.name,
-          win_multip1: data.win_multip1,
-          win_multip2: data.win_multip2,
-          win_multip3: data.win_multip3,
           youtube_url: data.youtube_url,
+          draw_multiplier: data.win_multip1,
+          commission: data.commission,
+          type: data.type,
         });
+
+        setTotalisatorOdds((prev) => {
+          return {
+            ...prev,
+            oddDraw: data.win_multip1,
+          };
+        });
+
+        setOddManip({
+          odd1: Math.floor(Math.random() * data.max_bet),
+          odd2: Math.floor(Math.random() * data.max_bet),
+        });
+
+        var gameType = data.type;
+        if (gameType === 1) {
+          setChoices({ choice1: "PULA", choice2: "PUTI", choiceDraw: "DRAW" });
+        } else if (gameType === 2) {
+          setChoices({ choice1: "LOW", choice2: "HIGH", choiceDraw: "DRAW" });
+        }
       });
 
       //get market details
@@ -116,24 +138,90 @@ function AdminGameSettings() {
             boxThree: colors[2],
           });
         }
-        //get manipulate values
+
+        // Get Latest Totalisator Odds
         axios({
           method: "get",
-          url: `${gameHeader}/getManipulateValues/${gameid}/${market.market_id}`,
+          url: `${gameHeader}/getTotalisatorOdds/${gameid}/${market.market_id}`,
           headers: {
             "Authorization": process.env.REACT_APP_KEY_GAME,
           },
-        }).then((res2) => {
-          const manip_values = res2.data.data.market;
-          setManipualteColors(manip_values);
+        }).then((res) => {
+          var odds = res.data.data.odds[0] === null ? {odd1: 0, odd2: 0}: res.data.data.odds[0];
+          console.log(odds)
+          setTotalisatorOdds((prev) => {
+            return {
+              ...prev,
+              odd1: parseFloat(odds.odd1),
+              odd2: parseFloat(odds.odd2),
+              // odd1: 0,
+              // odd2: odds.odd2 === null ? 0 : parseFloat(odds.odd2),
+            };
+          });
+
         });
       });
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    const interval = setInterval(() => {
+      // console.log(totalisatorOdds);
+      if (marketDetails.status === 0) {
+        // Get Generate Totalisator Odds
+        axios({
+          method: "post",
+          url: `${gameHeader}/updateTotalisatorOdds`,
+          headers: {
+            "Authorization": process.env.REACT_APP_KEY_GAME,
+          },
+          data: {
+            gameId: gameid,
+            marketId: marketDetails.market_id,
+            gameName: gameDetails.name,
+            commission: gameDetails.commission,
+            manipOdd1: oddManip.odd1,
+            manipOdd2: oddManip.odd2,
+            choice1: choices.choice1,
+            choice2: choices.choice2,
+          },
+        }).then((res) => {
+          var odd1Change = parseFloat(totalisatorOdds.odd1).toFixed(2) - parseFloat(res.data.odd1).toFixed(2)
+          var odd2Change = parseFloat(totalisatorOdds.odd2).toFixed(2) - parseFloat(res.data.odd2).toFixed(2)
+
+          var odd1Status = odd1Change > 0 ? "DOWN" : (odd1Change < 0) ? "UP" : "EQUAL"
+          var odd2Status = odd2Change > 0 ? "DOWN" : (odd2Change < 0) ? "UP" : "EQUAL"
+
+          socket.emit("totalisator_odds_update", {
+            marketId: marketDetails.market_id,
+            gameId: gameid,
+            status: 0,
+            odd1: res.data.odd1,
+            odd2: res.data.odd2,
+            oddDraw: gameDetails.draw_multiplier,
+            odd1Change: odd1Status,
+            odd2Change: odd2Status
+          });
+
+          setTotalisatorOdds((prev) => {
+            return {
+              ...prev,
+              odd1: parseFloat(res.data.odd1).toFixed(2),
+              odd2: parseFloat(res.data.odd2).toFixed(2),
+            };
+          });
+        });
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [marketDetails, betList, totalisatorOdds]);
+
   function handleGameChange(e) {
     const { name, value } = e.target;
+    console.log(name, value);
 
     setGameDetails((prev) => {
       return {
@@ -148,32 +236,6 @@ function AdminGameSettings() {
     boxTwo: "RED",
     boxThree: "RED",
   });
-
-  const isSelected = (color, boxNum) => {
-    if (boxNum === 1) {
-      if (color === boxColor.boxOne) {
-        return { "selected": "selected" };
-      }
-    } else if (boxNum === 2) {
-      if (color === boxColor.boxTwo) {
-        return { "selected": "selected" };
-      }
-    } else if (boxNum === 3) {
-      if (color === boxColor.boxThree) {
-        return { "selected": "selected" };
-      }
-    }
-  };
-
-  function handleColorChange(e) {
-    const { name, value } = e.target;
-    setBoxColor((prev) => {
-      return {
-        ...prev,
-        [name]: value,
-      };
-    });
-  }
 
   function handleGameSettingsClick(e) {
     if (gameDetails.name.length === 0) {
@@ -203,45 +265,6 @@ function AdminGameSettings() {
           toast.error(err);
         });
     }
-    e.preventDefault();
-  }
-
-  function handleWinSettingsClick(e) {
-    if (
-      gameDetails.win_multip1 <= 0 ||
-      gameDetails.win_multip2 <= 0 ||
-      gameDetails.win_multip3 <= 0
-    ) {
-      toast.error("Invalid Win Multiplier Settings");
-    } else {
-      axios({
-        method: "post",
-        url: `${gameHeader}/updateColorGameWinMultiplier`,
-        headers: {
-          "Authorization": process.env.REACT_APP_KEY_GAME,
-        },
-        data: {
-          gameId: gameid,
-          editor: ctx.user.username,
-          winMultiplier: [
-            gameDetails.win_multip1,
-            gameDetails.win_multip2,
-            gameDetails.win_multip3,
-          ],
-        },
-      })
-        .then((res) => {
-          toast.success("Win settings saved");
-        })
-        .catch((err) => {
-          toast.error(
-            <p>
-              Incomplete Multipliers <br></br> Please try again
-            </p>
-          );
-        });
-    }
-
     e.preventDefault();
   }
 
@@ -283,6 +306,42 @@ function AdminGameSettings() {
     e.preventDefault();
   }
 
+  function handleDrawCommissionClick(e) {
+    console.log(gameDetails.draw_multiplier);
+    if (parseFloat(gameDetails.draw_multiplier) <= 1) {
+      toast.error("Draw errpr");
+    } else {
+      axios({
+        method: "post",
+        url: `${gameHeader}/updateTotalisatorDrawMultiplier`,
+        headers: {
+          "Authorization": process.env.REACT_APP_KEY_GAME,
+        },
+        data: {
+          gameId: gameid,
+          editor: ctx.user.username,
+          multiplier: gameDetails.draw_multiplier,
+        },
+      })
+        .then((res) => {
+          toast.success("Draw Multiplier Changed");
+          socket.emit("totalisator_odds_update", {
+            marketId: marketDetails.market_id,
+            gameId: gameid,
+            status: 0,
+            odd1: totalisatorOdds.odd1,
+            odd2: totalisatorOdds.odd2,
+            oddDraw: gameDetails.draw_multiplier
+          });
+        })
+        .catch((err) => {
+          toast.error("Server Error");
+        });
+    }
+
+    e.preventDefault();
+  }
+
   function DisableSettings() {
     setSettingsText({
       create: "PLEASE WAIT",
@@ -308,7 +367,7 @@ function AdminGameSettings() {
     if (name === "createMarket") {
       axios({
         method: "post",
-        url: `${gameHeader}/createColorGameMarket`,
+        url: `${gameHeader}/createTotalisatorMarket`,
         headers: {
           "Authorization": process.env.REACT_APP_KEY_GAME,
         },
@@ -319,15 +378,8 @@ function AdminGameSettings() {
         },
       })
         .then((res) => {
-          setManipualteColors({
-            bb_manip_blue: 0,
-            bb_manip_yellow: 0,
-            bb_manip_red: 0,
-            bb_manip_white: 0,
-            bb_manip_green: 0,
-            bb_manip_purple: 0,
-          });
           const { data } = res.data;
+          console.log(data);
           setMarketDetails((prev) => {
             return {
               ...prev,
@@ -335,9 +387,10 @@ function AdminGameSettings() {
               status: data.status,
             };
           });
-          socket.emit("color_game_market_update", {
+          socket.emit("totalisator_market_update", {
             marketId: data.marketID,
-            status: data.status,
+            status: 0,
+            gameId: gameid
           });
           toast.success("Success Create Market");
           DisableSettings();
@@ -352,7 +405,7 @@ function AdminGameSettings() {
     } else if (name === "openMarket") {
       axios({
         method: "post",
-        url: `${gameHeader}/openMarket`,
+        url: `${gameHeader}/openTotalisatorMarket`,
         headers: {
           "Authorization": process.env.REACT_APP_KEY_GAME,
         },
@@ -372,9 +425,10 @@ function AdminGameSettings() {
               status: data.status,
             };
           });
-          socket.emit("color_game_market_update", {
+          socket.emit("totalisator_market_update", {
             marketId: data.marketId,
             status: data.status,
+            gameId: gameid
           });
           toast.success("Success Open Market");
           DisableSettings();
@@ -389,7 +443,7 @@ function AdminGameSettings() {
     } else if (name === "closeMarket") {
       axios({
         method: "post",
-        url: `${gameHeader}/closeMarket`,
+        url: `${gameHeader}/closeTotalisatorMarket`,
         headers: {
           "Authorization": process.env.REACT_APP_KEY_GAME,
         },
@@ -409,14 +463,16 @@ function AdminGameSettings() {
               status: data.status,
             };
           });
-          socket.emit("color_game_market_update", {
+          socket.emit("totalisator_market_update", {
             marketId: data.marketId,
             status: data.status,
+            gameId: gameid
           });
           toast.success("Success Closed Market");
           DisableSettings();
         })
         .catch((err) => {
+          console.log(marketDetails.status);
           if (marketDetails.status === 1) {
             toast.error("Market is already closed");
           } else {
@@ -427,10 +483,14 @@ function AdminGameSettings() {
   }
 
   function handleResultMarket(e) {
-    if (window.confirm("Are you sure to result this market?")) {
+    if (
+      window.confirm(
+        "Are you sure to result this market?" || resultChoice !== ""
+      )
+    ) {
       axios({
         method: "post",
-        url: `${gameHeader}/resultMarket`,
+        url: `${gameHeader}/resultTotalisatorMarket`,
         headers: {
           "Authorization": process.env.REACT_APP_KEY_GAME,
         },
@@ -438,7 +498,7 @@ function AdminGameSettings() {
           gameId: gameid,
           marketId: marketDetails.market_id,
           editor: ctx.user.username,
-          result: [boxColor.boxOne, boxColor.boxTwo, boxColor.boxThree],
+          result: resultChoice,
         },
       })
         .then((res) => {
@@ -448,33 +508,163 @@ function AdminGameSettings() {
               status: res.data.data.status,
             };
           });
-          socket.emit("color_game_market_update", {
-            marketId: res.data.data.marketId,
-            status: res.data.data.status,
-          });
-          toast.success("Success Result Market");
-          DisableSettings();
 
-          // Settle Bets
+          // Get Latest Odds first before resulting market
           axios({
             method: "post",
-            url: `${betHeader}/settleColorGameBets`,
+            url: `${gameHeader}/updateTotalisatorOdds`,
             headers: {
-              "Authorization": process.env.REACT_APP_KEY_BET,
+              "Authorization": process.env.REACT_APP_KEY_GAME,
             },
             data: {
               gameId: gameid,
               marketId: marketDetails.market_id,
               gameName: gameDetails.name,
-              result: [boxColor.boxOne, boxColor.boxTwo, boxColor.boxThree],
+              commission: gameDetails.commission,
+              manipOdd1: oddManip.odd1,
+              manipOdd2: oddManip.odd2,
+              choice1: choices.choice1,
+              choice2: choices.choice2,
             },
-          })
-            .then((res) => {
-              // console.log(res);
-            })
-            .catch((err) => {
-              // console.log(err);
+          }).then((res) => {
+            console.log(res)
+  
+            setTotalisatorOdds((prev) => {
+              return {
+                ...prev,
+                odd1: parseFloat(res.data.odd1).toFixed(2),
+                odd2: parseFloat(res.data.odd2).toFixed(2),
+              };
             });
+  
+            socket.emit("totalisator_odds_update", {
+              marketId: marketDetails.market_id,
+              gameId: gameid,
+              status: 0,
+              odd1: res.data.odd1,
+              odd2: res.data.odd2,
+              oddDraw: gameDetails.draw_multiplier
+            });
+
+
+            // Settle Totalisator Bets
+            axios({
+              method: "post",
+              url: `${betHeader}/settleTotalisatorBets`,
+              headers: {
+                "Authorization": process.env.REACT_APP_KEY_BET,
+              },
+              data: {
+                gameId: gameid,
+                marketId: marketDetails.market_id,
+                gameName: gameDetails.name,
+                choice1: choices.choice1,
+                choice2: choices.choice2,
+                oddChoice1: res.data.odd1,
+                oddChoice2: res.data.odd2,
+                oddDraw: gameDetails.draw_multiplier,
+                marketResult: resultChoice,
+                settler: ctx.user.username
+              },
+            })
+              .then((res) => {
+                if (resultChoice === "DRAW"){
+                  toast.info("No commission to be sent since result is 'DRAW'")
+                } else{
+                  console.log(res)
+                  var settledBets = res.data.data.bets
+
+                  settledBets.forEach((bet) => {
+                      // Send GM Commission
+                    const gmData = {
+                      betId: bet.bet_id,
+                      playerId: bet.account_id,
+                      amount: bet.stake,
+                    };
+                    axios({
+                      method: "post",
+                      url: `${betHeader}/sendGrandMasterCommission`,
+                      headers: {
+                        "Authorization": process.env.REACT_APP_KEY_BET,
+                      },
+                      data: gmData,
+                    }).then((res) => {console.log("gm sent")}).catch((err) => {console.log("gm", err)});
+  
+  
+                    // Send Agent Commission
+                    const agentData = {
+                      betId: bet.bet_id,
+                      playerId: bet.account_id,
+                      stake: bet.stake,
+                    };
+                    axios({
+                      method: "post",
+                      url: `${betHeader}/sendAgentCommission`,
+                      headers: {
+                        "Authorization": process.env.REACT_APP_KEY_BET,
+                      },
+                      data: agentData,
+                    }).then((res) => {
+                      console.log("agent sent")
+                      var agentId = res.data.data.agentId
+                      var commission = res.data.data.commission
+                      // Send Master Agent Commission
+                      const maData = {
+                        betId: bet.bet_id,
+                        stake: bet.stake,
+                        agentId: agentId,
+                        agentCommission: commission
+                      };
+                      console.log(maData)
+                      axios({
+                        method: "post",
+                        url: `${betHeader}/sendMasterAgentCommission`,
+                        headers: {
+                          "Authorization": process.env.REACT_APP_KEY_BET,
+                        },
+                        data: maData,
+                      }).then((res) => {console.log("ma sent")}).catch((err) => {console.log("ma", err)});
+
+                    }).catch((err) => {console.log("agent", err)});
+
+                  })
+                  toast.info("All Commissions has been given")
+                }
+              })
+              .catch((err) => {
+                // console.log(err);
+              });
+
+
+
+
+          });
+
+
+
+
+
+          //State Resets
+          
+          setTotalisatorOdds((prev) => {
+            return {
+              ...prev,
+              odd1: parseFloat(0).toFixed(2),
+              odd2: parseFloat(0).toFixed(2),
+            };
+          });
+          setOddManip({
+            odd1: Math.floor(Math.random() * gameDetails.max_bet),
+            odd2: Math.floor(Math.random() * gameDetails.max_bet),
+          });
+          socket.emit("totalisator_market_update", {
+            marketId: res.data.data.marketId,
+            status: res.data.data.status,
+            gameId: gameid
+          });
+
+
+
         })
         .catch((err) => {
           if (marketDetails.status === 2) {
@@ -484,46 +674,10 @@ function AdminGameSettings() {
           }
         });
     } else {
-      toast.info("Result Market Cancelled");
+      toast.info("Result Market Cancelled or no winning choice selected");
     }
-
-    e.preventDefault();
-  }
-
-  function handleManipulateValues(e) {
-    const { name, value } = e.target;
-    setManipualteColors((prev) => {
-      return {
-        ...prev,
-        [name]: value,
-      };
-    });
-  }
-
-  function handleManipulateBetClick(e) {
-    if (Object.values(manipulateColors).some((el) => el < 0)) {
-      toast.error("Invalid Manipulate Values");
-    } else {
-      axios({
-        method: "post",
-        url: `${gameHeader}/manipulateBetTotals`,
-        headers: {
-          "Authorization": process.env.REACT_APP_KEY_GAME,
-        },
-        data: {
-          marketId: marketDetails.market_id,
-          editor: ctx.user.username,
-          bb_manip: Object.values(manipulateColors),
-        },
-      })
-        .then((res) => {
-          toast.success("Bets Manipulated Success");
-        })
-        .catch((err) => {
-          toast.error("Incomplete Bet Manipulation");
-        });
-    }
-
+    setResultchoice("");
+    console.log(resultChoice, "hello result");
     e.preventDefault();
   }
 
@@ -548,63 +702,10 @@ function AdminGameSettings() {
     getBetList(marketDetails.market_id);
   }
 
-  function renderWinMultiplierSettings() {
-    if (ctx.user.accountType === "admin") {
-      return (
-        <div>
-          <h6 className="card-subtitle mb-2 label-margin">Win settings</h6>
-          <div className="row">
-            <div className="col-md-12 row">
-              <div className="col-md-5 label-margin">1-Hit Multiplier</div>
-              <div className="col-md-6">
-                <input
-                  className="form-control"
-                  name="win_multip1"
-                  type="number"
-                  value={gameDetails.win_multip1}
-                  onChange={handleGameChange}
-                ></input>
-              </div>
-            </div>
-            <div className="col-md-12 row label-margin">
-              <div className="col-md-5 label-margin">2-Hit Multiplier</div>
-              <div className="col-md-6">
-                <input
-                  className="form-control"
-                  name="win_multip2"
-                  type="number"
-                  value={gameDetails.win_multip2}
-                  onChange={handleGameChange}
-                ></input>
-              </div>
-            </div>
-            <div className="col-md-12 row label-margin">
-              <div className="col-md-5 label-margin">3-Hit Multiplier</div>
-              <div className="col-md-6">
-                <input
-                  className="form-control"
-                  name="win_multip3"
-                  type="number"
-                  value={gameDetails.win_multip3}
-                  onChange={handleGameChange}
-                ></input>
-              </div>
-            </div>
-          </div>
-          <div className="text-center">
-            <button
-              className="btn btn-color text-light"
-              style={{ marginTop: "15px" }}
-              onClick={handleWinSettingsClick}
-            >
-              Save Win Settings
-            </button>
-          </div>
-        </div>
-      );
-    } else {
-      return null;
-    }
+  function handleChange(e) {
+    
+    console.log(e.target.value);
+    setResultchoice(e.target.value);
   }
 
   return (
@@ -644,7 +745,6 @@ function AdminGameSettings() {
                 <input
                   className="form-control"
                   type="text"
-                  placeholder="Welcome to Master Gamblr"
                   name="banner"
                   value={gameDetails.banner}
                   onChange={handleGameChange}
@@ -658,90 +758,22 @@ function AdminGameSettings() {
                     Save Game Settings
                   </button>
                 </div>
-                <div className="row label-margin">
-                  <h6 className="card-subtitle mb-2 label-margin">
-                    Manipulate Total Color Bets:
-                  </h6>
-                  <div className="col-md-6 row label-margin">
-                    <div className="col-md-5 label-margin">Red</div>
-                    <div className="col-md-6">
-                      <input
-                        className="form-control"
-                        type="number"
-                        name="bb_manip_red"
-                        value={manipulateColors.bb_manip_red}
-                        onChange={handleManipulateValues}
-                      ></input>
-                    </div>
-                  </div>
-                  <div className="col-md-6 row label-margin">
-                    <div className="col-md-5 label-margin">Blue</div>
-                    <div className="col-md-6">
-                      <input
-                        className="form-control"
-                        type="number"
-                        name="bb_manip_blue"
-                        value={manipulateColors.bb_manip_blue}
-                        onChange={handleManipulateValues}
-                      ></input>
-                    </div>
-                  </div>
-                  <div className="col-md-6 row label-margin">
-                    <div className="col-md-5 label-margin">Green</div>
-                    <div className="col-md-6">
-                      <input
-                        className="form-control"
-                        type="number"
-                        name="bb_manip_green"
-                        value={manipulateColors.bb_manip_green}
-                        onChange={handleManipulateValues}
-                      ></input>
-                    </div>
-                  </div>
-                  <div className="col-md-6 row label-margin">
-                    <div className="col-md-5 label-margin">Yellow</div>
-                    <div className="col-md-6">
-                      <input
-                        className="form-control"
-                        type="number"
-                        name="bb_manip_yellow"
-                        value={manipulateColors.bb_manip_yellow}
-                        onChange={handleManipulateValues}
-                      ></input>
-                    </div>
-                  </div>
-                  <div className="col-md-6 row label-margin">
-                    <div className="col-md-5 label-margin">White</div>
-                    <div className="col-md-6">
-                      <input
-                        className="form-control"
-                        type="number"
-                        name="bb_manip_white"
-                        value={manipulateColors.bb_manip_white}
-                        onChange={handleManipulateValues}
-                      ></input>
-                    </div>
-                  </div>
-                  <div className="col-md-6 row label-margin">
-                    <div className="col-md-5 label-margin">Purple</div>
-                    <div className="col-md-6">
-                      <input
-                        className="form-control"
-                        type="number"
-                        name="bb_manip_purple"
-                        value={manipulateColors.bb_manip_purple}
-                        onChange={handleManipulateValues}
-                      ></input>
-                    </div>
-                  </div>
-                </div>
+                <h5 className="card-title">Pot Commssion</h5>
+                <h6 className="card-subtitle mb-2 label-margin">Commission:</h6>
+                <input
+                  className="form-control"
+                  type="number"
+                  name="commission"
+                  onChange={handleGameChange}
+                  value={gameDetails.commission}
+                ></input>
                 <div className="text-center">
                   <button
                     className="btn btn-color text-light"
                     style={{ marginTop: "15px" }}
-                    onClick={handleManipulateBetClick}
+                    onClick={handleDrawCommissionClick}
                   >
-                    Save Manipulate Bets
+                    Save Draw Commission
                   </button>
                 </div>
               </form>
@@ -784,7 +816,26 @@ function AdminGameSettings() {
                     Save Bet Thresholds
                   </button>
                 </div>
-                {renderWinMultiplierSettings()}
+                <h5 className="card-title">Win Settings</h5>
+                <h6 className="card-subtitle mb-2 label-margin">
+                  Draw Win Multiplier:
+                </h6>
+                <input
+                  className="form-control"
+                  type="number"
+                  name="draw_multiplier"
+                  onChange={handleGameChange}
+                  value={gameDetails.draw_multiplier}
+                ></input>
+                <div className="text-center">
+                  <button
+                    className="btn btn-color text-light"
+                    style={{ marginTop: "15px" }}
+                    onClick={handleDrawCommissionClick}
+                  >
+                    Save Draw Commission
+                  </button>
+                </div>
               </form>
             </div>
           </div>
@@ -841,80 +892,69 @@ function AdminGameSettings() {
               <h6 className="card-subtitle mb-2 text-muted">
                 <b>Result Market</b>
               </h6>
-              <div className="row" style={{ marginTop: "15px" }}>
-                <select
-                  className={`col-sm-3 col-5 ${boxColor.boxOne}-boxx radio-button`}
-                  name="boxOne"
-                  onChange={handleColorChange}
-                  style={{ marginLeft: "25px" }}
-                >
-                  <option {...isSelected("RED", 1)} value="RED">
-                    Red
-                  </option>
-                  <option {...isSelected("BLUE", 1)} value="BLUE">
-                    Blue
-                  </option>
-                  <option {...isSelected("GREEN", 1)} value="GREEN">
-                    Green
-                  </option>
-                  <option {...isSelected("YELLOW", 1)} value="YELLOW">
-                    Yellow
-                  </option>
-                  <option {...isSelected("WHITE", 1)} value="WHITE">
-                    White
-                  </option>
-                  <option {...isSelected("PURPLE", 1)} value="PURPLE">
-                    Purple
-                  </option>
-                </select>
-                <select
-                  className={`col-sm-3 col-5 ${boxColor.boxTwo}-boxx radio-button`}
-                  name="boxTwo"
-                  onChange={handleColorChange}
-                >
-                  <option {...isSelected("RED", 2)} value="RED">
-                    Red
-                  </option>
-                  <option {...isSelected("BLUE", 2)} value="BLUE">
-                    Blue
-                  </option>
-                  <option {...isSelected("GREEN", 2)} value="GREEN">
-                    Green
-                  </option>
-                  <option {...isSelected("YELLOW", 2)} value="YELLOW">
-                    Yellow
-                  </option>
-                  <option {...isSelected("WHITE", 2)} value="WHITE">
-                    White
-                  </option>
-                  <option {...isSelected("PURPLE", 2)} value="PURPLE">
-                    Purple
-                  </option>
-                </select>
-                <select
-                  className={`col-sm-3 col-5 ${boxColor.boxThree}-boxx radio-button`}
-                  name="boxThree"
-                  onChange={handleColorChange}
-                >
-                  <option {...isSelected("RED", 3)} value="RED">
-                    Red
-                  </option>
-                  <option {...isSelected("BLUE", 3)} value="BLUE">
-                    Blue
-                  </option>
-                  <option {...isSelected("GREEN", 3)} value="GREEN">
-                    Green
-                  </option>
-                  <option {...isSelected("YELLOW", 3)} value="YELLOW">
-                    Yellow
-                  </option>
-                  <option {...isSelected("WHITE", 3)} value="WHITE">
-                    White
-                  </option>
-                  <option {...isSelected("PURPLE", 3)} value="PURPLE">
-                    Purple
-                  </option>
-                </select>
+              <div className="row">
+                <label>Place Bet:</label>
+
+                <div className="row text-center place-bet-boxes">
+                  <label
+                    className="col-md-3 col-4 placebet-styles-low"
+                    style={
+                      resultChoice === choices.choice1
+                        ? { border: "3px solid green" }
+                        : {}
+                    }
+                  >
+                    {choices.choice1}
+                    <p>{parseFloat(totalisatorOdds.odd1).toFixed(2)}</p>
+                    <input
+                      class="checked"
+                      type="radio"
+                      name="bet"
+                      value={choices.choice1}
+                      onChange={handleChange}
+                      checked={resultChoice === choices.choice1}
+                    />
+                  </label>
+                  <label
+                    className="col-md-3 col-4 placebet-styles-draw"
+                    style={
+                      resultChoice === choices.choiceDraw
+                        ? { border: "3px solid green" }
+                        : {}
+                    }
+                  >
+                    {choices.choiceDraw}
+                    <p>{parseFloat(totalisatorOdds.oddDraw).toFixed(2)}</p>
+                    <input
+                      class="checked"
+                      type="radio"
+                      name="bet"
+                      value={choices.choiceDraw}
+                      onChange={handleChange}
+                      checked={resultChoice === choices.choiceDraw}
+                    />
+                  </label>
+                  <label
+                    className="col-md-3 col-4 placebet-styles-high"
+                    style={
+                      resultChoice === choices.choice2
+                        ? { border: "3px solid green" }
+                        : {}
+                    }
+                  >
+                    {choices.choice2}
+                    <p>{parseFloat(totalisatorOdds.odd2).toFixed(2)}</p>
+                    <input
+                      class="checked"
+                      type="radio"
+                      name="bet"
+                      value={choices.choice2}
+                      onChange={handleChange}
+                      checked={resultChoice === choices.choice2}
+                    />
+                  </label>
+                </div>
+
                 <div
                   className="col-md-12 text-center"
                   style={{ marginTop: "15px" }}
@@ -947,6 +987,7 @@ function AdminGameSettings() {
                     <th scope="col">Account ID</th>
                     <th scope="col">Description</th>
                     <th scope="col">Stake</th>
+                    <th scope="col">Winnings</th>
                     <th scope="col">Status</th>
                   </tr>
                 </thead>
@@ -957,6 +998,7 @@ function AdminGameSettings() {
                       <td>{bet.account_id}</td>
                       <td>{bet.description}</td>
                       <td>{bet.stake}</td>
+                      <td>{bet.winnings === null ? "0.00" : bet.winnings}</td>
                       <td>
                         {bet.status === 0
                           ? "Pending"
@@ -984,4 +1026,4 @@ function AdminGameSettings() {
   );
 }
 
-export default AdminGameSettings;
+export default AdminGameSettingsTotalisator;
