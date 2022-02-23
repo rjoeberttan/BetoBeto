@@ -54,6 +54,7 @@ function WalletRequestTable({
   }
 
   function acceptDeposit() {
+   if (window.confirm("Confirm Deposit?")) {
     const data = {
       accountId: requesterAccountId,
       amount: amount,
@@ -79,35 +80,43 @@ function WalletRequestTable({
         toast.error("Accept Deposit Failed");
         console.log(err);
       });
+   } else {
+     toast.info("Deposit not Accepted")
+   }
   }
 
   function acceptWithdrawal() {
-    const data = {
-      accountId: requesterAccountId,
-      amount: amount,
-      transactionId: transactionId,
-      accepterAccountId: accepterAccountId,
-      accepterUsername: accepterUsername,
-    };
-
-    axios({
-      method: "post",
-      url: `${bankHeader}/acceptWithdrawal`,
-      headers: bankAuthorization,
-      data: data,
-    })
-      .then((res) => {
-        setConfirmed(true);
-        console.log(res);
-
-        const newAmount = ctx.walletBalance + amount;
-        ctx.walletHandler(newAmount);
-        toast.success(res.data.message);
+    if (window.confirm("Confirm Withdrawal?")){
+      const data = {
+        accountId: requesterAccountId,
+        amount: amount,
+        transactionId: transactionId,
+        accepterAccountId: accepterAccountId,
+        accepterUsername: accepterUsername,
+      };
+  
+      axios({
+        method: "post",
+        url: `${bankHeader}/acceptWithdrawal`,
+        headers: bankAuthorization,
+        data: data,
       })
-      .catch((err) => {
-        console.log(err);
-        toast.error("Accept Withdrawal Failed");
-      });
+        .then((res) => {
+          setConfirmed(true);
+          console.log(res);
+  
+          const newAmount = ctx.walletBalance + amount;
+          ctx.walletHandler(newAmount);
+          toast.success(res.data.message);
+        })
+        .catch((err) => {
+          console.log(err);
+          toast.error("Accept Withdrawal Failed");
+        });
+    } else {
+      toast.info("Withdrawal not Accepted")
+    }
+
   }
 
   function cancelTransaction() {
