@@ -884,6 +884,39 @@ app.get("/getBetCommissionEarnings/:dateFrom/:dateTo", (req, res) => {
   });
 });
 
+app.get("/getTotalCommissions/:accountId", (req, res) => {
+  const start = process.hrtime();
+
+  const apiKey = req.header("Authorization");
+  const accountId = req.params.accountId;
+
+    // Check if body is complete
+    if (!accountId) {
+      logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
+      res.status(400).json({ message: "Missing body parameters" });
+      return;
+    }
+  
+    // Check if apiKey is correct
+    if (!apiKey || apiKey !== process.env.API_KEY) {
+      logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+      res.status(401).json({ message: "Unauthorized Request" });
+      return;
+    }
+
+    sqlQuery = "SELECT SUM(amount) AS total FROM transactions WHERE account_id = ? AND transaction_type=6;"
+    db.query(sqlQuery, [accountId], (err, result) => {
+      if (err) {
+        logger.error(`${req.originalUrl} request has an error during process 1, error:${err}`)
+        res.status(500).json({message: "Server error"})
+      } else {
+          total = result[0].total === null ? 0 : result[0].total
+          logger.info(`${req.originalUrl} request successful, duration:${getDurationInMilliseconds(start)}`)
+          res.status(200).json({ message: "Request Successful", data: {accountId: accountId, total: total} });        
+      }
+    })
+})
+
 
 app.listen(4006, () => {
   console.log("Backend Bank Manager listentning at port 4006");

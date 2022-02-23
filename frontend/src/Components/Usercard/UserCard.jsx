@@ -38,6 +38,7 @@ function UserCard({
   const [currentStatus, setCurrentStatus] = useState(status);
   const [agentName, setAgentName] = useState("");
   const [lockStatusText, setLockStatusText] = useState("LOCK ACCOUNT");
+  const [commiEarnings, setCommiEarnings] = useState(0)
   const [password, setPassword] = useState({
     password: "",
     confirmPassword: "",
@@ -50,6 +51,7 @@ function UserCard({
     getNumUsersUnder()
     getNumUsersUnderUnder()
     getNumPlayersGM()
+    getCommissionEarnings()
 
     getAgentName();
     if (status === "LOCKED") {
@@ -58,6 +60,17 @@ function UserCard({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  function getCommissionEarnings(){
+    axios({
+      method: "get",
+      url: `${bankHeader}/getTotalCommissions/${accountId}`,
+      headers: bankAuthorization,
+    })
+      .then((res) => {
+        setCommiEarnings(res.data.data.total);
+      })
+      .catch((err) => {});
+  }
 
   function getNumUsersUnder() {
     axios({
@@ -218,6 +231,7 @@ function UserCard({
     }
     
   }
+  
 
   function changeAccountStatus(e) {
     const currentStatusDigit = currentStatus === "ACTIVE" ? "1" : "0";
@@ -309,6 +323,17 @@ function UserCard({
     }
   }
 
+
+  function renderCommissionEarnings(accountType) {
+    if (accountType === "1" || accountType === "2" || accountType === "5") {
+      return (
+        <div className="col-md-12 text-spacing">
+          <b>Commission Earnings:</b> ₱ {commiEarnings.toFixed(2)}
+        </div>
+      );
+      }
+  }
+
   function handleCommissionChange(e){
     const input = (e.target.value)
     const inputNum = (e.target.value)
@@ -394,6 +419,7 @@ function UserCard({
             {renderNoOfMasterAgents(accountType)}
             {renderNoOfAgents(accountType)}
             {renderNoOfPlayers(accountType)}
+            {renderCommissionEarnings(accountType)}
             <div className="col-md-12 text-spacing">
               <b>Phone No:</b> {mobile}
             </div>
