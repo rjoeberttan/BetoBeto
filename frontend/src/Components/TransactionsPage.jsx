@@ -3,6 +3,7 @@ import axios from "axios";
 import { AuthContext } from "../store/auth-context";
 import { toast } from "react-toastify";
 import Select from "react-select";
+import Switch from "react-switch";
 
 import "./TransactionsPage.css";
 
@@ -28,14 +29,16 @@ export default function TransactionsPage() {
     endDate: "",
   });
   const [transactionsList, setTransactionsList] = useState([]);
+  const [originalTrans, setOriginalTrans] = useState([]);
   const [betList, setBetList] = useState([]);
   const [pages, setPages] = useState([]);
   const [currentPage, setCurrentPage] = useState(1)
   const [paginatedPosts, setPaginatedPosts] = useState([]);
-
+  const [switchChecked, setSwitchChecked] = useState(false);
   const [BetPages, setBetPages] = useState([]);
   const [currentBetPage, setCurrentBetPage] = useState(1)
   const [paginatedBets, setPaginatedBets] = useState([]);
+  
   
 
   useEffect(() => {
@@ -73,6 +76,7 @@ export default function TransactionsPage() {
         const data = res.data.data;
         console.log(data);
         setTransactionsList(data);
+        setOriginalTrans(data)
 
         // Calculated Pages
         const pageSize = 50;
@@ -236,6 +240,7 @@ export default function TransactionsPage() {
 
   function handleFilterChange(e) {
     const value = Number(e.target.value);
+    setSwitchChecked(false)
     console.log("gere")
     setTransactionsList([])
     setPaginatedPosts([])
@@ -290,7 +295,7 @@ export default function TransactionsPage() {
       getTransactionsTable(activeUserId);
       getBetTable(activeUserId);
     }
-
+    setSwitchChecked(false)
 
     
     e.preventDefault();
@@ -492,6 +497,7 @@ export default function TransactionsPage() {
 
   function handleAllUserSearch(e) {
     console.log(dateFilter.startDate, dateFilter.endDate)
+    setSwitchChecked(false)
     axios({
       method: "get",
       url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/2021-01-01 00:00/2030-12-31 23:59`,
@@ -556,6 +562,7 @@ export default function TransactionsPage() {
   }
 
   function handleGMUserSearch(e) {
+    setSwitchChecked(false)
     axios({
       method: "get",
       url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/2021-01-01 00:00/2030-12-31 23:59`,
@@ -594,6 +601,7 @@ export default function TransactionsPage() {
   }
 
   function handleMAUserSearch(e) {
+    setSwitchChecked(false)
     axios({
       method: "get",
       url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/2021-01-01 00:00/2030-12-31 23:59`,
@@ -633,6 +641,7 @@ export default function TransactionsPage() {
   }
 
   function handleAgentUserSearch(e) {
+    setSwitchChecked(false)
     axios({
       method: "get",
       url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/2021-01-01 00:00/2030-12-31 23:59`,
@@ -671,6 +680,7 @@ export default function TransactionsPage() {
   }
 
   function handlePlayerUserSearch(e) {
+    setSwitchChecked(false)
     axios({
       method: "get",
       url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/2021-01-01 00:00/2030-12-31 23:59`,
@@ -816,6 +826,20 @@ export default function TransactionsPage() {
     }
   }
 
+  function renderExcludeTransactionList() {
+    console.log(ctx.user.accountType)
+    if (ctx.user.accountType === "admin" || ctx.user.accountType === "grandmaster" || ctx.user.accountType === "masteragent") {
+      return (
+        <div className="col-md-2 col-6">
+          <h4 className="lead smaller-device">Exclude Commissions?</h4>
+          <Switch checked={switchChecked} onChange={handleTransSwitch} className="react-switch" height={20} handleDiameter={19}/>
+        </div>
+      );
+    } else {
+      return null;
+    }
+  }
+
   function renderUserFilter() {
     const colorStyles = {
       option: (provided, state) => ({
@@ -848,6 +872,51 @@ export default function TransactionsPage() {
         </div>
       );
     }
+  }
+
+ function handleTransSwitch(e){
+    setSwitchChecked(e)
+
+    if (e){
+      var withoutCommission = transactionsList.filter((el) => {
+        return el.transaction_type !== 6
+      })
+      // Calculated Pages
+      const pageSize = 50;
+      const pageCount = withoutCommission? Math.ceil(withoutCommission.length/pageSize) : 0;
+      var pages = [];
+      for (var i = 1; i<= pageCount; i++){
+        pages.push(i)
+      }
+      setPages(pages)
+
+
+      const pageNo = 1
+      setCurrentPage(1);
+      const startIndex = (pageNo - 1) * pageSize    
+      const endIndex = (pageNo * pageSize)
+      const newTransactions = withoutCommission.slice(startIndex, endIndex)
+      setPaginatedPosts(newTransactions)
+    } else {
+      // Calculated Pages
+      const pageSize = 50;
+      const pageCount = transactionsList? Math.ceil(transactionsList.length/pageSize) : 0;
+      var pages = [];
+      for (var i = 1; i<= pageCount; i++){
+        pages.push(i)
+      }
+      setPages(pages)
+
+
+      const pageNo = 1
+      setCurrentPage(1);
+      const startIndex = (pageNo - 1) * pageSize    
+      const endIndex = (pageNo * pageSize)
+      const newTransactions = transactionsList.slice(startIndex, endIndex)
+      setPaginatedPosts(newTransactions)
+
+    }
+
   }
 
   function pagination(command) {
@@ -915,6 +984,7 @@ export default function TransactionsPage() {
           {renderAgentUserSearch()}
           {renderPlayerUserSearch()}
         </div>
+        {renderExcludeTransactionList()}
       </form>
       
       <div className="table-responsive">
