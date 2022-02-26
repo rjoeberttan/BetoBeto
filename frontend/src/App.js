@@ -42,6 +42,8 @@ import GMPlayers from "./Components/Grandmaster/GMPlayers";
 import ErrorPage from "./Components/ErrorPage";
 //IMPORT TRANSACTION TABLE
 import TransactionsPage from "./Components/TransactionsPage";
+//IMPORT SHIFT EARNINGS
+import ShiftEarnings from "./Components/ShiftEarningsPage";
 //CSS IMPORTS
 import "./App.css";
 import { AuthContext } from "./store/auth-context";
@@ -235,6 +237,11 @@ function App() {
                 component={TransactionsPage}
               />
               <Route
+                path="/admin/shiftEarnings"
+                exact
+                component={ShiftEarnings}
+              />
+              <Route
                 path="/admin/gameroom/TotalisatorSettings/:gameid"
                 exact
                 component={AdminGameSettingsTotalisator}
@@ -258,9 +265,19 @@ function App() {
                 component={AdminGameSettings}
               />
               <Route
+                path="/declarator/gameroom/TotalisatorSettings/:gameid"
+                exact
+                component={AdminGameSettingsTotalisator}
+              />
+              <Route
                 path="/declarator/transactions"
                 exact
                 component={TransactionsPage}
+              />
+              <Route
+                path="/declarator/shiftEarnings"
+                exact
+                component={ShiftEarnings}
               />
               <Route path="/declarator/account" exact component={MyAccount} />
               <Route path="*" component={ErrorPage} />
