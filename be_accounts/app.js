@@ -1213,6 +1213,165 @@ app.get("/getAgentName/:accountId", (req, res) => {
   });
 });
 
+
+
+// Start Shift
+app.post("/startShift", (req, res) => {
+  const start = process.hrtime();
+  // Get body
+  const apiKey = req.header("Authorization");
+  const accountId = req.body.accountId;
+  const username = req.body.username;
+
+    // Check if body is complete
+    if (!accountId || !username) {
+      logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`);
+      res.status(400).json({ message: "Missing body parameters" });
+      return;
+    }
+  
+    // Check if apiKey is correct
+    if (!apiKey || apiKey !== process.env.API_KEY) {
+      logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+      res.status(401).json({ message: "Unauthorized Request" });
+      return;
+    }
+
+    // Process 1 - Check if account still has an active shift
+    sqlQuery1 = "SELECT time_out FROM shifts WHERE account_id = ? ORDER BY time_in DESC LIMIT 1;"
+    db.query(sqlQuery1, [accountId], (err, result1) => {
+      console.log(result1)
+      if (err) {
+        logger.error(`${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`);
+        res.status(500).json({ message: "Server error" });
+      } 
+      else if (result1.length === 0 ) {
+        //Process 2 - Insert new shift
+        sqlQuery2 = "INSERT INTO shifts (account_id, username, time_in, lastedit_date, game_id) VALUES (?, ?, NOW(), NOW(), (SELECT declarator_gameid FROM accounts WHERE account_id = ?));"
+        db.query(sqlQuery2, [accountId, username, accountId], (err, result2) => {
+          if (err) {
+            logger.error(`${req.originalUrl} request has an error during process 2, accountId:${accountId}, error:${err}`);
+            res.status(500).json({ message: "Server error" });
+          } else {
+            logger.info(`${req.originalUrl} successful. Started new shift for declaratorId: ${accountId}, username: ${username}`);
+            res.status(200).json({message: "Successfully started new shift", data:{accountId: accountId}})
+          }
+        })
+      }
+      else if (result1[0].time_out === null){
+        logger.warn(`${req.originalUrl}  request warning, declarator still has an active shift, declarator:${accountId}`);
+        res.status(409).json({ message: "Declarator still has an active shift", data: {accountId: accountId} });
+      }
+      else {       
+        //Process 2 - Insert new shift
+        sqlQuery2 = "INSERT INTO shifts (account_id, username, time_in, lastedit_date, game_id) VALUES (?, ?, NOW(), NOW(), (SELECT declarator_gameid FROM accounts WHERE account_id = ?));"
+        db.query(sqlQuery2, [accountId, username, accountId], (err, result2) => {
+          if (err) {
+            logger.error(`${req.originalUrl} request has an error during process 2, accountId:${accountId}, error:${err}`);
+            res.status(500).json({ message: "Server error" });
+          } else {
+            logger.info(`${req.originalUrl} successful. Started new shift for declaratorId: ${accountId}, username: ${username}`);
+            res.status(200).json({message: "Successfully started new shift", data:{accountId: accountId}})
+          }
+        })
+      }
+    });
+})
+
+// End Shift
+app.post("/endShift", (req, res) => {
+  const start = process.hrtime();
+  // Get body
+  const apiKey = req.header("Authorization");
+  const accountId = req.body.accountId;
+  const username = req.body.username;
+
+    // Check if body is complete
+    if (!accountId || !username) {
+      logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`);
+      res.status(400).json({ message: "Missing body parameters" });
+      return;
+    }
+  
+    // Check if apiKey is correct
+    if (!apiKey || apiKey !== process.env.API_KEY) {
+      logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+      res.status(401).json({ message: "Unauthorized Request" });
+      return;
+    }
+
+    // Process 1 - Check if account still has an active shift
+    sqlQuery1 = "SELECT id, time_in, time_out, game_id FROM shifts WHERE account_id = ? ORDER BY time_in DESC LIMIT 1;"
+    db.query(sqlQuery1, [accountId], (err, result1) => {
+      if (err) {
+        logger.error(`${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`);
+        res.status(500).json({ message: "Server error" });
+      } else if (result1.length <= 0 || result1[0].time_out !== null){
+        logger.warn(`${req.originalUrl}  request warning, declarator does not have an active shift, declarator:${accountId}`);
+        res.status(409).json({ message: "Declarator does not have an active shift", data: {accountId: accountId} });
+      } else {
+
+        var idUpdate = result1[0].id;
+        var decGameId = result1[0].game_id
+        var timeIn = result1[0].time_in
+        
+        // Process 2
+        sqlQuery2 = "SELECT SUM(stake) as totalBets, SUM(winnings) as totalWinnings FROM bets WHERE game_id = ? AND placement_date BETWEEN ? AND NOW();"
+        db.query(sqlQuery2, [decGameId, timeIn], (err, result2) => {
+          if (err) {
+            logger.error(`${req.originalUrl} request has an error during process 2, accountId:${accountId}, error:${err}`);
+            res.status(500).json({ message: "Server error" });
+          } else {
+            var totalBets = result2[0].totalBets === null ? 0 : parseFloat(result2[0].totalBets).toFixed(2);
+            var totalWinnings = result2[0].totalWinnings === null ? 0 : parseFloat(result2[0].totalWinnings).toFixed(2);
+            var totalEarnings = (parseFloat(totalBets) - parseFloat(totalWinnings)).toFixed(2)
+
+            //Process 3 - Insert new shift
+            sqlQuery3 = "UPDATE shifts SET time_out = NOW(), total_bets_placed = ?, total_loss = ?, total_earnings = ?, lastedit_date = NOW() WHERE id = ? "
+            db.query(sqlQuery3, [totalBets, totalWinnings, totalEarnings, idUpdate], (err, result3) => {
+              if (err) {
+                logger.error(`${req.originalUrl} request has an error during process 3, accountId:${accountId}, error:${err}`);
+                res.status(500).json({ message: "Server error" });
+              } else {
+                logger.info(`${req.originalUrl} successful. Ended shift for declaratorId: ${accountId}, username: ${username}`);
+                res.status(200).json({message: "Successfully ended shift", data:{accountId: accountId, id: idUpdate, game_id: decGameId}})
+              }
+            })
+          }
+        })
+      }
+    });
+})
+
+
+app.get("/getShifts", (req, res) => {
+  const start = process.hrtime();
+  // Get body
+  const apiKey = req.header("Authorization");
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(
+      `${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`
+    );
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  // Process 1
+  // Get all necessary details
+  sqlQuery = "SELECT sh.*, ga.name FROM shifts sh LEFT JOIN games ga ON sh.game_id=ga.game_id ORDER BY sh.lastedit_date DESC ;";
+  db.query(sqlQuery,  (err, result) => {
+    if (err) {
+      logger.error(`${req.originalUrl} request has an error during process 1, error:${err}`);
+      res.status(500).json({ message: "Server error" });
+    } else {
+      logger.info(`${req.originalUrl} request successful duration:${getDurationInMilliseconds(start)}`);
+      res.status(200).json({ message: "Request successful", data: result});
+    }
+  });
+})
+
 app.listen(4003, () => {
   console.log("Server listentning at port 4003");
 });
