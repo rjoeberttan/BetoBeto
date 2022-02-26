@@ -34,6 +34,7 @@ function UserCard({
   const [numUsersUnderUnder, setNumUsersUnderUnder] = useState(0);
   const [commissionNew, setCommission] = useState();
   const [topUpAmount, setTopUpAmount] = useState();
+  const [deductAmount, setDeductAmount] = useState();
   const [currentWallet, setCurrentWallet] = useState(walletBalance);
   const [currentStatus, setCurrentStatus] = useState(status);
   const [agentName, setAgentName] = useState("");
@@ -199,37 +200,76 @@ function UserCard({
   }
 
   function submitTopUp(e) {
-    if (topUpAmount <= 0){
-      toast.error("Invalid Amount")
-    } else {
-      axios({
-        method: "post",
-        url: `${bankHeader}/transferFunds`,
-        headers: bankAuthorization,
-        data: {
-          fromAccountId: editorId,
-          fromUsername: editor,
-          toAccountId: accountId,
-          toUsername: username,
-          amount: parseFloat(topUpAmount).toFixed(2),
-        },
-      })
-        .then((res) => {
-          let newWallet = parseFloat(ctx.walletBalance) - parseFloat(topUpAmount);
-          ctx.walletHandler(newWallet);
-  
-          newWallet = parseFloat(currentWallet) + parseFloat(topUpAmount);
-          setCurrentWallet(newWallet);
-          toast.success(res.data.message, {
-            autoClose: 1500,
-          });
+    if (window.confirm("Confirm Top Up?")) {
+      if (topUpAmount <= 0){
+        toast.error("Invalid Amount")
+      } else {
+        axios({
+          method: "post",
+          url: `${bankHeader}/transferFunds`,
+          headers: bankAuthorization,
+          data: {
+            fromAccountId: editorId,
+            fromUsername: editor,
+            toAccountId: accountId,
+            toUsername: username,
+            amount: parseFloat(topUpAmount).toFixed(2),
+          },
         })
-        .catch((err) => {
-          toast.error("Failed fund transfer");
-        });
-      // e.preventDefault();
-    }
+          .then((res) => {
+            let newWallet = parseFloat(ctx.walletBalance) - parseFloat(topUpAmount);
+            ctx.walletHandler(newWallet);
     
+            newWallet = parseFloat(currentWallet) + parseFloat(topUpAmount);
+            setCurrentWallet(newWallet);
+            toast.success(res.data.message, {
+              autoClose: 1500,
+            });
+          })
+          .catch((err) => {
+            toast.error("Failed fund transfer");
+          });
+        // e.preventDefault();
+      }
+    }    
+  }
+
+
+  function submitDeductAmount(e) {
+    if (window.confirm("Confirm Wallet Deduction?")) {
+      console.log(deductAmount)
+      if ((parseFloat(deductAmount) <= 0) || (deductAmount === null)){
+        toast.error("Invalid Amount")
+      } else {
+        axios({
+          method: "post",
+          url: `${bankHeader}/deductWallet`,
+          headers: bankAuthorization,
+          data: {
+            deductorAccountId: editorId,
+            deductorUsername: editor,
+            deductedAccountId: accountId,
+            deductedUsername: username,
+            amount: parseFloat(deductAmount).toFixed(2),
+          },
+        })
+          .then((res) => {
+            let newWallet = parseFloat(ctx.walletBalance) + parseFloat(deductAmount);
+            ctx.walletHandler(newWallet);
+    
+            newWallet = parseFloat(currentWallet) - parseFloat(deductAmount);
+            setCurrentWallet(newWallet);
+            toast.success(res.data.message, {
+              autoClose: 1500,
+            });
+          })
+          .catch((err) => {
+            console.log(err.response.data.message)
+            toast.error(`Failed Wallet Deduct. ${err.response.data.message}`);
+          });
+        // e.preventDefault();
+      }
+    }    
   }
   
 
@@ -351,34 +391,36 @@ function UserCard({
   }
 
   function renderCommission(accountType) {
-    if (accountType === "1" || accountType === "2") {
-      return (
-        <div className="col-md-12 text-spacing">
-          <div className="row">
-            <div className="col-md-4 col-4">
-              <b>Commission %</b>
-            </div>
-            <div className="col-md-4 col-4">
-              <input
-                type="number"
-                className="form-control"
-                placeholder={parseFloat(commission).toFixed(2)}
-                value={commissionNew}
-                onChange={handleCommissionChange}
-              />
-            </div>
-            <div className="col-md-4 col-4">
-              <button
-                className="btn btn-color text-light"
-                onClick={submitCommission}
-              >
-                Save
-              </button>
+    if (ctx.user.accountType !== "grandmaster"){
+      if (accountType === "1" || accountType === "2") {
+        return (
+          <div className="col-md-12 text-spacing">
+            <div className="row">
+              <div className="col-md-4 col-4">
+                <b>Commission %</b>
+              </div>
+              <div className="col-md-4 col-4">
+                <input
+                  type="number"
+                  className="form-control"
+                  placeholder={parseFloat(commission).toFixed(2)}
+                  value={commissionNew}
+                  onChange={handleCommissionChange}
+                />
+              </div>
+              <div className="col-md-4 col-4">
+                <button
+                  className="btn btn-color text-light"
+                  onClick={submitCommission}
+                >
+                  Save
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      );
-    } else {
+        );
+      } 
+    }else {
       return;
     }
   }
@@ -450,6 +492,28 @@ function UserCard({
                     onClick={submitTopUp}
                   >
                     Top Up
+                  </button>
+                </div>
+              </div>
+              <div className="row">
+                <div className="col-md-4">
+                  <b>Deduct Wallet:</b>
+                </div>
+                <div className="col-md-4 col-6">
+                  <input
+                    type="number"
+                    className="form-control"
+                    placeholder="Deduct"
+                    value={deductAmount}
+                    onChange={(e) => setDeductAmount(parseFloat(e.target.value).toFixed(0))}
+                  />
+                </div>
+                <div className="col-md-4 col-6">
+                  <button
+                    className="btn btn-color text-light"
+                    onClick={submitDeductAmount}
+                  >
+                    Deduct
                   </button>
                 </div>
               </div>

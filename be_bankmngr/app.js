@@ -5,6 +5,7 @@ const mysql = require("mysql");
 const { createLogger, transports, format } = require("winston");
 const helmet = require("helmet");
 const cors = require("cors");
+const { parse } = require("dotenv");
 require("dotenv").config();
 
 // Configure Express Application
@@ -659,6 +660,84 @@ app.post("/transferFunds", (req, res) => {
     }
   });
 });
+
+
+app.post("/deductWallet", (req, res) => {
+  const start = process.hrtime()
+  
+  const apiKey = req.header("Authorization");
+  const deductedUsername = req.body.deductedUsername;
+  const deductedAccountId = req.body.deductedAccountId;
+  const deductorUsername = req.body.deductorUsername;
+  const deductorAccountId = req.body.deductorAccountId;
+  const amount = req.body.amount;
+
+  // Check if body is complete
+  if (!deductedUsername || !deductedAccountId || !deductorUsername || !deductorAccountId || !amount){
+    console.log(deductedAccountId, deductedUsername, deductorAccountId, deductorUsername, deductedWallet, deductorWallet, amount)
+    logger.warn(`${req.originalUrl} request has missing body parameters`)
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  // Check if deductedAccount has enough funds
+  sqlQuery1 = "SELECT wallet FROM accounts where account_id = ?";
+  db.query(sqlQuery1, [deductedAccountId], (err, result1) => {
+    if (err) {
+      logger.error(`${req.originalUrl} request has an error during process 1, accountId:${deductedAccountId}, error:${err}`)
+    } else if (parseFloat(result1[0].wallet) < parseFloat(amount)){
+      logger.warn(`${req.originalUrl} request warning. Account does not have enough wallet balance to deduct from. accountId:${deductedAccountId} wallet:${result1[0].wallet} amount:${amount}`)
+      res.status(409).json({message: "Account does not have enough funds to deduct from" });
+    }else{
+
+      // Process 2: Deduct Wallet From Account and Increase Wallet to User
+      sqlQuery2 = "UPDATE accounts SET wallet=wallet-?, lastedit_date=NOW(), edited_by=? WHERE account_id=?;\n UPDATE accounts SET wallet=wallet+?, lastedit_date=NOW(), edited_by=? WHERE account_id=?"
+      sqlQuery2Formatted = db.format(sqlQuery2, [parseFloat(amount), deductorUsername, deductedAccountId, parseFloat(amount), deductedUsername, deductorAccountId])
+      console.log(sqlQuery2Formatted)
+      db.query(sqlQuery2Formatted, (err, result2) => {
+        if (err) {
+          logger.error(`${req.originalUrl} request has an error during process 2, error:${err}`)
+          res.status(500).json({ message: "Server Error" });
+        } else {
+          logger.info(`${req.originalUrl} request, wallets updated for deductedAccountId:${deductedAccountId} deductorAccountId:${deductorAccountId}`)
+
+          // Process 3 Insert into transactions for deductedId
+          deductedDescription = `Funds deducted by ${deductorUsername}`
+          sqlQuery3 = "INSERT INTO transactions (description, account_id, transaction_type, amount, status, placement_date, settled_date, settled_by, cummulative) VALUES (?, ?, 9, ?, 1, NOW(), NOW(), ?, (SELECT wallet FROM accounts WHERE account_id =?));";
+          db.query(sqlQuery3, [deductedDescription, deductedAccountId, amount, deductorUsername, deductedAccountId], (err, result3) => {
+            if (err) {
+              logger.error(`${req.originalUrl} request has an error during process 3, error:${err}`)
+            } else {
+              logger.info(`${req.originalUrl} request has been inserted into transactions, from:${deductedAccountId} transactionId:${result3.insertId}`)
+            }
+          })
+
+          // Process 4 Insert into transactions for deductorAccountId
+          deductorDescription = `Funds increase via wallet deduction on ${deductedUsername}`
+          sqlQuery4 = "INSERT INTO transactions (description, account_id, transaction_type, amount, status, placement_date, settled_date, settled_by, cummulative) VALUES (?, ?, 10, ?, 1, NOW(), NOW(), ?, (SELECT wallet FROM accounts WHERE account_id =?));";
+          db.query(sqlQuery4, [deductorDescription, deductorAccountId, amount, deductorUsername, deductorAccountId], (err, result4) => {
+            if (err) {
+              logger.error(`${req.originalUrl} request has an error during process 4, error:${err}`)
+            } else {
+              logger.info(`${req.originalUrl} request has been inserted into transactions, tp:${deductorAccountId} transactionId:${result4.insertId}`)
+            }
+          })
+
+          logger.info(`${req.originalUrl} request completed, duration:${getDurationInMilliseconds(start)}`)
+          res.status(200).json({ message: "Fund deduction successful" });
+        }
+
+      })
+    }
+  })
+})
 
 app.get("/getUnsettledRequest/:accountId/:accountType/:transactionType",(req, res) => {
     const start = process.hrtime();
