@@ -257,6 +257,11 @@ function LiveRoom() {
   // Handle Change and Button Click Functions
   //===========================================
   function placeBet(e) {
+    //Disable Button for 5 seconds
+    setPlaceBetDisabled(true);
+    setPlaceBetText("Please Wait")
+
+
     var stakeAmt = parseFloat(stake);
     var minBet = parseFloat(gameDetails.min_bet).toFixed(2);
     var maxBet = parseFloat(gameDetails.max_bet).toFixed(2);
@@ -286,15 +291,12 @@ function LiveRoom() {
           ctx.walletHandler(newWallet);
           getBetSlips(marketDetails.market_id);
 
-          //Disable Button for 5 seconds
-          setPlaceBetDisabled(true);
-          setPlaceBetText("Please Wait");
-
           setTimeout(() => {
             setPlaceBetText("Place Bet");
             setPlaceBetDisabled(false);
             setStake("");
           }, 5000);
+
           toast.success(
             `Placed Bet successfully. BetId: ${res.data.data.betId}`,
             {
