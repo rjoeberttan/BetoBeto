@@ -69,6 +69,21 @@ function LiveRoom() {
     getLatestMarketDetails();
     getMarketTrend();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    const interval2 = setInterval(() => {
+      axios({
+        method: "get",
+        url: `${accountHeader}/getWalletBalance/${ctx.user.accountID}`,
+        headers: accAuthorization,
+      })
+        .then((res) => {
+          const walletBalance = res.data.wallet;
+          ctx.walletHandler(walletBalance);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }, 2000);
   }, []);
 
   useEffect(() => {
@@ -242,17 +257,6 @@ function LiveRoom() {
   // Handle Change and Button Click Functions
   //===========================================
   function placeBet(e) {
-    const data = {
-      marketId: marketDetails.market_id,
-      gameId: gameId,
-      accountId: ctx.user.accountID,
-      gameName: gameDetails.name,
-      choice: color.toUpperCase(),
-      stake: stake,
-      wallet: ctx.walletBalance,
-      maxBet: gameDetails.max_bet,
-    };
-
     var stakeAmt = parseFloat(stake);
     var minBet = parseFloat(gameDetails.min_bet).toFixed(2);
     var maxBet = parseFloat(gameDetails.max_bet).toFixed(2);
@@ -260,6 +264,17 @@ function LiveRoom() {
     if (minBet > stakeAmt || stakeAmt > maxBet) {
       toast.error(`Acceptable stake amount: ₱${minBet}-₱${maxBet}`);
     } else {
+      const data = {
+        marketId: marketDetails.market_id,
+        gameId: gameId,
+        accountId: ctx.user.accountID,
+        gameName: gameDetails.name,
+        choice: color.toUpperCase(),
+        stake: stake,
+        wallet: ctx.walletBalance,
+        maxBet: gameDetails.max_bet,
+      };
+      
       axios({
         method: "post",
         url: `${betHeader}/placeBet`,

@@ -80,6 +80,22 @@ function LiveRoom() {
     getMarketTrend();
     socket.emit("join_room", "totalisatorGame");
     // eslint-disable-next-line react-hooks/exhaustive-deps
+
+
+    const interval2 = setInterval(() => {
+      axios({
+        method: "get",
+        url: `${accountHeader}/getWalletBalance/${ctx.user.accountID}`,
+        headers: accAuthorization,
+      })
+        .then((res) => {
+          const walletBalance = res.data.wallet;
+          ctx.walletHandler(walletBalance);
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }, 2000);
   }, []);
 
   function getMarketTrend() {
