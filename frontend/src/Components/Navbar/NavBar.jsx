@@ -33,42 +33,48 @@ function NavBar(props) {
 
   //SHIFT MANAGEMENT
   function startShift(e){
-    axios({
-      method: "post",
-      url: `${accountHeader}/startShift`,
-      headers: accAuthorization,
-      data: {
-        accountId: ctx.user.accountID,
-        username: ctx.user.username
-      },
-    })
-    .then((res) => {
-      toast.info("Shift successfully start")
-    })
-    .catch((err) => {
-      console.log(err)
-      // var errorMessage = err.response.message === null ? "Server Error" : err.response.data.message 
-      // toast.error(errorMessage)
-    })
+    if (window.confirm("Start shift?")) {
+      axios({
+        method: "post",
+        url: `${accountHeader}/startShift`,
+        headers: accAuthorization,
+        data: {
+          accountId: ctx.user.accountID,
+          username: ctx.user.username
+        },
+      })
+      .then((res) => {
+        toast.info("Shift successfully start")
+      })
+      .catch((err) => {
+        toast.error("Server Error")
+      })
+    } else {
+      toast.info("Start shift cancelled")
+    }
   }
 
   function endShift(e){
-    axios({
-      method: "post",
-      url: `${accountHeader}/endshift`,
-      headers: accAuthorization,
-      data: {
-        accountId: ctx.user.accountID,
-        username: ctx.user.username
-      },
-    })
-    .then((res) => {
-      toast.info("Shift successfully ended. Check Shift Earnings page")
-    })
-    .catch((err) => {
-      var errorMessage = err.response.data.message === null ? "Server Error" : err.response.data.message 
-      toast.error(errorMessage)
-    })
+    if (window.confirm("End Shift?")) {
+      axios({
+        method: "post",
+        url: `${accountHeader}/endshift`,
+        headers: accAuthorization,
+        data: {
+          accountId: ctx.user.accountID,
+          username: ctx.user.username
+        },
+      })
+      .then((res) => {
+        toast.info("Shift successfully ended. Check Shift Earnings page")
+      })
+      .catch((err) => {
+        var errorMessage = err.response.data.message === null ? "Server Error" : err.response.data.message 
+        toast.error(errorMessage)
+      })
+    } else {
+      toast.info("End shift cancelled")
+    }
   }
 
 

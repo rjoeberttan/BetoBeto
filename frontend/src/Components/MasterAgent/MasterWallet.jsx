@@ -140,39 +140,43 @@ function MasterWallet() {
   }
 
   function submitTransfer(e) {
-    const senderWallet = parseFloat(ctx.walletBalance).toFixed(2);
+    if (window.confirm("Confirm Fund Transfer?")) {
+      const senderWallet = parseFloat(ctx.walletBalance).toFixed(2);
 
-    if (amount <= 0){
-      toast.error("Invalid Amount")
-    }
-    else if (senderWallet < parseFloat(amount)) {
-      toast.error("Wallet balance is bigger than to send");
-    } else {
-      const data = {
-        fromAccountId: ctx.user.accountID,
-        fromUsername: ctx.user.username,
-        toAccountId: activeUserId,
-        toUsername: activeUsername,
-        amount: amount,
-      };
-      console.log(data);
-
-      axios({
-        method: "post",
-        url: `${bankHeader}/transferFunds`,
-        headers: bankAuthorization,
-        data: data,
-      })
-        .then((res) => {
-          let newWallet = parseFloat(ctx.walletBalance) - parseFloat(amount);
-          ctx.walletHandler(newWallet);
-          toast.success(res.data.message);
+      if (amount <= 0){
+        toast.error("Invalid Amount")
+      }
+      else if (senderWallet < parseFloat(amount)) {
+        toast.error("Wallet balance is bigger than to send");
+      } else {
+        const data = {
+          fromAccountId: ctx.user.accountID,
+          fromUsername: ctx.user.username,
+          toAccountId: activeUserId,
+          toUsername: activeUsername,
+          amount: amount,
+        };
+        console.log(data);
+  
+        axios({
+          method: "post",
+          url: `${bankHeader}/transferFunds`,
+          headers: bankAuthorization,
+          data: data,
         })
-        .catch((err) => {
-          toast.error("Fund transfer failed", {
-            autoClose: 1500,
+          .then((res) => {
+            let newWallet = parseFloat(ctx.walletBalance) - parseFloat(amount);
+            ctx.walletHandler(newWallet);
+            toast.success(res.data.message);
+          })
+          .catch((err) => {
+            toast.error("Fund transfer failed", {
+              autoClose: 1500,
+            });
           });
-        });
+      }
+    } else {
+      toast.info("Fund Transfer Cancelled")
     }
 
     e.preventDefault();
