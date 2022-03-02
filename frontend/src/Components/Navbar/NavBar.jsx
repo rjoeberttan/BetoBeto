@@ -1,10 +1,18 @@
+import axios from "axios";
 import React, { useContext } from "react";
 import { Link } from "react-router-dom";
+import { toast, ToastContainer } from "react-toastify";
 import { AuthContext } from "../../store/auth-context";
 import "./NavBar.css";
 
+
+
 function NavBar(props) {
   const ctx = useContext(AuthContext);
+  const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT;
+  const accAuthorization = {
+    "Authorization": process.env.REACT_APP_KEY_ACCOUNT,
+  };
 
   function handleLogOut() {
     ctx.handleLogOut(true);
@@ -21,9 +29,76 @@ function NavBar(props) {
     hour12: true,
   });
 
+
+
+  //SHIFT MANAGEMENT
+  function startShift(e){
+    if (window.confirm("Start shift?")) {
+      axios({
+        method: "post",
+        url: `${accountHeader}/startShift`,
+        headers: accAuthorization,
+        data: {
+          accountId: ctx.user.accountID,
+          username: ctx.user.username
+        },
+      })
+      .then((res) => {
+        toast.info("Shift successfully start")
+      })
+      .catch((err) => {
+        toast.error("Server Error")
+      })
+    } else {
+      toast.info("Start shift cancelled")
+    }
+  }
+
+  function endShift(e){
+    if (window.confirm("End Shift?")) {
+      axios({
+        method: "post",
+        url: `${accountHeader}/endshift`,
+        headers: accAuthorization,
+        data: {
+          accountId: ctx.user.accountID,
+          username: ctx.user.username
+        },
+      })
+      .then((res) => {
+        toast.info("Shift successfully ended. Check Shift Earnings page")
+      })
+      .catch((err) => {
+        var errorMessage = err.response.data.message === null ? "Server Error" : err.response.data.message 
+        toast.error(errorMessage)
+      })
+    } else {
+      toast.info("End shift cancelled")
+    }
+  }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   return (
     <nav className="navbar sticky-top navbar-expand-lg navbar-dark bg-green">
       <div className="container-fluid text-center">
+        <ToastContainer />
         <span className="navbar-brand smaller-time">{dd}</span>
         <button
           className="navbar-toggler"
@@ -122,7 +197,39 @@ function NavBar(props) {
                 Transactions
               </Link>
             </li>
+            <li className="nav-item">
+              {(props.user === "admin" || props.user === "declarator")&& (
+                <Link className="nav-link active" to={`/${props.user}/shiftEarnings`}>
+                  Shift Earnings
+                </Link>
+              )}
+            </li>
           </ul>
+          <ul className="navbar-nav" >
+            <li className="nav-item">
+              {props.user === "declarator" && (
+                <Link
+                    className="nav-link active right-border"
+                    onClick={startShift}
+                    to={"#"}
+                  >
+                    Start Shift
+                </Link>
+              )}    
+            </li>
+            <li className="nav-item">
+              {props.user === "declarator" && (
+                <Link
+                    className="nav-link active right-border"
+                    onClick={endShift}
+                    to={"#"}
+                >
+                  End Shift
+                </Link>
+              )}    
+            </li>
+          </ul>
+         
           <div className="nav-item dropdown text-center">
             <span
               className="nav-link dropdown-toggle drpdown-txt text-light right-border"

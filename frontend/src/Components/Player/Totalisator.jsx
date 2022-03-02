@@ -306,6 +306,10 @@ function LiveRoom() {
   // Handle Change and Button Click Functions
   //===========================================
   function placeBet(e) {
+    //Disable Button for 5 seconds
+    setPlaceBetDisabled(true);
+    setPlaceBetText("Please Wait");
+    
     handlePotentialWin();
     const data = {
       marketId: marketDetails.market_id,
@@ -336,9 +340,7 @@ function LiveRoom() {
           ctx.walletHandler(newWallet);
           getBetSlips(marketDetails.market_id);
 
-          //Disable Button for 5 seconds
-          setPlaceBetDisabled(true);
-          setPlaceBetText("Please Wait");
+
 
           setTimeout(() => {
             setPlaceBetText("Place Bet");
