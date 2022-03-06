@@ -8,6 +8,7 @@ const { createLogger, transports, format } = require("winston");
 const helmet = require("helmet");
 const fs = require("fs");
 const { toNamespacedPath } = require("path");
+const { parse } = require("querystring");
 require("dotenv").config();
 
 // Configure Express Application
@@ -1326,17 +1327,34 @@ app.post("/endShift", (req, res) => {
             var totalWinnings = result2[0].totalWinnings === null ? 0 : parseFloat(result2[0].totalWinnings).toFixed(2);
             var totalEarnings = (parseFloat(totalBets) - parseFloat(totalWinnings)).toFixed(2)
 
-            //Process 3 - Insert new shift
-            sqlQuery3 = "UPDATE shifts SET time_out = NOW(), total_bets_placed = ?, total_loss = ?, total_earnings = ?, lastedit_date = NOW() WHERE id = ? "
-            db.query(sqlQuery3, [totalBets, totalWinnings, totalEarnings, idUpdate], (err, result3) => {
+
+            // Process 3 Get Commissions
+            sqlQuery3 = "SELECT SUM(amount) as totalCommissions FROM transactions WHERE game_id = ? AND placement_date BETWEEN ? AND NOW();"
+            db.query(sqlQuery3, [decGameId, timeIn], (err, result3) => {
               if (err) {
-                logger.error(`${req.originalUrl} request has an error during process 3, accountId:${accountId}, error:${err}`);
+                logger.error(`${req.originalUrl} request has an error during process 3 , accountId:${accountId}, error:${err}`);
                 res.status(500).json({ message: "Server error" });
               } else {
-                logger.info(`${req.originalUrl} successful. Ended shift for declaratorId: ${accountId}, username: ${username}`);
-                res.status(200).json({message: "Successfully ended shift", data:{accountId: accountId, id: idUpdate, game_id: decGameId}})
+                var totalCommissions = result3[0].totalCommissions === null ? 0 : parseFloat(result3[0].totalCommissions).toFixed(2);
+                var totalEarnings = (parseFloat(totalBets) - parseFloat(totalWinnings)).toFixed(2) - parseFloat(totalCommissions).toFixed(2)
+
+                console.log(totalBets, totalWinnings, totalCommissions, totalEarnings)
+
+                //Process 4 - Insert new shift
+                sqlQuery4 = "UPDATE shifts SET time_out = NOW(), total_bets_placed = ?, total_loss = ?, total_commissions = ?,  total_earnings = ?, lastedit_date = NOW() WHERE id = ? "
+                db.query(sqlQuery4, [totalBets, totalWinnings, totalCommissions, totalEarnings, idUpdate], (err, result3) => {
+                  if (err) {
+                    logger.error(`${req.originalUrl} request has an error during process 3, accountId:${accountId}, error:${err}`);
+                    res.status(500).json({ message: "Server error" });
+                  } else {
+                    logger.info(`${req.originalUrl} successful. Ended shift for declaratorId: ${accountId}, username: ${username}`);
+                    res.status(200).json({message: "Successfully ended shift", data:{accountId: accountId, id: idUpdate, game_id: decGameId}})
+                  }
+                })
               }
             })
+
+
           }
         })
       }

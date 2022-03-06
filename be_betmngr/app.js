@@ -301,7 +301,7 @@ app.post("/placeBet", (req, res) => {
                                   transDescription =
                                     "Commission from BetId " + betId;
                                   sqlQueryAgent3 =
-                                    "INSERT INTO transactions (description, account_id, amount, cummulative, status, placement_date, transaction_type) VALUES (?,?,?,?,1, NOW(), 6)";
+                                    "INSERT INTO transactions (description, account_id, amount, cummulative, status, placement_date, transaction_type, game_id) VALUES (?,?,?,?,1, NOW(), 6, ?)";
                                   db.query(
                                     sqlQueryAgent3,
                                     [
@@ -309,6 +309,7 @@ app.post("/placeBet", (req, res) => {
                                       resultAgent[0].account_id,
                                       agentCommission,
                                       agentCummulative,
+                                      gameId
                                     ],
                                     (err, resultAgent3) => {
                                       if (err) {
@@ -399,7 +400,7 @@ app.post("/placeBet", (req, res) => {
                                         transDescription2 =
                                           "Commission from BetId " + betId;
                                         sqlQueryMasterAgent3 =
-                                          "INSERT INTO transactions (description, account_id, amount, cummulative, status, placement_date, transaction_type) VALUES (?,?,?,?,1, NOW(), 6)";
+                                          "INSERT INTO transactions (description, account_id, amount, cummulative, status, placement_date, transaction_type, game_id) VALUES (?,?,?,?,1, NOW(), 6, ?)";
                                         db.query(
                                           sqlQueryMasterAgent3,
                                           [
@@ -407,6 +408,7 @@ app.post("/placeBet", (req, res) => {
                                             resultMasterAgent[0].account_id,
                                             masterCommission,
                                             masterCummulative,
+                                            gameId
                                           ],
                                           (err, resultMasterAgent3) => {
                                             if (err) {
@@ -453,6 +455,7 @@ app.post("/sendGrandMasterCommission", (req, res) => {
 
   const apiKey = req.header("Authorization");
   const betId = req.body.betId;
+  const gameId = req.body.gameId
   const playerId = req.body.playerId;
   const amount = req.body.amount;
 
@@ -522,7 +525,7 @@ app.post("/sendGrandMasterCommission", (req, res) => {
             // Insert to transactions table
             transDescription2 = "Commission from BetId " + betId;
             sqlGrandMaster2 =
-              "INSERT INTO transactions (description, account_id, amount, cummulative, status, placement_date, transaction_type) VALUES (?,?,?,?,1, NOW(), 6)";
+              "INSERT INTO transactions (description, account_id, amount, cummulative, status, placement_date, transaction_type, game_id) VALUES (?,?,?,?,1, NOW(), 6, ?)";
             db.query(
               sqlGrandMaster2,
               [
@@ -530,6 +533,7 @@ app.post("/sendGrandMasterCommission", (req, res) => {
                 resultGM[0].account_id,
                 gmCommission,
                 gmCummulative,
+                gameId
               ],
               (err, resultGM3) => {
                 if (err) {
@@ -1179,6 +1183,7 @@ app.post("/sendAgentCommission", (req, res) => {
   const betId = req.body.betId;
   const stake = req.body.stake;
   const playerId = req.body.playerId;
+  const gameId = req.body.gameId;
 
   // Check if body is complete
   if (!betId || !playerId || !stake) {
@@ -1209,8 +1214,8 @@ app.post("/sendAgentCommission", (req, res) => {
 
       // Process 2 Increase wallet and insert transaction
       trDescription = "Commission from BetId " + betId;
-      sqlQueryIncrease = "UPDATE accounts SET wallet = ? WHERE account_id = ?; INSERT INTO transactions (description, account_id, amount, cummulative, status, placement_date, transaction_type) VALUES (?,?,?,?,1,NOW(), 6)";
-      db.query(sqlQueryIncrease, [agentCummulative, result[0].account_id, trDescription, result[0].account_id, agentCommission, agentCummulative], (err, result2) =>{
+      sqlQueryIncrease = "UPDATE accounts SET wallet = ? WHERE account_id = ?; INSERT INTO transactions (description, account_id, amount, cummulative, status, placement_date, transaction_type, game_id) VALUES (?,?,?,?,1,NOW(), 6, ?)";
+      db.query(sqlQueryIncrease, [agentCummulative, result[0].account_id, trDescription, result[0].account_id, agentCommission, agentCummulative, gameId], (err, result2) =>{
         if (err){
           logger.error(`${req.originalUrl} request has an error during process 2, missing agent for account: ${playerId}, error:${err}`);
           res.status(500).json({message: "Error in giving commission to agent", data:{agentId: result[0].account_id, commission: agentCommission, error: err}})
@@ -1233,6 +1238,7 @@ app.post("/sendMasterAgentCommission", (req, res) => {
   const stake = req.body.stake;
   const agentId = req.body.agentId;
   const agentCommission = req.body.agentCommission;
+  const gameId = req.body.gameId;
 
   // Check if body is complete
   if (!betId || !agentId || !stake || !agentCommission) {
@@ -1263,8 +1269,8 @@ app.post("/sendMasterAgentCommission", (req, res) => {
 
       // Process 2 Increase wallet and insert transaction
       trDescription = "Commission from BetId " + betId;
-      sqlQueryIncrease = "UPDATE accounts SET wallet = ? WHERE account_id = ?; INSERT INTO transactions (description, account_id, amount, cummulative, status, placement_date, transaction_type) VALUES (?,?,?,?,1,NOW(), 6)";
-      db.query(sqlQueryIncrease, [masterCummulative, result[0].account_id, trDescription, result[0].account_id, masterCommission, masterCummulative], (err, result2) =>{
+      sqlQueryIncrease = "UPDATE accounts SET wallet = ? WHERE account_id = ?; INSERT INTO transactions (description, account_id, amount, cummulative, status, placement_date, transaction_type, game_id) VALUES (?,?,?,?,1,NOW(), 6, ?)";
+      db.query(sqlQueryIncrease, [masterCummulative, result[0].account_id, trDescription, result[0].account_id, masterCommission, masterCummulative, gameId], (err, result2) =>{
         if (err){
           logger.error(`${req.originalUrl} request has an error during process 2, missing master agent for agent: ${agentId}, error:${err}`);
           res.status(500).json({message: "Error in giving commission to master agent", data:{masterAgentId: result[0].account_id, commission: masterCommission, error: err}})

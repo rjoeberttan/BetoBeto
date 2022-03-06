@@ -340,8 +340,6 @@ function LiveRoom() {
           ctx.walletHandler(newWallet);
           getBetSlips(marketDetails.market_id);
 
-
-
           setTimeout(() => {
             setPlaceBetText("Place Bet");
             setPlaceBetDisabled(false);

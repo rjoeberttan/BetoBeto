@@ -77,24 +77,6 @@ function NavBar(props) {
     }
   }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   return (
     <nav className="navbar sticky-top navbar-expand-lg navbar-dark bg-green">
       <div className="container-fluid text-center">
