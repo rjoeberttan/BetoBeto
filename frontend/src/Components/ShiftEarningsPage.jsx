@@ -74,6 +74,7 @@ export default function ShiftEarnings() {
               <th scope="col">Time Out</th>
               <th scope="col">Total Bets</th>
               <th scope="col">Total Loss</th>
+              <th scope="col">Total Commissions</th>
               <th scope="col">Total Earnings</th>
             </tr>
           </thead>
@@ -86,6 +87,7 @@ export default function ShiftEarnings() {
                 <td>{dateFixed(x.time_out)}</td>
                 <td>₱ {amountFixed(x.total_bets_placed)}</td>
                 <td>₱ {amountFixed(x.total_loss)}</td>
+                <td>₱ {amountFixed(x.total_commissions)}</td>
                 <td>₱ {amountFixed(x.total_earnings)}</td>
                 {/* <td>{x.placement_date}</td> */}
                 {/* <td>{new Date(Date.parse(x.placement_date)).toLocaleString(('en-us', {timeZone : 'Asia/Taipei'}))}</td>

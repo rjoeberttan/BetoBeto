@@ -152,8 +152,8 @@ function AdminGameSettingsTotalisator() {
           setTotalisatorOdds((prev) => {
             return {
               ...prev,
-              odd1: parseFloat(odds.odd1),
-              odd2: parseFloat(odds.odd2),
+              odd1: res.data.data.odds[0].odd1 === undefined ? 0.0 : parseFloat(odds.odd1),
+              odd2: res.data.data.odds[0].odd2 === undefined ? 0.0 : parseFloat(odds.odd1),
               // odd1: 0,
               // odd2: odds.odd2 === null ? 0 : parseFloat(odds.odd2),
             };
@@ -387,6 +387,49 @@ function AdminGameSettingsTotalisator() {
               status: data.status,
             };
           });
+
+          axios({
+            method: "post",
+            url: `${gameHeader}/updateTotalisatorOdds`,
+            headers: {
+              "Authorization": process.env.REACT_APP_KEY_GAME,
+            },
+            data: {
+              gameId: gameid,
+              marketId: data.marketID,
+              gameName: gameDetails.name,
+              commission: gameDetails.commission,
+              manipOdd1: oddManip.odd1,
+              manipOdd2: oddManip.odd2,
+              choice1: choices.choice1,
+              choice2: choices.choice2,
+            },
+          }).then((res) => {
+            var odd1Change = parseFloat(totalisatorOdds.odd1).toFixed(2) - parseFloat(res.data.odd1).toFixed(2)
+            var odd2Change = parseFloat(totalisatorOdds.odd2).toFixed(2) - parseFloat(res.data.odd2).toFixed(2)
+  
+            var odd1Status = odd1Change > 0 ? "DOWN" : (odd1Change < 0) ? "UP" : "EQUAL"
+            var odd2Status = odd2Change > 0 ? "DOWN" : (odd2Change < 0) ? "UP" : "EQUAL"
+  
+            socket.emit("totalisator_odds_update", {
+              marketId: data.marketID,
+              gameId: gameid,
+              status: 0,
+              odd1: res.data.odd1,
+              odd2: res.data.odd2,
+              oddDraw: gameDetails.draw_multiplier,
+              odd1Change: odd1Status,
+              odd2Change: odd2Status
+            });
+  
+            setTotalisatorOdds((prev) => {
+              return {
+                ...prev,
+                odd1: parseFloat(res.data.odd1).toFixed(2),
+                odd2: parseFloat(res.data.odd2).toFixed(2),
+              };
+            });
+          });
           socket.emit("totalisator_market_update", {
             marketId: data.marketID,
             status: 0,
@@ -580,6 +623,7 @@ function AdminGameSettingsTotalisator() {
                       betId: bet.bet_id,
                       playerId: bet.account_id,
                       amount: bet.stake,
+                      gameId: gameid
                     };
                     axios({
                       method: "post",
@@ -596,6 +640,7 @@ function AdminGameSettingsTotalisator() {
                       betId: bet.bet_id,
                       playerId: bet.account_id,
                       stake: bet.stake,
+                      gameId: gameid
                     };
                     axios({
                       method: "post",
@@ -613,7 +658,8 @@ function AdminGameSettingsTotalisator() {
                         betId: bet.bet_id,
                         stake: bet.stake,
                         agentId: agentId,
-                        agentCommission: commission
+                        agentCommission: commission,
+                        gameId: gameid
                       };
                       console.log(maData)
                       axios({

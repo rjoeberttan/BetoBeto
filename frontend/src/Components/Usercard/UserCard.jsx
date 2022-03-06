@@ -4,6 +4,7 @@ import axios from "axios";
 import { toast, ToastContainer } from "react-toastify";
 import  { AiOutlineEyeInvisible, AiOutlineEye} from 'react-icons/ai';
 import ShowTransactionsModal from "./Modal";
+import ShowUsersUnderModal from "./UsersUnderModal";
 import './UserCardstyles.css';
 
 function UserCard({
@@ -38,7 +39,7 @@ function UserCard({
   const [currentWallet, setCurrentWallet] = useState(walletBalance);
   const [currentStatus, setCurrentStatus] = useState(status);
   const [agentName, setAgentName] = useState("");
-  const [lockStatusText, setLockStatusText] = useState("LOCK ACCOUNT");
+  const [lockStatusText, setLockStatusText] = useState("Lock Account");
   const [commiEarnings, setCommiEarnings] = useState(0)
   const [password, setPassword] = useState({
     password: "",
@@ -56,7 +57,7 @@ function UserCard({
 
     getAgentName();
     if (status === "LOCKED") {
-      setLockStatusText("UNLOCK ACCOUNT");
+      setLockStatusText("Unlock Account");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -292,12 +293,12 @@ function UserCard({
         setCurrentStatus(newStatus);
 
         if (newStatus === "LOCKED") {
-          setLockStatusText("UNLOCK ACCOUNT");
+          setLockStatusText("Unlock Account");
           toast.success("Account successfully locked", {
             autoClose: 1500,
           });
         } else {
-          setLockStatusText("LOCK ACCOUNT");
+          setLockStatusText("Lock Account");
           toast.success("Account successfully unlocked", {
             autoClose: 1500,
           });
@@ -574,6 +575,9 @@ function UserCard({
               </button>
             </div>
             <ShowTransactionsModal username={username} accountId={accountId}/>
+            {accountType !== 3 ? <ShowUsersUnderModal username={username} accountId={accountId} accountType={accountType} /> :
+            null}
+            
           </div>
         </div>
       </div>

@@ -11,8 +11,8 @@ export default function ShowTransactionsModal(props){
     return (
         <div className="text-center" style={{marginTop: "2px"}}>
         <Button variant="primary" className="btn btn-color register-btn text-light" style={{border: "0px", borderRadius: "20px"}} onClick={() => setShow(true)}>
-        TRANSACTIONS
-      </Button>
+         Show Transactions
+        </Button>
 
       <Modal
         show={show}
