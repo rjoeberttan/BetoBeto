@@ -5,6 +5,7 @@ import { toast, ToastContainer } from "react-toastify";
 import  { AiOutlineEyeInvisible, AiOutlineEye} from 'react-icons/ai';
 import ShowTransactionsModal from "./Modal";
 import ShowUsersUnderModal from "./UsersUnderModal";
+import ShowCommissionsModal from "./UserCommissionsModal";
 import './UserCardstyles.css';
 
 function UserCard({
@@ -576,6 +577,8 @@ function UserCard({
             </div>
             <ShowTransactionsModal username={username} accountId={accountId}/>
             {accountType !== 3 ? <ShowUsersUnderModal username={username} accountId={accountId} accountType={accountType} /> :
+            null}
+            {accountType !== 3 ? <ShowCommissionsModal username={username} accountId={accountId} accountType={accountType} /> :
             null}
             
           </div>

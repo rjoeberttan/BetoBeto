@@ -71,7 +71,7 @@ export default function TransactionForm (props){
           .catch((err) => {
             console.log(err);
           });
-      }
+    }
 
       
   function getBetTable(accountId) {
