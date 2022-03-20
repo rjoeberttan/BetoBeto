@@ -330,31 +330,58 @@ function LiveRoom() {
       toast.error(`Acceptable stake amount: ₱${minBet}-₱${maxBet}`);
     } else {
       axios({
-        method: "post",
-        url: `${betHeader}/placeTotalisatorBet`,
-        headers: betAuthorization,
-        data: data,
+        method: "get",
+        url: `${accountHeader}/isAccountLocked/${ctx.user.accountID}`,
+        headers: accAuthorization
       })
-        .then((res) => {
-          const newWallet = parseFloat(ctx.walletBalance) - parseFloat(stake);
-          ctx.walletHandler(newWallet);
-          getBetSlips(marketDetails.market_id);
-
+      .then((res) => {
+        console.log(res.data.status)
+        var isLocked = !res.data.status
+        
+        if (isLocked){
+          toast.error("Account is locked. Bet is not placed. Please contact your agent.")
           setTimeout(() => {
             setPlaceBetText("Place Bet");
             setPlaceBetDisabled(false);
+            setStake("");
           }, 5000);
-          toast.success(
-            `Placed Bet successfully. BetId: ${res.data.data.betId}`,
-            {
-              autoClose: 2000,
-            }
-          );
-
-        })
-        .catch((err) => {
-          toast.error(err.response.data.message);
-        });
+        } else {
+          axios({
+            method: "post",
+            url: `${betHeader}/placeTotalisatorBet`,
+            headers: betAuthorization,
+            data: data,
+          })
+            .then((res) => {
+              const newWallet = parseFloat(ctx.walletBalance) - parseFloat(stake);
+              ctx.walletHandler(newWallet);
+              getBetSlips(marketDetails.market_id);
+    
+              setTimeout(() => {
+                setPlaceBetText("Place Bet");
+                setPlaceBetDisabled(false);
+              }, 5000);
+              toast.success(
+                `Placed Bet successfully. BetId: ${res.data.data.betId}`,
+                {
+                  autoClose: 2000,
+                }
+              );
+    
+            })
+            .catch((err) => {
+              toast.error(err.response.data.message);
+            });
+        }
+      })
+      .catch((err) => {
+        toast.error("Server Error")
+        setTimeout(() => {
+          setPlaceBetText("Place Bet");
+          setPlaceBetDisabled(false);
+          setStake("");
+        }, 5000);
+      })
     }
     setBet("");
     setPotentialWin(0)
