@@ -1390,6 +1390,57 @@ app.get("/getShifts", (req, res) => {
   });
 })
 
+
+app.get("/isAccountLocked/:accountId", (req, res) => {
+  const start = process.hrtime();
+  // Get body
+  const accountId = req.params.accountId;
+  const apiKey = req.header("Authorization");
+
+  // Check if body is complete
+  if (!accountId) {
+    logger.warn(
+      `${req.originalUrl} request has missing body parameters, accountId:${accountId}`
+    );
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(
+      `${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`
+    );
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  // Process 1
+  // Get all necessary details
+  sqlQuery =
+    "select account_status from accounts where account_id = ?;";
+  db.query(sqlQuery, [accountId], (err, result) => {
+    if (err) {
+      logger.error(
+        `${req.originalUrl} request has an error during process 1, accountId:${accountId}, error:${err}`
+      );
+      res.status(500).json({ message: "Server error" });
+    } else {
+      logger.info(
+        `${
+          req.originalUrl
+        } request successful, accountId:${accountId} duration:${getDurationInMilliseconds(
+          start
+        )}`
+      );
+      res.status(200).json({
+        message: "Request successful",
+        status: result[0].account_status,
+      });
+    }
+  });
+})
+
 app.listen(4003, () => {
   console.log("Server listentning at port 4003");
 });

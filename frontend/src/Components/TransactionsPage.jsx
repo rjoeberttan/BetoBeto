@@ -421,7 +421,7 @@ export default function TransactionsPage() {
 
   function renderUserFilterHeading() {
     if (ctx.user.accountType !== "player") {
-      return <h4 className="lead smaller-device">Username Filter</h4>;
+      return <h4 className="lead white smaller-device">Username Filter</h4>;
     } else {
       return;
     }
@@ -457,7 +457,7 @@ export default function TransactionsPage() {
   function renderDateFilter() {
     return (
       <div className="row">
-        <h4 className="lead smaller-device">Date Filter</h4>
+        <h4 className="lead white smaller-device">Date Filter</h4>
         <div className="col-md-2">
           <input
             className="date-style form-label"
@@ -831,7 +831,7 @@ export default function TransactionsPage() {
     if (ctx.user.accountType === "admin" || ctx.user.accountType === "grandmaster" || ctx.user.accountType === "masteragent") {
       return (
         <div className="col-md-2 col-6">
-          <h4 className="lead smaller-device">Exclude Commissions?</h4>
+          <h4 className="lead white smaller-device">Exclude Commissions?</h4>
           <Switch checked={switchChecked} onChange={handleTransSwitch} className="react-switch" height={20} handleDiameter={19}/>
         </div>
       );
@@ -976,7 +976,7 @@ export default function TransactionsPage() {
         {renderUserFilterHeading()}
         {renderChoices()}
         {renderUserFilter()}
-        <h4 className="lead smaller-device">Type Filter</h4>
+        <h4 className="lead white smaller-device">Type Filter</h4>
         <div className="row" style={{ marginTop: "10px" }}>
           {renderAllUserSearch()}
           {renderGMUserSearch()}
