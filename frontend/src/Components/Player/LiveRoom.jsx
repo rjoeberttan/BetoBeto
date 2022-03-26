@@ -89,7 +89,7 @@ function LiveRoom() {
   useEffect(() => {
     const interval = setInterval(() => {
       getColorGameBetTotals();
-    }, 5000);
+    }, 3000);
 
     return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -257,6 +257,7 @@ function LiveRoom() {
   // Handle Change and Button Click Functions
   //===========================================
   function placeBet(e) {
+    getColorGameBetTotals();
     //Disable Button for 5 seconds
     setPlaceBetDisabled(true);
     setPlaceBetText("Please Wait")
@@ -266,8 +267,27 @@ function LiveRoom() {
     var minBet = parseFloat(gameDetails.min_bet).toFixed(2);
     var maxBet = parseFloat(gameDetails.max_bet).toFixed(2);
 
+    // Current Bet Totals Check
+    console.log(betTotals[color.toUpperCase()])
+    var totalAfterManip  = parseFloat(betTotals[color.toUpperCase()]) + parseFloat(stake)
+    console.log(totalAfterManip) 
+
     if (minBet > stakeAmt || stakeAmt > maxBet) {
       toast.error(`Acceptable stake amount: ₱${minBet}-₱${maxBet}`);
+
+      setTimeout(() => {
+        setPlaceBetText("Place Bet");
+        setPlaceBetDisabled(false);
+        setStake("");
+      }, 5000);
+    } else if (totalAfterManip > parseFloat(gameDetails.max_bet)){
+      toast.error('Available koto for color is: ₱' + parseFloat(gameDetails.max_bet - betTotals[color.toUpperCase()]).toFixed(2))
+
+      setTimeout(() => {
+        setPlaceBetText("Place Bet");
+        setPlaceBetDisabled(false);
+        setStake("");
+      }, 5000);
     } else {
       // Check if account is locked
       axios({
