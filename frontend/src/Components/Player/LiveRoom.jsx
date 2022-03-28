@@ -315,7 +315,6 @@ function LiveRoom() {
             gameName: gameDetails.name,
             choice: color.toUpperCase(),
             stake: stake,
-            wallet: ctx.walletBalance,
             maxBet: gameDetails.max_bet,
           };
 
