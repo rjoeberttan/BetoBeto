@@ -945,33 +945,25 @@ app.get("/getAllBetHistory/:accountId/:accountType/:dateFrom/:dateTo", (req, res
   var sqlQuery = ""
   // Generate SQL Query
   if (accountType === "admin") {
-    sqlQuery = "SELECT bt.*, m.result, ac.username FROM bets bt \
-    LEFT JOIN markets m ON \
-    bt.market_id = m.market_id \
+    sqlQuery = "SELECT bt.*, ac.username FROM bets bt \
     LEFT JOIN accounts ac ON \
     bt.account_id = ac.account_id \
-    WHERE bt.placement_date BETWEEN ? AND ? ORDER BY bt.placement_date DESC ;"
+    WHERE bt.placement_date BETWEEN ? AND ? ORDER BY bt.placement_date DESC;"
     sqlQuery = db.format(sqlQuery, [dateFrom, dateTo])
   } else if (accountType === "grandmaster") {
-    sqlQuery = "SELECT  bt.*, m.result, ac.username FROM bets bt  \
-    LEFT JOIN markets m ON \
-    bt.market_id = m.market_id \
+    sqlQuery = "SELECT  bt.*, ac.username FROM bets bt  \
     LEFT JOIN accounts ac ON \
     bt.account_id = ac.account_id \
     WHERE ac.agent_id = ? OR ac.agent_id IN (SELECT account_id FROM accounts WHERE agent_id IN (SELECT account_id FROM accounts WHERE agent_id = ?)) AND placement_date BETWEEN ? AND ? ORDER BY bt.placement_date DESC ;"   
     sqlQuery = db.format(sqlQuery, [accountId, accountId, dateFrom, dateTo])
   } else if (accountType === "masteragent") {
-    sqlQuery = "SELECT  bt.*, m.result, ac.username FROM bets bt  \
-    LEFT JOIN markets m ON \
-    bt.market_id = m.market_id \
+    sqlQuery = "SELECT  bt.*,  ac.username FROM bets bt  \
     LEFT JOIN accounts ac ON \
     bt.account_id = ac.account_id \
     WHERE ac.agent_id = ? OR ac.agent_id IN (SELECT account_id FROM accounts WHERE agent_id = ?)AND placement_date BETWEEN ? AND ? ORDER BY bt.placement_date DESC ;"   
     sqlQuery = db.format(sqlQuery, [accountId, accountId, dateFrom, dateTo])
   } else if (accountType === "agent") {
     sqlQuery =  "SELECT  bt.*, m.result, ac.username FROM bets bt  \
-    LEFT JOIN markets m ON \
-    bt.market_id = m.market_id \
     LEFT JOIN accounts ac ON \
     bt.account_id = ac.account_id \
     WHERE ac.agent_id = ? AND placement_date BETWEEN ? AND ? ORDER BY bt.placement_date DESC ;"    

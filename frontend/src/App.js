@@ -44,6 +44,8 @@ import ErrorPage from "./Components/ErrorPage";
 import TransactionsPage from "./Components/TransactionsPage";
 //IMPORT SHIFT EARNINGS
 import ShiftEarnings from "./Components/ShiftEarningsPage";
+//IMPORT MARKET RESULTS
+import MarketResults from "./Components/MarketResults";
 //CSS IMPORTS
 import "./App.css";
 import { AuthContext } from "./store/auth-context";
@@ -150,6 +152,11 @@ function App() {
                 exact
                 component={TransactionsPage}
               />
+              <Route
+                path="/agent/marketResults"
+                exact
+                component={MarketResults}
+              />
               <Route path="/agent/account" exact component={MyAccount} />
               <Route path="*" component={ErrorPage} />
             </Switch>
@@ -172,6 +179,11 @@ function App() {
                 path="/masteragent/wallet"
                 exact
                 component={MasterWallet}
+              />
+              <Route
+                path="/masteragent/marketResults"
+                exact
+                component={MarketResults}
               />
               <Route
                 path="/masteragent/transactions"
@@ -198,6 +210,11 @@ function App() {
                 path="/grandmaster/transactions"
                 exact
                 component={TransactionsPage}
+              />
+              <Route
+                path="/grandmaster/marketResults"
+                exact
+                component={MarketResults}
               />
               <Route path="/grandmaster/account" exact component={MyAccount} />
               <Route path="*" component={ErrorPage} />
@@ -242,6 +259,11 @@ function App() {
                 component={ShiftEarnings}
               />
               <Route
+                path="/admin/marketResults"
+                exact
+                component={MarketResults}
+              />
+              <Route
                 path="/admin/gameroom/TotalisatorSettings/:gameid"
                 exact
                 component={AdminGameSettingsTotalisator}
@@ -278,6 +300,11 @@ function App() {
                 path="/declarator/shiftEarnings"
                 exact
                 component={ShiftEarnings}
+              />
+              <Route
+                path="/declarator/marketResults"
+                exact
+                component={MarketResults}
               />
               <Route path="/declarator/account" exact component={MyAccount} />
               <Route path="*" component={ErrorPage} />
