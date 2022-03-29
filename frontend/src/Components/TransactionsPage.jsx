@@ -202,17 +202,6 @@ export default function TransactionsPage() {
       });
   }
 
-  async function getMarketResult(marketId){
-    let res = await axios({
-      method: "get",
-      url: `${gameHeader}/getMarketResult/${marketId}`,
-      headers: gameAuthorization,
-    })
-    let { data } = res.data;
-    console.log(data.result)
-     
-  }
-
   function getBetTable(accountId) {
     axios({
       method: "get",
