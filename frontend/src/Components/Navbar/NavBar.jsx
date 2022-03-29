@@ -186,6 +186,13 @@ function NavBar(props) {
                 </Link>
               )}
             </li>
+            <li className="nav-item">
+              {(props.user !== "player") && (
+                <Link className="nav-link active" to={`/${props.user}/marketResults`}>
+                  Market Result
+                </Link>
+              )}
+            </li>
           </ul>
           <ul className="navbar-nav" >
             <li className="nav-item">

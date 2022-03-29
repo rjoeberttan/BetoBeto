@@ -94,6 +94,48 @@ app.get("/getGamesList", (req, res) => {
   });
 });
 
+
+app.get("/getMarketResults", (req, res) => {
+  const start = process.hrtime();
+
+  const apiKey = req.header("Authorization");
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(
+      `${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`
+    );
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  // Process 1
+  // Select the game details from the database
+  sqlQuery = "SELECT * FROM markets WHERE status = 2  AND settled_date >= NOW() - INTERVAL 7 DAY ORDER BY market_id DESC";
+  db.query(sqlQuery, (err, result) => {
+    if (err) {
+      logger.error(
+        `${req.originalUrl} request has an error during process 1, error:${err}`
+      );
+      res.status(500).json({ message: "Server error" });
+    } else if (result.length <= 0) {
+      logger.warn(
+        `${req.originalUrl} request warning, game is not found in database, `
+      );
+      res.status(409).json({ message: "gameId not found" });
+    } else {
+      logger.info(
+        `${
+          req.originalUrl
+        } request successful, duration:${getDurationInMilliseconds(
+          start
+        )}`
+      );
+      res.status(200).json({ message: "Request successful", data: result });
+    }
+  });
+})
+
 app.get("/getGameDetails/:gameId", (req, res) => {
   const start = process.hrtime();
 
