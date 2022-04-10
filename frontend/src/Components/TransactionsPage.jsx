@@ -16,7 +16,8 @@ export default function TransactionsPage() {
   };
   const bankAuthorization = { "Authorization": process.env.REACT_APP_KEY_BANK };
   const betAuthorization = { "Authorization": process.env.REACT_APP_KEY_BET };
-
+  const gameHeader = process.env.REACT_APP_HEADER_GAME;
+  const gameAuthorization = { "Authorization": process.env.REACT_APP_KEY_GAME };
   const ctx = useContext(AuthContext);
   const [usersList, setUsersList] = useState([]);
   const [activeUserId, setActiveUserId] = useState(ctx.user.accountID);
@@ -1068,7 +1069,6 @@ export default function TransactionsPage() {
                 <th scope="col">Winnings</th>
                 <th scope="col">Cummulative</th>
                 <th scope="col">Status</th>
-                <th scope="col">Result</th>
                 <th scope="col">Settled Date</th>
               </tr>
             </thead>
@@ -1090,7 +1090,6 @@ export default function TransactionsPage() {
                       ? "Lose"
                       : "Win"}
                   </td>
-                  <td>{x.result}</td>
                   <td>{x.settled_date}</td>
                 </tr>
               ))}
