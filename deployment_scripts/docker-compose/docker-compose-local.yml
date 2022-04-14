@@ -80,3 +80,15 @@ services:
       - /var/log/app/sakla:/var/log/app
     ports:
       - "4007:4007"
+  settlement:
+    build:
+      dockerfile: Dockerfile.dev
+      context: ../../backend_settlement
+    env_file:
+      - ../environment/local/.env.settlement.local
+    volumes:
+      - /app/node_modules
+      - ../../backend_settlement:/app
+      - /var/log/app/settlement:/var/log/app
+    ports:
+      - "4008:4008"
