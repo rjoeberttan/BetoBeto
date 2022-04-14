@@ -182,6 +182,6 @@ app.post("/settleSaklaBets", async(req, res) => {
 
 
 app.listen(process.env.PORT, () => {
-  console.log("Settlement service running on port 4008")
-  logger.info("Settlement service running on port 4008");
+  console.log(`Settlement service running on port ${process.env.PORT}`)
+  logger.info(`Settlement service running on port ${process.env.PORT}`);
 });

@@ -644,5 +644,6 @@ app.get("/", (req, res) => {
 });
 
 app.listen(process.env.PORT, () => {
-  console.log("Sakla Game Manager running on port 4007");
+  console.log(`Settlement service running on port ${process.env.PORT}`)
+  logger.info(`Settlement service running on port ${process.env.PORT}`);
 });

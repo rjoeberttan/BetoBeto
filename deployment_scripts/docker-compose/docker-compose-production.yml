@@ -48,6 +48,30 @@ services:
         limits:
           cpus: '0.25'
           memory: 750M
+  sakla:
+    image: index.docker.io/mastergtech/backend_sakla:1.0
+    restart: unless-stopped
+    env_file:
+      - ../environment/production/.env.sakla
+    volumes:
+      - /var/log/app/sakla:/var/log/app 
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 750M
+  settlement:
+    image: index.docker.io/mastergtech/backend_settlement:1.0
+    restart: unless-stopped
+    env_file:
+      - ../environment/production/.env.settlement
+    volumes:
+      - /var/log/app/settlement:/var/log/app 
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 750M
   websocket:
     image: index.docker.io/mastergtech/websocket_prod:1.0
     restart: unless-stopped
