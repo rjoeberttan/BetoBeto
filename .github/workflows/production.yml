@@ -172,7 +172,7 @@ jobs:
         tags: mastergtech/sakla_prod:1.0
   
   build-and-deploy-settlement:
-    name: Build and Deploy Sakla
+    name: Build and Deploy Settlement
     runs-on: ubuntu-latest
     steps:
     - name: Checkout code
