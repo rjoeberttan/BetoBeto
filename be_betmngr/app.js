@@ -67,6 +67,226 @@ db.connect((err) => {
   }
 });
 
+
+function checkApiKey(reqApiKey) {
+  if (reqApiKey !== process.env.API_KEY) {
+    return false;
+  } else {
+    return true;
+  }
+}
+
+async function checkIfWalletIsEnough(accountId, stake){
+  return new Promise((resolve, reject) => {
+    sqlQuery = "SELECT wallet FROM accounts WHERE account_id = ?"
+    db.query(sqlQuery, [accountId], (err, result) => {
+      if (err) {
+        logger.error(`Error in checking wallet for accountId: ${accountId} error: ${err}`)
+        return (reject(err.message))
+      } else {
+        const isWalletEnough = parseFloat(stake) < parseFloat(result[0].wallet)
+        logger.info(`Wallet checked if stake is enough to cover the bet accountId:${accountId} wallet:${result[0].wallet} stake:${stake} isEnough:${isWalletEnough}`)
+        return (resolve(isWalletEnough, result[0].wallet))
+      }
+    })
+  })
+}
+
+async function checkIfMarketIsOpen(marketId){
+  return new Promise((resolve, reject) => {
+    sqlQuery = "SELECT status FROM markets WHERE market_id = ? ORDER BY lastedit_date DESC LIMIT 1"
+    db.query(sqlQuery, [marketId], (err, result) => {
+      if (err) {
+        logger.error(`Error in fetching status for marketId: ${marketId} error: ${err}`)
+        return (reject(err.message))
+      } else {
+        logger.info(`Fetched market status for marketId:${marketId}`)
+        return (resolve(result))
+      }
+    })
+  })
+}
+
+async function checkTotals(marketId, gameName, choice, choiceId){
+  return new Promise((resolve, reject) => {
+    sqlQuery = `SELECT REPLACE(description, '${gameName} - ', '') as color, SUM(stake) as total FROM bets where market_id = ? GROUP BY description;`;
+    db.query(sqlQuery, [marketId], (err, result) => {
+      if (err) {
+        logger.error(`Error in fetching totals for choice: ${choice} error: ${err}`)
+        return (reject(err.message))
+      } else {
+        var currentTotal = 0;
+
+        if (result.length === 0){
+          logger.info(`Successfully retrieved current BetTotals for choice:${choice} choiceId:${choiceId} marketId:${marketId} totalBet:${currentTotal}`)
+          return (resolve(currentTotal))
+        } else {
+          for (let i = 0; i < result.length; i++) {
+            if (result[i].color === choice) {
+              currentTotal = result[i].total;
+              break
+            }
+          }
+          logger.info(`Successfully retrieved current BetTotals for choice:${choice} choiceId:${choiceId} marketId:${marketId} totalBet:${currentTotal}`)
+          return (resolve(currentTotal))
+        }
+      }
+    })
+  })
+}
+
+
+async function fetchManipulateValue(choiceId){
+  return new Promise((resolve, reject) => {
+    sqlQuery = `SELECT manipulate_val FROM choices WHERE choice_id = ?`;
+    db.query(sqlQuery, [choiceId], (err, result) => {
+      if (err) {
+        logger.error(`Error in fetching manipulateValue for choice: ${choiceId} error: ${err}`)
+        return (reject(err.message))
+      } else {
+        logger.info(`Fetched manipulate value for choice:${choiceId}`)
+        return (resolve(result))
+      }
+    })
+  })
+}
+
+async function decreasePlayerWallet(accountId, amount){
+  return new Promise((resolve, reject) => {
+    sqlQuery = `UPDATE accounts SET wallet = wallet - ? WHERE account_id = ?`;
+    db.query(sqlQuery, [amount, accountId], (err, result) => {
+      if (err) {
+        logger.error(`Error in decreasing player wallet amount:${amount} accountId:${accountId} error: ${err}`)
+        return (reject(err.message))
+      } else {
+        logger.info(`Decreased player wallet amount:${amount} accountId:${accountId}`)
+        return (resolve(result))
+      }
+    })
+  })
+}
+
+async function insertBetsTable(gameName, choice, marketId, gameId, accountId, stake){
+  return new Promise((resolve, reject) => {
+    const description = gameName + ' : ' + choice;
+
+    sqlQuery = "INSERT INTO bets (description, market_id, game_id, account_id, stake, cummulative, status, placement_date) VALUES \
+    (?,?,?,?,?, (SELECT wallet FROM accounts WHERE account_id = ?), ?, NOW())";
+    db.query(sqlQuery, [description, marketId, gameId, accountId, stake, accountId, 0], (err, result) => {
+      if (err) {
+        logger.error(`Error in decreasing player wallet amount:${amount} accountId:${accountId} error: ${err}`)
+        return (reject(err.message))
+      } else {
+        logger.info(`Inserted new bet in bets table betId:${result.insertId}`)
+        return (resolve(result))
+      }
+    })
+  })
+}
+
+async function retrieveAgentDetails(accountId){
+  return new Promise((resolve, reject) => {
+    sqlQuery ="SELECT account_id, commission, wallet FROM accounts WHERE account_id = (SELECT agent_id FROM accounts WHERE account_id = ?)";
+    db.query(sqlQuery, [accountId], (err, result) => {
+      if (err) {
+        logger.error(`Error in fetching agent for playerAccount:${accountId} error: ${err}`)
+        return (reject(err.message))
+      } else {
+        logger.info(`Fetched agent for playerId:${accountId} agentId:${result[0].account_id}`)
+        return (resolve(result))
+      }
+    })
+  })
+}
+
+
+async function retrieveMasterAgentDetails(accountId){
+  return new Promise((resolve, reject) => {
+    sqlQuery = "SELECT account_id, commission, wallet FROM accounts WHERE account_id = (SELECT agent_id FROM accounts WHERE account_id = (SELECT agent_id FROM accounts WHERE account_id = ?))";
+    db.query(sqlQuery, [accountId], (err, result) => {
+      if (err) {
+        logger.error(`Error in fetching master agent for playerAccount:${accountId} error: ${err}`)
+        return (reject(err.message))
+      } else {
+        logger.info(`Fetched master agent for playerId:${accountId} agentId:${result[0].account_id}`)
+        return (resolve(result))
+      }
+    })
+  })
+}
+
+async function retrieveGrandMasterDetails(accountId){
+  return new Promise((resolve, reject) => {
+    sqlQuery = "SELECT account_id, commission, wallet FROM accounts WHERE account_id IN (SELECT agent_id FROM accounts WHERE account_id IN (SELECT agent_id FROM accounts WHERE account_id IN (SELECT agent_id FROM accounts WHERE account_id = ?))) AND account_type = 5;";
+    db.query(sqlQuery, [accountId], (err, result) => {
+      if (err) {
+        logger.error(`Error in fetching grand master for playerAccount:${accountId} error: ${err}`)
+        return (reject(err.message))
+      } else if (result.length === 0) {
+        logger.info(`No Grand Master Account for player:${accountId}`)
+        return (resolve(result))
+      } else {
+        logger.info(`Fetched grand master for playerId:${accountId} agentId:${result[0].account_id}`)
+        return (resolve(result))
+      }
+    })
+  })
+}
+
+async function increaseCommissionWallet(accountId, increaseValue, betId){
+  return new Promise((resolve, reject) => {
+    sqlQuery = `UPDATE accounts SET wallet = wallet + ? WHERE account_id = ?; SELECT wallet FROM accounts WHERE account_id = ?;`;
+    db.query(sqlQuery, [increaseValue, accountId, accountId ], (err, result) => {
+      if (err) {
+        logger.error(`Error in increase account wallet amount:${increaseValue} accountId:${accountId} error: ${err}`)
+        return (reject(err.message))
+      } else {
+        logger.info(`Increased account wallet amount:${increaseValue} accountId:${accountId} as commission for BetId:${betId} newWallet:${result[1][0].wallet}`)
+        return (resolve(result))
+      }
+    })
+  })
+}
+
+async function insertCommissionTransactions(accountId, betId, increaseValue, gameId){
+  const description = "Commission from BetID: " + betId
+  return new Promise((resolve, reject) => {
+    sqlQuery = "INSERT INTO transactions (description, account_id, amount, cummulative, status, placement_date, transaction_type, game_id) VALUES (?,?,?,(SELECT wallet FROM accounts WHERE account_id = ?),1, NOW(), 6, ?)";    ;
+    db.query(sqlQuery, [description, accountId, increaseValue, accountId, gameId], (err, result) => {
+      if (err) {
+        logger.error(`Error in increase account wallet amount:${increaseValue} accountId:${accountId} error: ${err}`)
+        return (reject(err.message))
+      } else {
+        logger.info(`Commission sent successfully for account:${accountId} betId:${betId}`)
+        return (resolve(result))
+      }
+    })
+  })
+}
+
+async function sendAgentCommission(playerAccountId, betId, stake, gameId){
+  // For Agent
+  const agentAccount = await retrieveAgentDetails(playerAccountId)
+  const increaseValue = (parseFloat(stake) * parseFloat(agentAccount[0].commission) / 100).toFixed(2)
+  const increaseAgentViaCommission = await increaseCommissionWallet(agentAccount[0].account_id, increaseValue, betId)
+  const insertCommissionInTransaction = await insertCommissionTransactions(agentAccount[0].account_id, betId, increaseValue, gameId)
+
+  // For Master Agent
+  const masterAgentAccount = await retrieveMasterAgentDetails(playerAccountId)
+  const increaseValueMA = ((parseFloat(stake) * parseFloat(masterAgentAccount[0].commission) / 100) - increaseValue).toFixed(2)
+  const increaseMasterAgentViaCommission = await increaseCommissionWallet(masterAgentAccount[0].account_id, increaseValueMA, betId)
+  const insertCommissionInTransactionForMasterAgent = await insertCommissionTransactions(masterAgentAccount[0].account_id, betId, increaseValueMA, gameId)
+
+  // For Grand Master
+  const gmAccount = await retrieveGrandMasterDetails(playerAccountId)
+  if (gmAccount.length !==0 ){
+    const increaseValueGM = (parseFloat(stake) * parseFloat(gmAccount[0].commission) / 100).toFixed(2)
+    const increseGMViaCommission = await increaseCommissionWallet(gmAccount[0].account_id, increaseValueGM, betId)
+    const insertCommissionInTransactionForGM = await insertCommissionTransactions(gmAccount[0].account_id, betId, increaseValueGM, gameId)
+  }
+}
+
+
 app.post("/placeBet", (req, res) => {
   const start = process.hrtime();
 
@@ -1511,6 +1731,113 @@ app.post("/sendTotalisatorCommissions", (req, res) => {
       })     
     }
   })
+});
+
+
+
+app.post("/placeSaklaBet", async (req, res) => {
+  const startTime = process.hrtime();
+
+  // Headers and Data
+  const apiKey = req.header("Authorization");
+  const marketId = req.body.marketId;
+  const gameId = req.body.gameId;
+  const accountId = req.body.accountId;
+  const gameName = req.body.gameName;
+  const choiceId = req.body.choiceId;
+  const choice = req.body.choice;
+  const stake = req.body.stake;
+  const maxBet = req.body.maxBet;
+
+  // Check if apiKey is correct
+  if (!checkApiKey(apiKey)) {
+    logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received ${apiKey}, body: ${JSON.stringify(req.body)}`);
+    res.status(401).json({ message: "Unauthorized Request" });
+    return
+  }
+
+  // Check if Body is complete
+  if (!gameId || !marketId || !accountId || !gameName || !choiceId || !choice || !stake || !maxBet) {
+    logger.warn(`${req.originalUrl} request has missing parameters, body: ${JSON.stringify(req.body)}`);
+    res.status(422).json({ message: "Request has missing parameters"});
+    return
+  }
+
+  // Get Latest Market entry for GameID Entered
+  logger.info(`${req.originalUrl} started ${JSON.stringify(req.body)}`)
+
+  // Check if wallet is enough
+  const isEnoughWallet = await checkIfWalletIsEnough(accountId, stake)
+    .catch((error) => {
+      res.status(500).json({message: "Server Error"})
+      return
+    })
+
+  if (!isEnoughWallet){
+    res.status(409).json({message: "Not enough credits to place bet"})
+    return
+  }
+
+  // Check if market is still open
+  const marketStatus = await checkIfMarketIsOpen(marketId)
+    .catch((error) => {
+      res.status(500).json({message: "Server Error"})
+      return
+    })
+
+  if (marketStatus[0].status !== 1){
+    res.status(409).json({message: "Market is not closed, place will not be placed", marketId: marketId, status: marketStatus[0].status})
+    return
+  }
+
+  // Check MarketTotals and ManipulateBets
+  const marketTotals = await checkTotals(marketId, gameName, choice, choiceId)
+    .catch((error) => {
+      res.status(500).json({message: "Server Error"})
+      return
+    })
+  
+  // Check MarketTotals and ManipulateBets
+  const manipulateValue = await fetchManipulateValue(choiceId)
+  .catch((error) => {
+    res.status(500).json({message: "Server Error"})
+    return
+  })
+
+  const supposedTotal = parseFloat(marketTotals) + parseFloat(manipulateValue[0].manipulate_val) + parseFloat(stake)
+  if (supposedTotal > parseFloat(maxBet)){
+    const remainingKoto = parseFloat(maxBet) - parseFloat(marketTotals) - parseFloat(manipulateValue[0].manipulate_val)
+    logger.warn(`${req.original} request, stake amount is greater than acceptable max bet, stake:${stake} remainingKoto:${remainingKoto}`)
+    res.status(409).json({message: `Bet amount is greater than acceptable koto, acceptableBetAmount: ${remainingKoto}`})
+    return;
+  }
+ 
+
+  // Decrease Wallet and Insert in Bets Table
+  const decPlayerWallet = decreasePlayerWallet(accountId, stake) 
+  .catch((error) => {
+    res.status(500).json({message: "Server Error"})
+    return
+  })
+
+  const insertBet = await insertBetsTable(gameName, choice, marketId, gameId, accountId, stake)
+  .catch((error) => {
+    res.status(500).json({message: "Server Error"})
+    return
+  })
+  
+  //Send success status
+  logger.info(`Bet Placed Successfully betId:${insertBet.insertId}`)
+  res.status(200).json({message: "Bet Placed Successfully", betId: insertBet.insertId})
+
+  // Insert Commissions
+  // Send Agent Commission
+  const agentCommission = await sendAgentCommission(accountId, insertBet.insertId, stake, gameId)
+  .catch((error) => {
+    res.status(500).json({message: "Server Error"})
+    return
+  })
+
 });
 
 

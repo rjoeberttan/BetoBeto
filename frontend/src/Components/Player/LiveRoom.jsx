@@ -559,7 +559,9 @@ function LiveRoom() {
                     value="red"
                     onChange={handleChange}
                   />
-                  <label className="color-name">Total: ₱ {betTotals.RED}</label>
+                  <label className="color-name">
+                    RED
+                  </label>
                 </label>
                 <label className="col-sm-3 col-5 blue-box radio-button fix-padding-left">
                   <input
@@ -570,7 +572,7 @@ function LiveRoom() {
                     onChange={handleChange}
                   />
                   <label className="color-name">
-                    Total: ₱ {betTotals.BLUE}
+                    BLUE
                   </label>
                 </label>
                 <label className="col-sm-3 col-5 green-box radio-button fix-padding-left">
@@ -582,7 +584,7 @@ function LiveRoom() {
                     onChange={handleChange}
                   />
                   <label htmlFor="huey" className="color-name">
-                    Total: ₱ {betTotals.GREEN}
+                    GREEN
                   </label>
                 </label>
                 <label className="col-sm-3 col-5 yellow-box radio-button fix-padding-left">
@@ -594,7 +596,7 @@ function LiveRoom() {
                     onChange={handleChange}
                   />
                   <label htmlFor="huey" className="color-name">
-                    Total: ₱ {betTotals.YELLOW}
+                    YELLOW
                   </label>
                 </label>
                 <label className="col-sm-3 col-5 white-box radio-button fix-padding-left">
@@ -606,7 +608,7 @@ function LiveRoom() {
                     onChange={handleChange}
                   />
                   <label htmlFor="huey" className="color-name">
-                    Total: ₱ {betTotals.WHITE}
+                    WHITE
                   </label>
                 </label>
                 <label className="col-sm-3 col-5 purple-box radio-button fix-padding-left">
@@ -618,7 +620,7 @@ function LiveRoom() {
                     onChange={handleChange}
                   />
                   <label htmlFor="huey" className="color-name">
-                    Total: ₱ {betTotals.PURPLE}
+                    PURPLE
                   </label>
                 </label>
               </div>
