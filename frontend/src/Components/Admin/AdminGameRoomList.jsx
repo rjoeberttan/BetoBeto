@@ -8,7 +8,7 @@ export default function AdminGameRoomList(props) {
   const ctx = useContext(AuthContext);
 
   return (
-    <div className="col-md-3 txt-black">
+    <div className="col-md-3 txt-black mb-4" >
       <div className="card game-card">
         <img className="game-img" src={props.sampleImgUrl} alt="." />
         <div className="card-body">

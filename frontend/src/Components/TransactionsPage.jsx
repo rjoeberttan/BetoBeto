@@ -68,66 +68,66 @@ export default function TransactionsPage() {
 
     //HandleAllUserSearch
     console.log(dateFilter.startDate, dateFilter.endDate)
-    axios({
-      method: "get",
-      url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/2021-01-01 00:00/2030-12-31 23:59`,
-      headers: bankAuthorization,
-    })
-      .then((res) => {
-        const data = res.data.data;
-        console.log(data);
-        setTransactionsList(data);
-        setOriginalTrans(data)
+    // axios({
+    //   method: "get",
+    //   url: `${bankHeader}/getAllTransactionHistory/${ctx.user.accountID}/${ctx.user.accountType}/2021-01-01 00:00/2030-12-31 23:59`,
+    //   headers: bankAuthorization,
+    // })
+    //   .then((res) => {
+    //     const data = res.data.data;
+    //     console.log(data);
+    //     setTransactionsList(data);
+    //     setOriginalTrans(data)
 
-        // Calculated Pages
-        const pageSize = 50;
-        const pageCount = data? Math.ceil(data.length/pageSize) : 0;
-        var pages = [];
-        for (var i = 1; i<= pageCount; i++){
-          pages.push(i)
-        }
-        setPages(pages)
+    //     // Calculated Pages
+    //     const pageSize = 50;
+    //     const pageCount = data? Math.ceil(data.length/pageSize) : 0;
+    //     var pages = [];
+    //     for (var i = 1; i<= pageCount; i++){
+    //       pages.push(i)
+    //     }
+    //     setPages(pages)
 
-        const pageNo = 1
-        setCurrentPage(1);
-        const startIndex = (pageNo - 1) * pageSize    
-        const endIndex = (pageNo * pageSize)
-        const newTransactions = data.slice(startIndex, endIndex)
-        setPaginatedPosts(newTransactions)
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    //     const pageNo = 1
+    //     setCurrentPage(1);
+    //     const startIndex = (pageNo - 1) * pageSize    
+    //     const endIndex = (pageNo * pageSize)
+    //     const newTransactions = data.slice(startIndex, endIndex)
+    //     setPaginatedPosts(newTransactions)
+    //   })
+    //   .catch((err) => {
+    //     console.log(err);
+    //   });
     
-    axios({
-        method: "get",
-        url: `${betHeader}/getAllBetHistory/${ctx.user.accountID}/${ctx.user.accountType}/2021-01-01 00:00/2030-12-31 23:59`,
-        headers: betAuthorization,
-      })
-        .then((res) => {
-          const data = res.data.data;
-          setBetList(data);
-          // Calculated Pages
-          const pageSize = 50;
-          const pageCount = data? Math.ceil(data.length/pageSize) : 0;
-          var pages = [];
-          for (var i = 1; i<= pageCount; i++){
-            pages.push(i)
-          }
-          setBetPages(pages)
+    // axios({
+    //     method: "get",
+    //     url: `${betHeader}/getAllBetHistory/${ctx.user.accountID}/${ctx.user.accountType}/2021-01-01 00:00/2030-12-31 23:59`,
+    //     headers: betAuthorization,
+    //   })
+    //     .then((res) => {
+    //       const data = res.data.data;
+    //       setBetList(data);
+    //       // Calculated Pages
+    //       const pageSize = 50;
+    //       const pageCount = data? Math.ceil(data.length/pageSize) : 0;
+    //       var pages = [];
+    //       for (var i = 1; i<= pageCount; i++){
+    //         pages.push(i)
+    //       }
+    //       setBetPages(pages)
 
 
-          const pageNo = 1
-          setCurrentBetPage(1);
-          const startIndex = (pageNo - 1) * pageSize    
-          const endIndex = (pageNo * pageSize)
-          const newTransactions = data.slice(startIndex, endIndex)
-          setPaginatedBets(newTransactions)
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-      setUserFilter("3");
+    //       const pageNo = 1
+    //       setCurrentBetPage(1);
+    //       const startIndex = (pageNo - 1) * pageSize    
+    //       const endIndex = (pageNo * pageSize)
+    //       const newTransactions = data.slice(startIndex, endIndex)
+    //       setPaginatedBets(newTransactions)
+    //     })
+    //     .catch((err) => {
+    //       console.log(err);
+    //     });
+    //   setUserFilter("3");
 
 
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect, useContext, useRef } from "react";
 import axios from "axios";
 import { AuthContext } from "../store/auth-context";
 import { toast } from "react-toastify";
@@ -9,24 +9,37 @@ import "./TransactionsPage.css";
 
 export default function MarketResults() {
   const gameHeader = process.env.REACT_APP_HEADER_GAME;
-  const gameAuthorization = { "Authorization": process.env.REACT_APP_KEY_GAME };
-  const [marketList, setMarketList] = useState([])
+  const gameAuthorization = { Authorization: process.env.REACT_APP_KEY_GAME };
+  const betHeader = process.env.REACT_APP_HEADER_BET;
+  const [gamesList, setGamesList] = useState([]);
+  const [marketList, setMarketList] = useState([]);
+  const [betList, setBetList] = useState([]);
+  const [gameValue, setGameValue] = useState("Select Game");
+  const [marketValue, setMarketValue] = useState("Select Market")
+  
+  const marketSelectInputRef = useRef();
 
+  const colorStyles = {
+    option: (provided, state) => ({
+      ...provided,
+      color: "black",
+    }),
+  };
 
   useEffect(() => {
     axios({
       method: "get",
-      url: `${gameHeader}/getMarketResults`,
+      url: `${gameHeader}/getGamesList`,
       headers: gameAuthorization,
     })
-    .then((res) => {
-      console.log(res)
-     setMarketList(res.data.data)
-    })
-    .catch((err) => {
-      console.log(err)
-    })  
-  }, [])
+      .then((res) => {
+        console.log(res.data.data);
+        setGamesList(res.data.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
 
   function renderEmptyTable(value) {
     if (value) {
@@ -40,29 +53,119 @@ export default function MarketResults() {
     }
   }
 
-  function subbed(x){
-    var removed = x === null ?  "-" : x.slice(0, x.length - 8)
-    return removed
+  // function subbed(x){
+  //   var removed = x === null ?  "-" : x.slice(0, x.length - 8)
+  //   return removed
+  // }
+
+  // function dateFixed(x){
+  //   var dateFixed = x === null ? "-" : new Date(Date.parse(x)).toLocaleString(('en-us', {timeZone : 'Asia/Taipei'}))
+  //   return dateFixed
+  // }
+
+  // function amountFixed(x){
+  //   var amountFixed = x === null ? "0.00" : parseFloat(x).toFixed(2)
+  //   return amountFixed
+
+  // }
+
+  function setGame(e) {
+    console.log(e.value);
+    setMarketList([])
+
+    axios({
+      method: "get",
+      url: `${gameHeader}/getMarketsUnderGame/${e.value}`,
+      headers: gameAuthorization,
+    })
+      .then((res) => {
+        setMarketList(res.data.data.markets);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   }
 
-  function dateFixed(x){
-    var dateFixed = x === null ? "-" : new Date(Date.parse(x)).toLocaleString(('en-us', {timeZone : 'Asia/Taipei'}))
-    return dateFixed
+  function setMarket(e) {
+    const marketId = e.value;
+
+    axios({
+      method: "get",
+      url: `${betHeader}/getBetMarketList/${marketId}`,
+      headers: {
+        "Authorization": process.env.REACT_APP_KEY_BET,
+      },
+    })
+      .then((res) => {
+        setBetList(res.data.data);
+        console.log(res);
+      })
+      .catch((err) => {});
+
   }
 
-  function amountFixed(x){
-    var amountFixed = x === null ? "0.00" : parseFloat(x).toFixed(2)
-    return amountFixed
+  function fetchGameOptions() {
+    var gamesOptions = [];
+    gamesList.map((x) => {
+      gamesOptions.push({
+        value: x.game_id,
+        label: x.basename,
+      });
+    });
+    return gamesOptions;
+  }
 
+  function fetchMarketOptions() {
+    var marketOptions = [];
+    if (marketList.length !== 0){
+      marketList.map((x) => {
+        marketOptions.push({
+          value: x.market_id,
+          label: `${x.market_id} - Result: ${x.result}`
+        })
+      })
+    } else {
+      return []
+    }
+
+    return marketOptions;
   }
 
   return (
     <div className="container text-light container-transactions">
       <div className="heading-text">
-        <h1 className="display-5 small-device bold-small">Markets Result</h1>
+        <h1 className="display-5 small-device bold-small mt-2">
+          Market Details
+        </h1>
       </div>
-      
-      <div className="table-responsive">
+
+      <div className="row">
+        <div className="col-md-1">
+          <label className="col-form-label">Select Game:</label>
+        </div>
+        <div className="col-md-3">
+          <Select
+            onChange={setGame}
+            options={fetchGameOptions()}
+            styles={colorStyles}
+          ></Select>
+        </div>
+      </div>
+
+      <div className="row">
+        <div className="col-md-1">
+          <label className="col-form-label">Select Market:</label>
+        </div>
+        <div className="col-md-3">
+          <Select
+            onChange={setMarket}
+            options={fetchMarketOptions()}
+            styles={colorStyles}
+          ></Select>
+        </div>
+      </div>
+
+      {/* <div className="table-responsive">
 
         <table className="table table-success table-striped transaction-page-spacing">
           <thead>
@@ -80,28 +183,13 @@ export default function MarketResults() {
                 <td>{x.description}</td>
                 <td>{x.result}</td>
                 <td>{dateFixed(x.settled_date)}</td>
-                {/* <td>{x.placement_date}</td>
-                {/* <td>{new Date(Date.parse(x.placement_date)).toLocaleString(('en-us', {timeZone : 'Asia/Taipei'}))}</td>
-                <td>{x.transaction_id}</td>
-                <td>{!x.username ? x.account_id : x.username}</td>
-                <td>{x.description}</td>
-                <td>₱ {x.amount.toFixed(2)}</td>
-                <td>₱ {x.cummulative ? x.cummulative.toFixed(2) : "-"}</td>
-                <td>
-                  {x.status === 1
-                    ? "Settled"
-                    : x.status === 2
-                    ? "Cancelled"
-                    : "Pending"}
-                </td>
-                <td>{x.settled_by}</td> */}
               </tr>
             ))}
           </tbody>
         </table>
       </div>
       
-      {marketList.length === 0 ? renderEmptyTable(true) : renderEmptyTable(false)}
+      {marketList.length === 0 ? renderEmptyTable(true) : renderEmptyTable(false)} */}
     </div>
   );
 }

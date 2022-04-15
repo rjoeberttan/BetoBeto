@@ -119,7 +119,12 @@ async function getMarketStatus(marketId, gameId){
 
 async function updateMarketStatus(marketId, gameId, description, status, editor, marketResult) {
   return new Promise((resolve, reject) => {
-    sqlQuery = "INSERT INTO markets (market_id, game_id, description, status, result, lastedit_date, edited_by) VALUES (?, ?, ?, ?, ?, NOW(), ?)"
+    var sqlQuery = ""
+    if (status === 2) {
+      sqlQuery = "INSERT INTO markets (market_id, game_id, description, status, result, settled_date, lastedit_date, edited_by) VALUES (?, ?, ?, ?, ?, NOW(), NOW(), ?)"
+    }else{
+      sqlQuery = "INSERT INTO markets (market_id, game_id, description, status, result, lastedit_date, edited_by) VALUES (?, ?, ?, ?, ?, NOW(), ?)"
+    }
     db_pool.query(sqlQuery, [marketId, gameId, description, status, marketResult, editor], (err, result) => {
         if (err) {
           logger.error(`Error in updating market status marketId:${marketId} gameId:${gameId}, error:${err}`)

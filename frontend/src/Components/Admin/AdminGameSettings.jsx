@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { AuthContext } from "../../store/auth-context";
 import "./AdminGameSettings.css";
 import { ToastContainer, toast } from "react-toastify";
+import YoutubeEmbed from "../Youtube";
 import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/dist/ReactToastify.min.css";
 import socket from "../Websocket/socket";
@@ -615,7 +616,7 @@ function AdminGameSettings() {
       <div className="heading-text">
         <h1 className="display-6 small-device bold-small">Manage Settings</h1>
       </div>
-      <div className="row">
+      <div className="row">   
         {/* CARD ONE */}
         <div className="col-md-4 card-margin-bottom">
           <div className="card text-white bg-dark mb-3">
@@ -933,7 +934,11 @@ function AdminGameSettings() {
         </div>
 
         {/* CARD FOUR */}
-        <div className="col-md-12 card-margin-bottom">
+
+        <div className="col-md-8">
+          <YoutubeEmbed embedId={gameDetails.youtube_url} />
+        </div>   
+        <div className="col-md-4 card-margin-bottom">
           <div className="card text-white bg-dark mb-3" style={{}}>
             <div className="card-body">
               <h5 className="card-title">Received Bets</h5>
@@ -945,7 +950,7 @@ function AdminGameSettings() {
                   <tr>
                     <th scope="col">Bet ID</th>
                     <th scope="col">Account ID</th>
-                    <th scope="col">Description</th>
+                    <th scope="col">Choice</th>
                     <th scope="col">Stake</th>
                     <th scope="col">Status</th>
                   </tr>
@@ -955,7 +960,7 @@ function AdminGameSettings() {
                     <tr>
                       <th scope="row">{bet.bet_id}</th>
                       <td>{bet.account_id}</td>
-                      <td>{bet.description}</td>
+                      <td>{bet.description.replace(gameDetails.name + " - ", "")}</td>
                       <td>{bet.stake}</td>
                       <td>
                         {bet.status === 0

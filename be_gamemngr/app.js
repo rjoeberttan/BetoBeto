@@ -76,7 +76,7 @@ app.get("/getGamesList", (req, res) => {
   }
 
   // Process 1. Get All games from database
-  var sqlQuery = "SELECT game_id, name, min_bet, max_bet, is_live, type FROM games";
+  var sqlQuery = "SELECT game_id, name, basename, min_bet, max_bet, is_live, type FROM games";
   db.query(sqlQuery, [], (err, result) => {
     if (err) {
       logger.error(
@@ -1080,6 +1080,61 @@ app.get("/getLatestMarketDetails/:gameId", (req, res) => {
       res
         .status(200)
         .json({ message: "Request successful", data: { market: result[0] } });
+    }
+  });
+});
+
+
+app.get("/getMarketsUnderGame/:gameId", (req, res) => {
+  const start = process.hrtime();
+
+  const apiKey = req.header("Authorization");
+  const gameId = req.params.gameId;
+
+  // Check if body is complete
+  if (!gameId) {
+    logger.warn(
+      `${req.originalUrl} request has missing body parameters, gameId:${gameId}`
+    );
+    res.status(400).json({ message: "Missing body parameters" });
+    return;
+  }
+
+  // Check if apiKey is correct
+  if (!apiKey || apiKey !== process.env.API_KEY) {
+    logger.warn(
+      `${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`
+    );
+    res.status(401).json({ message: "Unauthorized Request" });
+    return;
+  }
+
+  // Process 1
+  // Get latest market detail
+  sqlQuery =  "SELECT market_id, result FROM markets WHERE game_id = ? and settled_date is not null and settled_date >= NOW() - INTERVAL 100 day ORDER BY market_id DESC;"
+
+  db.query(sqlQuery, [gameId], (err, result) => {
+    if (err) {
+      logger.error(
+        `${req.originalUrl} request has an error during process 1, gameId:${gameId}, error:${err}`
+      );
+      res.status(500).json({ message: "Server error" });
+    } else if (result.length <= 0) {
+      logger.warn(
+        `${req.originalUrl} request warning, market is not found in database, gameId:${gameId}`
+      );
+      res.status(409).json({ message: "No markets found" });
+    } else {
+      logger.info(
+        `${
+          req.originalUrl
+        } request successful, gameId:${gameId} duration:${getDurationInMilliseconds(
+          start
+        )}`
+      );
+      res
+        .status(200)
+        .json({ message: "Request successful", data: { markets: result } });
     }
   });
 });
