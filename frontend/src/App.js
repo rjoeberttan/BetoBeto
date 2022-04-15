@@ -33,6 +33,7 @@ import AdminPlayers from "./Components/Admin/AdminPlayers";
 import AdminWallet from "./Components/Admin/AdminWallet";
 import AdminGrandMasters from "./Components/Admin/AdminGrandMaster";
 import AdminGameSettingsTotalisator from "./Components/Totalisator/AdminGameSettingsTotalisator";
+import AdminGameSettingsSakla from "./Components/Sakla/AdminGameSettingsSakla";
 //Grandmaster IMPORTS
 import GMMasteragents from "./Components/Grandmaster/GMMasteragents";
 import GMAgents from "./Components/Grandmaster/GMAgents";
@@ -267,6 +268,11 @@ function App() {
                 path="/admin/gameroom/TotalisatorSettings/:gameid"
                 exact
                 component={AdminGameSettingsTotalisator}
+              />
+              <Route
+                path="/admin/gameroom/SaklaSettings/:gameid"
+                exact
+                component={AdminGameSettingsSakla}
               />
               <Route path="/admin/account" exact component={MyAccount} />
               <Route path="*" component={ErrorPage} />

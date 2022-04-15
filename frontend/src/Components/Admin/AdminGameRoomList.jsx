@@ -18,7 +18,8 @@ export default function AdminGameRoomList(props) {
           </p>
           <div className="text-center">
             <Link
-              to={props.game_type === 0 ? `/${ctx.user.accountType}/gameroom/settings/${props.game_id}` : `/${ctx.user.accountType}/gameroom/TotalisatorSettings/${props.game_id}`}
+              to={props.game_type === 0 ? `/${ctx.user.accountType}/gameroom/settings/${props.game_id}` : 
+              props.game_type === 3 ? `/${ctx.user.accountType}/gameroom/SaklaSettings/${props.game_id}` : `/${ctx.user.accountType}/gameroom/TotalisatorSettings/${props.game_id}`}
               className="btn btn-color register-btn text-light"
             >
               Enter

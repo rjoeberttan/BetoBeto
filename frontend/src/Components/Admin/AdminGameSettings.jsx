@@ -935,12 +935,14 @@ function AdminGameSettings() {
 
         {/* CARD FOUR */}
 
-        <div className="col-md-8">
+        <div className="col-md-5">
           <YoutubeEmbed embedId={gameDetails.youtube_url} />
-        </div>   
-        <div className="col-md-4 card-margin-bottom">
+        </div>  
+
+        {/* Result market */}
+        <div className="col-md-7 card-margin-bottom" style={{maxHeight: "300px", overflow: "auto"}}>
           <div className="card text-white bg-dark mb-3" style={{}}>
-            <div className="card-body">
+            <div className="card-body bg-dark">
               <h5 className="card-title">Received Bets</h5>
               <h6 className="card-subtitle mb-2 text-muted">
                 <b>Current Market ID: {marketDetails.market_id} </b>
@@ -950,8 +952,9 @@ function AdminGameSettings() {
                   <tr>
                     <th scope="col">Bet ID</th>
                     <th scope="col">Account ID</th>
-                    <th scope="col">Choice</th>
+                    <th scope="col">Description</th>
                     <th scope="col">Stake</th>
+                    <th scope="col">Winnings</th>
                     <th scope="col">Status</th>
                   </tr>
                 </thead>
@@ -960,8 +963,9 @@ function AdminGameSettings() {
                     <tr>
                       <th scope="row">{bet.bet_id}</th>
                       <td>{bet.account_id}</td>
-                      <td>{bet.description.replace(gameDetails.name + " - ", "")}</td>
+                      <td>{bet.description}</td>
                       <td>{bet.stake}</td>
+                      <td>{bet.winnings === null ? "0.00" : bet.winnings}</td>
                       <td>
                         {bet.status === 0
                           ? "Pending"
