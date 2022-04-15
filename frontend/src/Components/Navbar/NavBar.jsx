@@ -95,13 +95,7 @@ function NavBar(props) {
         </button>
         <div className="collapse navbar-collapse" id="navbarScroll">
           <ul className="navbar-nav me-auto my-2 my-lg-0 navbar-nav-scroll">
-            <li className="nav-item">
-              {props.user === "masteragent" && (
-                <Link className="nav-link active" to={`/${props.user}/agents`}>
-                  Agents
-                </Link>
-              )}
-            </li>
+
             <li className="nav-item">
               {(props.user === "player" ||
                 props.user === "admin" ||
@@ -114,56 +108,50 @@ function NavBar(props) {
                   {props.user === "admin" ? "Game MGMT" : "Game Room"}
                 </Link>
               )}
-              {(props.user === "agent" || props.user === "masteragent") && (
-                <Link
-                  className="nav-link active"
-                  aria-current="page"
-                  to={`/${[props.user]}/players`}
-                >
-                  Players
-                </Link>
-              )}
             </li>
+
             <li className="nav-item">
-              {(props.user === "admin") && (
-                <Link
-                  className="nav-link active"
-                  aria-current="page"
-                  to={`/${[props.user]}/grandmaster`}
+              <div className="nav-item dropdown text-center">
+                <span
+                  className="nav-link dropdown-toggle drpdown-txt text-light right-border"
+                  id="navbarDropdown"
+                  role="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
                 >
-                  Grand Master
-                </Link>
-              )}
-            </li>
-            <li className="nav-item">
-              {(props.user === "admin" || props.user === "grandmaster") && (
-                <Link
-                  className="nav-link active"
-                  aria-current="page"
-                  to={`/${[props.user]}/masteragents`}
+                  Manage Users
+                </span>
+                <ul
+                  className="dropdown-menu dropdown-menu-center"
+                  aria-labelledby="navbarDropdown"
                 >
-                  Master Agents
-                </Link>
-              )}
+
+                  {(props.user === "admin" ) && (
+                    <Link className="text-center remove-underline" to={`/${props.user}/grandmaster`}>
+                      <span className="dropdown-item">Grand Master</span>
+                    </Link>
+                  )}
+                  {(props.user === "admin" || props.user === "grandmaster") && (
+                    <Link className="text-center remove-underline" to={`/${props.user}/masteragents`}>
+                      <span className="dropdown-item">Master Agents</span>
+                    </Link>
+                  )}
+
+                  {(props.user === "masteragent" || props.user === "admin") && (
+                    <Link className="text-center remove-underline" to={`/${props.user}/agents`}>
+                      <span className="dropdown-item">Agents</span>
+                    </Link>
+                  )}
+
+                  {(props.user !== "player") && (
+                    <Link className="text-center remove-underline" to={`/${props.user}/players`}>
+                      <span className="dropdown-item">Players</span>
+                    </Link>
+                  )}                
+                </ul>
+               </div>
             </li>
-            <li className="nav-item">
-              {(props.user === "admin" || props.user === "grandmaster") && (
-                <Link className="nav-link active" to={`/${props.user}/agents`}>
-                  Agents
-                </Link>
-              )}
-            </li>
-            <li className="nav-item">
-              {(props.user === "admin" || props.user === "grandmaster") && (
-                <Link
-                  className="nav-link active"
-                  aria-current="page"
-                  to={`/${[props.user]}/players`}
-                >
-                  Players
-                </Link>
-              )}
-            </li>
+            
             <li className="nav-item">
               {props.user !== "declarator" && (
                 <Link className="nav-link active" to={`/${props.user}/wallet`}>
