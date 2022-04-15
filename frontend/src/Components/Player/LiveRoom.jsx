@@ -718,9 +718,10 @@ function LiveRoom() {
             </div>
           </div>
         </div>
-        <div className="label-margin col-md-4">
-          <div className="card text-black">
-            <div className="card-body table-responsive-sm">
+        
+        <div className="label-margin col-md-4" style={{maxHeight: "251px", overflow: "auto", marginBottom: "20px"}}>
+          <div className="card text-black" style={{backgroundColor: "#FFF"}}>
+            <div className="card-body table-responsive-sm" style={{backgroundColor: "#FFF"}}>
               <h4 className="card-title">Betslips</h4>
               {renderBetslips()}
             </div>

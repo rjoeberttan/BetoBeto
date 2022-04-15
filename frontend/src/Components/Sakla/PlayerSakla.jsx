@@ -2,23 +2,22 @@ import React, { useEffect, useState, useContext } from "react";
 import { useParams } from "react-router-dom";
 import YoutubeEmbed from "../Youtube";
 import TextScroller from "../TextScroller";
-import "./LiveRoom.css";
 import { AuthContext } from "../../store/auth-context";
 import socket from "../Websocket/socket";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/dist/ReactToastify.min.css";
-import PlayerTotalisator from "../Totalisator/PlayerTotalisator";
-import InputTotalisator from "../Totalisator/InputTotalisator";
-import PotentialWin from "../Totalisator/PotentialWin";
+import "./PlayerSakla.css";
+import CARD from "./1_BASTOS.PNG";
+import CARD2 from "./1_ESPADA.PNG";
+import CardModal from "./CardModal";
 const axios = require("axios");
 
-function LiveRoom() {
+function PlayerSakla() {
   //===========================================
   // Global Variables and useState init
   //===========================================
   const ctx = useContext(AuthContext);
-  const [color, setColor] = useState("red");
   const [placeBetDisabled, setPlaceBetDisabled] = useState(false);
   const [placeTipDisabled, setPlaceTipDisabled] = useState(false);
   const [placeBetText, setPlaceBetText] = useState("Place Bet");
@@ -53,23 +52,7 @@ function LiveRoom() {
   };
   const betAuthorization = { "Authorization": process.env.REACT_APP_KEY_BET };
   const [bet, setBet] = useState();
-  const [choices, setChoices] = useState({
-    choice1: "",
-    choice2: "",
-    choiceDraw: "DRAW",
-  });
-  const [totalisatorOdds, setTotalisatorOdds] = useState({
-    odd1: 0,
-    odd2: 0,
-    oddDraw: 0,
-  });
   
-  // Styles
-  const [odd1Up, setOdd1Up] = useState(false)
-  const [odd1Down, setOdd1Down] = useState(false)
-  const [odd2Up, setOdd2Up] = useState(false)
-  const [odd2Down, setOdd2Down] = useState(false)
-
   //===========================================
   // UseEffect
   //===========================================
@@ -127,21 +110,7 @@ function LiveRoom() {
         draw_multip: data.win_multip1, //draw
         youtube_url: data.youtube_url,
         
-      });
-
-      setTotalisatorOdds((prev) => {
-        return {
-          ...prev,
-          oddDraw: parseFloat(data.win_multip1).toFixed(2),
-        };
-      });  
-
-      var gameType = data.type;
-        if (gameType === 1) {
-          setChoices({ choice1: "PULA", choice2: "PUTI", choiceDraw: "DRAW" });
-        } else if (gameType === 2) {
-          setChoices({ choice1: "LOW", choice2: "HIGH", choiceDraw: "DRAW" });
-        }        
+      });       
     });
 
   }
@@ -196,14 +165,6 @@ function LiveRoom() {
           "Authorization": process.env.REACT_APP_KEY_GAME,
         },
       }).then((res) => {
-        var odds = res.data.data.odds[0];
-        setTotalisatorOdds((prev) => {
-          return {
-            ...prev,
-            odd1: parseFloat(odds.odd1),
-            odd2: parseFloat(odds.odd2),
-          };
-        });
       });
     });
   }
@@ -259,46 +220,7 @@ function LiveRoom() {
   // const [odd1Down, setOdd1Down] = useState(false)
   // const [odd2Up, setOdd2Up] = useState(false)
   // const [odd2Down, setOdd2Down] = useState(false)
-    socket.on("received_totalisator_odds_update", (data) => {
-      if (data.gameId === gameid) {
-        // console.log(data.odd1Change, data.odd2Change)
-
-        if (data.odd1Change === "UP") {
-          setOdd1Up(true)
-          setTimeout(() => {
-            setOdd1Up(false)
-          }, 2000)        
-        }
-        if (data.odd1Change === "DOWN") {
-          setOdd1Down(true)
-          setTimeout(() => {
-            setOdd1Down(false)
-          }, 2000)
-          console.log("Odd1 Down")
-        }
-
-        if (data.odd2Change === "UP") {
-          setOdd2Up(true)
-          setTimeout(() => {
-            setOdd2Up(false)
-          }, 2000)
-          console.log("Odd2 Up")
-        }
-        if (data.odd2Change === "DOWN") {
-          setOdd2Down(true)
-          setTimeout(() => {
-            setOdd2Down(false)
-          }, 2000)
-          console.log("Odd2 Down")
-        }
-
-        setTotalisatorOdds({
-          odd1: data.odd1,
-          odd2: data.odd2,
-          oddDraw: data.oddDraw
-        })
-      }
-    });
+    
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socket]);
 
@@ -498,10 +420,6 @@ function LiveRoom() {
               </p>
               <p style={{ margin: "0px" }}>Stake: ₱{x.stake.toFixed(2)}</p>
               {x.status === 2 && <p>Winnings: ₱{x.winnings.toFixed(2)}</p>}
-              {(x.description).replace(gameDetails.name + " - ", "") === choices.choice1 ?  <p style={{ margin: "0px" }}>Potential Win: ₱{(x.stake * totalisatorOdds.odd1).toFixed(2)}</p> :
-              (x.description).replace(gameDetails.name + " - ", "") === choices.choice2 ? <p style={{ margin: "0px" }}>Potential Win: ₱{(x.stake * totalisatorOdds.odd2).toFixed(2)}</p> :
-              <p style={{ margin: "0px" }}>Potential Win: ₱{(x.stake * totalisatorOdds.oddDraw).toFixed(2)}</p>
-              }
             </div>
           ))}
         </div>
@@ -512,15 +430,13 @@ function LiveRoom() {
   const [potentialWin, setPotentialWin] = useState(0);
 
   function handlePotentialWin(amount, betChoice){
-    if (betChoice === choices.choice1){
-      setPotentialWin(totalisatorOdds.odd1*amount)
-    } else if (betChoice === choices.choice2) {
-      setPotentialWin(totalisatorOdds.odd2*amount)
-    }
-    else if (betChoice === choices.choiceDraw) {
-      setPotentialWin(totalisatorOdds.oddDraw*amount)
-    }
+   
   }  
+
+  function handleCardClick(e){
+    //
+    alert("hello");
+  }
 
   return (
     <div className="container text-light container-game-room">
@@ -534,116 +450,131 @@ function LiveRoom() {
         <div className="col-md-12 banner-message">
           <TextScroller text={gameDetails.banner} />
         </div>
-        <div className="col-md-8">
-          <YoutubeEmbed embedId={gameDetails.youtube_url} />
+        {/* PLAYER CARDS */}
+        <div className="col-md-12 cardContainer">
+            <div className="row text-center offset-md-1" style={{marginTop: "20px"}}>
+              <CardModal />
+              <CardModal />
+              <CardModal />
+              <CardModal />
+              <CardModal />
+              <CardModal />
+              <CardModal />
+              <CardModal />
+              <CardModal />
+              <CardModal />
+            </div>
+            <div className="row text-center offset-md-1" style={{marginTop: "20px"}}>
+              <CardModal />
+              <CardModal />
+              <CardModal />
+              <CardModal />
+              <CardModal />
+              <CardModal />
+              <CardModal />
+              <CardModal />
+              <CardModal />
+              <CardModal />
+            </div>
         </div>
-        <div className="col-md-4 live-room-colorbox">
-          <div className="card txt-black">
-            <div className="card-body">
-              <h4 className="card-title">
-                Current Market ID: {marketDetails.market_id}
-              </h4>
-              <h5 className="card-text" style={statusStyle}>
-                <b>Betting Status:</b>{" "}
-                {marketDetails.status === 0
-                  ? " OPEN"
-                  : marketDetails.status === 1
-                  ? " CLOSED"
-                  : " RESULTED"}
-              </h5>
-              <p className="card-text">
-                <b>Min/Max Bet:</b> ₱{parseFloat(gameDetails.min_bet).toFixed(2)} - ₱
-                {parseFloat(gameDetails.max_bet).toFixed(2)}
-              </p>
+      </div>
 
-              <div className="row" style={{ marginTop: "30px" }}>
-                <label><b>Place Bet:</b></label>
-
-                <div className="row text-center place-bet-boxes">
-                  <label
-                    className="col-md-3 placebet-styles-low"
-                    style={bet === choices.choice1 ? { border: "3px solid orange" } : odd1Up ? {border: "3px solid green"} : odd1Down ? {border: "3px solid red"} : {}}
-                  >
-                    {choices.choice1}
-                    <p>{totalisatorOdds.odd1}</p>
-
-
-                    <input
-                      class="checked"
-                      type="radio"
-                      name="bet"
-                      value={choices.choice1}
-                      onChange={handleChange}
-                      checked={bet === choices.choice1}
-                    />
-                  </label>
-                  <label
-                    className="col-md-3 placebet-styles-draw"
-                    style={bet === "DRAW" ? { border: `3px solid orange` } : {}}
-                  >
-                    DRAW
-                    <p>{parseFloat(totalisatorOdds.oddDraw).toFixed(2)}</p>
-                    <input
-                      class="checked"
-                      type="radio"
-                      name="bet"
-                      value="DRAW"
-                      onChange={handleChange}
-                      checked={bet === choices.choiceDraw}
-                    />
-                  </label>
-                  <label
-                    className="col-md-3 placebet-styles-high"
-                    style={bet === choices.choice2 ? { border: "3px solid orange" } : odd2Up ? {border: "3px solid green"} : odd2Down ? {border: "3px solid red"} : {}}
-                  >
-                    {choices.choice2}
-                    <p>{totalisatorOdds.odd2}</p>
-                    <input
-                      class="checked"
-                      type="radio"
-                      name="bet"
-                      value={choices.choice2}
-                      onChange={handleChange}
-                      checked={bet === choices.choice2}
-                    />
-                  </label>
-                </div>
+      
+      <div className="row">
+          <div className="col-md-8" >
+          {/* Market ID AND Bet Status */}
+            <div className="col-md-12" style={{maxHeight: "75px", padding: "10px", marginBottom: "10px", backgroundColor: "#FFF"}}>
+              <div className="row">
+                <h5 className="col-md-6" style={{color: "black"}}>
+                  Current Market ID: {marketDetails.market_id}
+                </h5>
+                <h5 className="col-md-6" style={statusStyle} >
+                  <b>Betting Status:</b>{" "}
+                  {marketDetails.status === 0
+                    ? " OPEN"
+                    : marketDetails.status === 1
+                    ? " CLOSED"
+                    : " RESULTED"}
+                </h5>
               </div>
+            </div>
 
-              
-              <div className="row wallet-box wage-box">
-                <div className="col-md-6 col-8">
-                  <input
-                    type="number"
-                    className="form-control wage-input"
-                    onWheel={(e) => e.target.blur()}
-                    placeholder={`₱${parseFloat(gameDetails.min_bet).toFixed(
-                      2
-                    )}-₱${parseFloat(gameDetails.max_bet).toFixed(2)} `}
-                    onChange={handleStakeChange}
-                    value={stake === 0 ? "" : stake}
-                  />
+            {/* Youtube */}
+            <div className="col-md-12" style={{marginBottom: "10px"}}>
+              <YoutubeEmbed embedId={gameDetails.youtube_url} />
+            </div>
+
+            {/* MARKET RESULTS */}
+            <div className="col-md-12" style={{marginBottom: "10px"}}>
+              <div className="text-center">
+                <div className="card text-black">
+                  <div className="card-body table-responsive-sm">
+                    <h4 className="card-title">Market Results:</h4>
+                    <div class="row results-padding">
+                      {results.map((x) => {
+                        return (
+                          <div class="col-md-2 col-6 results-margin results-box-padding" style={(x.result === "PUTI" || x.result === "HIGH") ? {backgroundColor: "rgb(119, 196, 226)", border: "1px solid black"} : (x.result === "PULA" || x.result === "LOW") ? {backgroundColor: "#dd3d3d", border: "1px solid black"} : {backgroundColor: "#a333c8", border: "1px solid black"}}>
+                            {x.market_id}
+                          </div>
+                        )
+                        
+                      })}
+
+                    </div>
+                  </div>
                 </div>
-                <div className="col-md-6 col-4">
-                  <button
-                    type="submit"
-                    className="btn btn-color text-light wage-button"
-                    disabled={placeBetDisabled}
-                    onClick={placeBet}
-                  >
-                    {placeBetText}
-                  </button>
-                </div>
-              </div>
-              <div className="text potential-text">
-                <label>Potential Win: ₱{potentialWin.toFixed(2)}</label>
               </div>
             </div>
           </div>
-        </div>
+          
+          <div className="col-md-4">
+            {/* BetSlips */}
+            <div className="col-md-12" style={{maxHeight: "544px", marginBottom: "10px", overflow: "auto"}}>
+              <div className="card text-black">
+                <div className="card-body table-responsive-sm">
+                  <h4 className="card-title">Bets Placed</h4>
+                  {renderBetslips()}
+                </div>
+              </div>
+            </div>
+
+            {/* Donation Box */}
+            <div className="col-md-12">
+              <div className="text-center">
+                <div className="card text-black" style={{ height: "250px" }}>
+                  <div className="card-body">
+                    <h5 className="card-title" style={{ marginTop: "50px" }}>
+                      Donation Box
+                    </h5>
+                    <p className="card-text">
+                      If you enjoy playing, you can tip me!
+                    </p>
+                    <div className="input-group mb-2">
+                      <input
+                        type="number"
+                        className="form-control"
+                        placeholder="P500"
+                        onChange={handleTipChange}
+                        value={tip}
+                      />
+                      <button
+                        className="btn btn-color text-light"
+                        type="button"
+                        onClick={sendTip}
+                        disabled={placeTipDisabled}
+                      >
+                        Tip
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
       </div>
+
       <div className="row">
-        <div className="label-margin col-md-4">
+        {/* <div className="label-margin col-md-4">
           <div className="text-center">
             <div className="card text-black" style={{ height: "250px" }}>
               <div className="card-body">
@@ -673,32 +604,13 @@ function LiveRoom() {
               </div>
             </div>
           </div>
-        </div>
-        <div className="label-margin col-md-4">
+        </div> */}
+        {/* Result Box */}
+        {/* <div className="label-margin col-md-4">
           <div className="text-center">
             <div className="card text-black">
               <div className="card-body table-responsive-sm">
-                <h4 className="card-title">Result Box:</h4>
-                {/* <table class="table table-bordered border-dark col-md-8">
-                  <thead>
-                    <tr>
-                      {trends.map((x) => (
-                        <th>{x.market_id}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {generateResultsArray().map((newArr) => (
-                      <tr key={Math.random()}>
-                        {newArr.map((x) => (
-                          <td style={{ backgroundColor: x.toLowerCase() }}>
-                            &nbsp;
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table> */}
+                <h4 className="card-title">Market Results:</h4>
                 <div class="row results-padding">
                   {results.map((x) => {
                     return (
@@ -713,18 +625,10 @@ function LiveRoom() {
               </div>
             </div>
           </div>
-        </div>
-        <div className="label-margin col-md-4" style={{maxHeight: "251px", overflow: "auto", marginBottom: "20px"}}>
-          <div className="card text-black" style={{backgroundColor: "#FFF"}}>
-            <div className="card-body table-responsive-sm" style={{backgroundColor: "#FFF"}}>
-              <h4 className="card-title">Betslips</h4>
-              {renderBetslips()}
-            </div>
-          </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
 }
 
-export default LiveRoom;
+export default PlayerSakla;

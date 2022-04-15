@@ -1,0 +1,51 @@
+.cardContainer{
+    background-color: #1e5128;
+    height: auto;
+    max-width: 1300px !important;
+    margin: auto;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.cards{
+    max-height: 150px;
+    cursor: pointer;
+}
+
+.cardTwo{
+    position: relative;
+    top: -70px;
+}
+
+.cardImg{
+    width: auto;
+    height: 100px;
+}
+
+.cardModalPopup{
+    max-width: 300px !important;
+    margin: 100px auto !important;
+}
+
+.cardsModal{
+    display: flex;
+}
+
+.cardOneModal{
+    width: 50% !important;
+    display: inline-flex;
+    justify-content: flex-end;
+}
+
+.cardTwoModal{
+    width: 50% !important;
+}
+
+.cardModalLabel{
+    margin-right: 5px;;
+}
+
+.cardModalInput{
+    display: inline-block !important;
+    width: 50% !important;
+}

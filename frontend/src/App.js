@@ -17,6 +17,7 @@ import PlayerAccount from "./Components/Player/PlayerAccount";
 import PlayerLiveRoom from "./Components/Player/LiveRoom";
 import PlayerWallet from "./Components/Player/PlayerWallet";
 import Totalisator from "./Components/Player/Totalisator";
+import PlayerSakla from "./Components/Sakla/PlayerSakla";
 //AGENT IMPORTS
 import AgentPlayers from "./Components/Agent/AgentPlayers";
 import AgentWallet from "./Components/Agent/AgentWallet";
@@ -137,9 +138,14 @@ function App() {
                 component={PlayerLiveRoom}
               />
               <Route
-                path="/player/gameRoom/TotalisatorSettings/:gameid"
+                path="/player/gameRoom/Totalisator/:gameid"
                 exact
                 component={Totalisator}
+              />
+              <Route
+                path="/player/gameRoom/Sakla/:gameid"
+                exact
+                component={PlayerSakla}
               />
               <Route path="*" component={ErrorPage} />
             </Switch>
