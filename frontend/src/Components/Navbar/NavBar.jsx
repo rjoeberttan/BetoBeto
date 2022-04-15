@@ -175,9 +175,16 @@ function NavBar(props) {
               )}
             </li>
             <li className="nav-item">
-              {(props.user !== "player") && (
+              {(props.user === "admin" || props.user === "declarator") && (
                 <Link className="nav-link active" to={`/${props.user}/marketResults`}>
                   Market Result
+                </Link>
+              )}
+            </li>
+            <li className="nav-item">
+              {(props.user === "admin" || props.user === "declarator") && (
+                <Link className="nav-link active" to={`/${props.user}/livefeed`}>
+                  Live Feed
                 </Link>
               )}
             </li>
