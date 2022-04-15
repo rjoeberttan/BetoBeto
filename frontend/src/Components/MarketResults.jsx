@@ -45,7 +45,7 @@ export default function MarketResults() {
     if (value) {
       return (
         <div>
-          <h5 className="no-transactions">No Transactions within Time Range</h5>
+          <h5 className="no-transactions">No bets placed on the market</h5>
         </div>
       );
     } else {
@@ -58,10 +58,10 @@ export default function MarketResults() {
   //   return removed
   // }
 
-  // function dateFixed(x){
-  //   var dateFixed = x === null ? "-" : new Date(Date.parse(x)).toLocaleString(('en-us', {timeZone : 'Asia/Taipei'}))
-  //   return dateFixed
-  // }
+  function dateFixed(x){
+    var dateFixed = x === null ? "-" : new Date(Date.parse(x)).toLocaleString(('en-us', {timeZone : 'Asia/Taipei'}))
+    return dateFixed
+  }
 
   // function amountFixed(x){
   //   var amountFixed = x === null ? "0.00" : parseFloat(x).toFixed(2)
@@ -165,31 +165,42 @@ export default function MarketResults() {
         </div>
       </div>
 
-      {/* <div className="table-responsive">
+      <div className="table-responsive">
 
         <table className="table table-success table-striped transaction-page-spacing">
           <thead>
             <tr>
-              <th scope="col">Market ID</th>
-              <th scope="col">Game</th>
-              <th scope="col">Result</th>
+              <th scope="col">Bet ID</th>
+              <th scope="col">Account ID</th>
+              <th scope="col">Description</th>
+              <th scope="col">Bet Amount</th>
+              <th scope="col">Winnings</th>
+              <th scope="col">Wallet Balance</th>
+              <th scope="col">Bet Status</th>
+              <th scope="col">Placement Date</th>
               <th scope="col">Settled Date</th>
             </tr>
           </thead>
           <tbody>
-            {marketList.map((x) => (
+            {betList.map((x) => (
               <tr key={Math.random()}>
-                <td>{x.market_id}</td>
+                <td>{x.bet_id}</td>
+                <td>{x.account_id}</td>
                 <td>{x.description}</td>
-                <td>{x.result}</td>
+                <td>P {parseFloat(x.stake).toFixed(2)}</td>
+                <td>P {parseFloat(x.winnings).toFixed(2)}</td>
+                <td>P {parseFloat(x.cummulative).toFixed(2)}</td>
+                <td>{(x.status === 1 ? "LOSE" : (x.status === 2 ? "WIN" : (x.status === 0 ? "PENDING" : "DRAW")))}</td>
+                <td>{dateFixed(x.placement_date)}</td>
                 <td>{dateFixed(x.settled_date)}</td>
+
               </tr>
             ))}
           </tbody>
         </table>
       </div>
       
-      {marketList.length === 0 ? renderEmptyTable(true) : renderEmptyTable(false)} */}
+      {betList.length === 0 ? renderEmptyTable(true) : renderEmptyTable(false)}
     </div>
   );
 }
