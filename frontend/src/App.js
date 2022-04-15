@@ -47,6 +47,8 @@ import TransactionsPage from "./Components/TransactionsPage";
 import ShiftEarnings from "./Components/ShiftEarningsPage";
 //IMPORT MARKET RESULTS
 import MarketResults from "./Components/MarketResults";
+//IMPORT MARKET RESULTS
+import LiveFeed from "./Components/LiveFeed";
 //CSS IMPORTS
 import "./App.css";
 import { AuthContext } from "./store/auth-context";
@@ -265,6 +267,11 @@ function App() {
                 component={MarketResults}
               />
               <Route
+                path="/admin/livefeed"
+                exact
+                component={LiveFeed}
+              />
+              <Route
                 path="/admin/gameroom/TotalisatorSettings/:gameid"
                 exact
                 component={AdminGameSettingsTotalisator}
@@ -311,6 +318,11 @@ function App() {
                 path="/declarator/marketResults"
                 exact
                 component={MarketResults}
+              />
+              <Route
+                path="/declarator/livefeed"
+                exact
+                component={LiveFeed}
               />
               <Route path="/declarator/account" exact component={MyAccount} />
               <Route path="*" component={ErrorPage} />

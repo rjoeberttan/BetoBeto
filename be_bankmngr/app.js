@@ -997,6 +997,71 @@ app.get("/getTotalCommissions/:accountId", (req, res) => {
 })
 
 
+app.get("/getTransactionsFeed/:previousDate", (req, res) => {
+  const start = process.hrtime();
+
+  const apiKey = req.header("Authorization");
+  const previousDate = req.params.previousDate;
+
+    // Check if body is complete
+    if (!previousDate) {
+      logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
+      res.status(400).json({ message: "Missing body parameters" });
+      return;
+    }
+  
+    // Check if apiKey is correct
+    if (!apiKey || apiKey !== process.env.API_KEY) {
+      logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+      res.status(401).json({ message: "Unauthorized Request" });
+      return;
+    }
+
+    sqlQuery = "SELECT * FROM transactions WHERE placement_date >= ? - INTERVAL 1 day ORDER BY placement_date DESC LIMIT 15 "
+    db.query(sqlQuery, [previousDate], (err, result) => {
+      if (err) {
+        logger.error(`${req.originalUrl} request has an error during process 1, error:${err}`)
+        res.status(500).json({message: "Server error"})
+      } else {
+        logger.info(`${req.originalUrl} request successful, duration:${getDurationInMilliseconds(start)}`)
+        res.status(200).json({ message: "Request Successful", transactions: result});        
+      }
+    })
+})
+
+app.get("/getBetsFeed/:previousDate", (req, res) => {
+  const start = process.hrtime();
+
+  const apiKey = req.header("Authorization");
+  const previousDate = req.params.previousDate;
+
+    // Check if body is complete
+    if (!previousDate) {
+      logger.warn(`${req.originalUrl} request has missing body parameters, accountId:${accountId}`)
+      res.status(400).json({ message: "Missing body parameters" });
+      return;
+    }
+  
+    // Check if apiKey is correct
+    if (!apiKey || apiKey !== process.env.API_KEY) {
+      logger.warn(`${req.originalUrl} request has missing/wrong apiKey, received:${apiKey}`);
+      res.status(401).json({ message: "Unauthorized Request" });
+      return;
+    }
+
+    sqlQuery = "SELECT * FROM bets WHERE placement_date >= ? - INTERVAL 1 day ORDER BY placement_date DESC LIMIT 15 "
+    db.query(sqlQuery, [previousDate], (err, result) => {
+      if (err) {
+        logger.error(`${req.originalUrl} request has an error during process 1, error:${err}`)
+        res.status(500).json({message: "Server error"})
+      } else {
+        logger.info(`${req.originalUrl} request successful, duration:${getDurationInMilliseconds(start)}`)
+        res.status(200).json({ message: "Request Successful", transactions: result});        
+      }
+    })
+})
+
+
 app.listen(4006, () => {
   console.log("Backend Bank Manager listentning at port 4006");
 });
