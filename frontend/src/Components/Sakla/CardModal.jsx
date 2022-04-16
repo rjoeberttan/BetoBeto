@@ -1,14 +1,14 @@
 import React from "react";
 import { useState } from "react";
 import {Modal} from 'react-bootstrap';
-import CARD from "./1_BASTOS.PNG";
+import CARD from "./1 BASTOS.PNG";
 import CARD2 from "./1_ESPADA.PNG";
 
 export default function CardModal(props){
   const [show, setShow] = useState(false);
 
     return (
-        <div className="col-md-1 col-3 text-center cards" style={{paddingLeft: "0px", paddingRight: "0px"}}>
+        <div className={`col-md-1 col-3 ${props.offset} text-center cards`} style={{paddingLeft: "0px", paddingRight: "0px"}}>
             {/* <Button variant="primary" className="btn btn-color register-btn text-light" style={{border: "0px", borderRadius: "20px"}} onClick={() => setShow(true)}>
             Show Transactions
             </Button> */}
@@ -35,10 +35,10 @@ export default function CardModal(props){
                 <Modal.Body>
                     <div className="row cardsModal">
                         <div className="cardOneModal">
-                            <img className="cardImg" src={CARD} alt=""></img>
+                            <img className="cardModalImg" src={CARD} alt=""></img>
                         </div>
                         <div className="cardTwoModal">
-                            <img className="cardImg" src={CARD2} alt=""></img>
+                            <img className="cardModalImg" src={CARD2} alt=""></img>
                         </div>
                     </div>
                     <div className="text-center" style={{marginTop: "10px"}}>

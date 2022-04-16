@@ -23,12 +23,17 @@
 }
 
 .cardModalPopup{
-    max-width: 300px !important;
+    max-width: 500px !important;
     margin: 100px auto !important;
 }
 
 .cardsModal{
     display: flex;
+}
+
+.cardModalImg{
+    width: auto;
+    height: 200px;
 }
 
 .cardOneModal{
@@ -48,4 +53,9 @@
 .cardModalInput{
     display: inline-block !important;
     width: 50% !important;
+}
+
+.alignRight{
+    display: flex;
+    justify-content: flex-end;
 }

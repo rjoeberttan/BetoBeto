@@ -5,10 +5,11 @@ import TextScroller from "../TextScroller";
 import { AuthContext } from "../../store/auth-context";
 import socket from "../Websocket/socket";
 import { ToastContainer, toast } from "react-toastify";
+import {Modal} from 'react-bootstrap';
 import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/dist/ReactToastify.min.css";
 import "./PlayerSakla.css";
-import CARD from "./1_BASTOS.PNG";
+import CARD from "./1 BASTOS.PNG";
 import CARD2 from "./1_ESPADA.PNG";
 import CardModal from "./CardModal";
 const axios = require("axios");
@@ -18,6 +19,8 @@ function PlayerSakla() {
   // Global Variables and useState init
   //===========================================
   const ctx = useContext(AuthContext);
+  //modal 
+  const [show, setShow] = useState(false);
   const [placeBetDisabled, setPlaceBetDisabled] = useState(false);
   const [placeTipDisabled, setPlaceTipDisabled] = useState(false);
   const [placeBetText, setPlaceBetText] = useState("Place Bet");
@@ -408,11 +411,15 @@ function PlayerSakla() {
           {betslip.map((x) => (
             <div
               class="card text-white bg-secondary mb-3"
-              style={{ height: "150px" }}
+              // style={{ height: "150px" }}
             >
-              <h5>
+              <h5>  
                 Bet #{x.bet_id} {x.description} <br></br> Market #{x.market_id}
               </h5>
+              <div className="text-center"> 
+              <img src={CARD} alt="" style={{width: "auto", height: "100px", marginRight: "5px"}}></img>
+              <img src={CARD} alt="" style={{width: "auto", height: "100px"}}></img>
+              </div>
 
               <p style={{ margin: "0px" }}>
                 Status:{" "}
@@ -441,6 +448,31 @@ function PlayerSakla() {
   return (
     <div className="container text-light container-game-room">
       <ToastContainer />
+      {/* modal show when resulted */}
+            <Modal
+                show={show}
+                onHide={() => setShow(false)}
+                dialogClassName="modal-40w cardModalPopup"
+            >
+                <Modal.Header closeButton style={{border: "none", paddingBottom: "0px"}}>
+                <Modal.Title id="example-modal-sizes-title-lg">
+                    Market 123456 Result
+                </Modal.Title>
+                </Modal.Header>
+                <Modal.Body>
+                    <div className="row cardsModal">
+                        <div className="cardOneModal">
+                            <img className="cardModalImg" src={CARD} alt=""></img>
+                        </div>
+                        <div className="cardTwoModal">
+                            <img className="cardModalImg" src={CARD2} alt=""></img>
+                        </div>
+                    </div>
+                    <div className="text-center" style={{marginTop: "10px"}}>
+                        <label className="cardModalLabel">Total Winnings: P 500.0</label>
+                    </div>
+                </Modal.Body>
+            </Modal>
       <div className="heading-text">
         <h1 className="display-5 small-device bold-small">
           Live {gameDetails.name}
@@ -452,7 +484,8 @@ function PlayerSakla() {
         </div>
         {/* PLAYER CARDS */}
         <div className="col-md-12 cardContainer">
-            <div className="row text-center offset-md-1" style={{marginTop: "20px"}}>
+            <div className="row text-center" style={{marginTop: "20px"}}>
+              <CardModal offset="offset-md-1"/>
               <CardModal />
               <CardModal />
               <CardModal />
@@ -462,10 +495,7 @@ function PlayerSakla() {
               <CardModal />
               <CardModal />
               <CardModal />
-              <CardModal />
-            </div>
-            <div className="row text-center offset-md-1" style={{marginTop: "20px"}}>
-              <CardModal />
+              <CardModal offset="offset-md-1"/>
               <CardModal />
               <CardModal />
               <CardModal />
@@ -488,8 +518,8 @@ function PlayerSakla() {
                 <h5 className="col-md-6" style={{color: "black"}}>
                   Current Market ID: {marketDetails.market_id}
                 </h5>
-                <h5 className="col-md-6" style={statusStyle} >
-                  <b>Betting Status:</b>{" "}
+                <h5 className="col-md-6 alignRight" style={statusStyle} >
+                  <b>Betting Status:</b> &nbsp;
                   {marketDetails.status === 0
                     ? " OPEN"
                     : marketDetails.status === 1
@@ -505,16 +535,24 @@ function PlayerSakla() {
             </div>
 
             {/* MARKET RESULTS */}
-            <div className="col-md-12" style={{marginBottom: "10px"}}>
-              <div className="text-center">
-                <div className="card text-black">
+            <div className="col-md-12" style={{marginBottom: "10px", maxHeight: "280px", background: "#FFF", overflow: "auto"}}>
+              <div className="text-center" style={{background: "#FFF"}}>
+                <div className="card text-black" style={{background: "#FFF"}}>
                   <div className="card-body table-responsive-sm">
                     <h4 className="card-title">Market Results:</h4>
                     <div class="row results-padding">
                       {results.map((x) => {
                         return (
-                          <div class="col-md-2 col-6 results-margin results-box-padding" style={(x.result === "PUTI" || x.result === "HIGH") ? {backgroundColor: "rgb(119, 196, 226)", border: "1px solid black"} : (x.result === "PULA" || x.result === "LOW") ? {backgroundColor: "#dd3d3d", border: "1px solid black"} : {backgroundColor: "#a333c8", border: "1px solid black"}}>
+                          <div class="col-md-3 col-6 results-margin results-box-padding" style={(x.result === "PUTI" || x.result === "HIGH") ? {backgroundColor: "rgb(119, 196, 226)", border: "1px solid black"} : (x.result === "PULA" || x.result === "LOW") ? {backgroundColor: "#dd3d3d", border: "1px solid black"} : {backgroundColor: "#a333c8", border: "1px solid black"}}>
                             {x.market_id}
+                            <div className="text-center" style={{marginBottom: "5px"}}> 
+                              <img src={CARD} alt="" style={{width: "auto", height: "100px", marginRight: "5px"}}></img>
+                              <img src={CARD} alt="" style={{width: "auto", height: "100px"}}></img>
+                            </div>
+                            <div>
+                              <label>1 ESPADA</label> &nbsp;
+                              <label>2 ESPADA</label>
+                            </div>
                           </div>
                         )
                         

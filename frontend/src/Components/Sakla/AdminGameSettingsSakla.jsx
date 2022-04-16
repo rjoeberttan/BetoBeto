@@ -6,6 +6,7 @@ import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/dist/ReactToastify.min.css";
 import YoutubeEmbed from "../Youtube";
 import socket from "../Websocket/socket";
+import AdminModalSakla from "./AdminModalSakla";
 const axios = require("axios").default;
 
 function AdminGameSettingsSakla() {
@@ -677,8 +678,13 @@ function AdminGameSettingsSakla() {
       <>
         <ToastContainer />
       </>
-      <div className="heading-text">
-        <h1 className="display-6 small-device bold-small">Manage Settings</h1>
+      <div className="heading-text row" style={{display: "flex", alignItems: "center"}}>
+        <div className="col-md-6 col-6">
+          <h1 className="display-6 small-device bold-small">Manage Settings</h1>
+        </div>
+        <div className="col-md-6 col-6" style={{display: "inline-flex", justifyContent: "flex-end"}}>
+          <AdminModalSakla />
+        </div>
       </div>
       <div className="row">
         <div className="row" style={{maxWidth: "880px"}}> 
