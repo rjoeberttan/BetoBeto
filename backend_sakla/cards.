@@ -1,0 +1,92 @@
+1 espada / alas espada
+2 espada
+3 espada
+4 espada
+5 espada
+6 espada
+7 espada
+sotang espada / 10 espada
+kabayong espada / 11 espada
+haring espada / 12 espada
+
+
+Bastos (Clubs)
+1 bastos
+2 bastos
+3 bastos
+4 bastos
+5 bastos 
+6 bastos
+7 bastos 
+sotang bastos
+kabayong bastos
+haring bastos
+
+
+kopas
+oros
+
+('1 ESPADA - 2 ESPADA', 6, 20.0, 'Admin1'),
+('3 ESPADA - 4 ESPADA', 6, 20.0, 'Admin1'),
+('5 ESPADA - 6 ESPADA', 6, 20.0, 'Admin1'),
+('7 ESPADA - SOTANG ESPADA', 6, 20.0, 'Admin1'),
+('KABAYONG ESPADA - HARING ESPADA', 6, 20.0, 'Admin1'),
+('1 OROS - 2 OROS', 6, 20.0, 'Admin1'),
+('3 OROS - 4 OROS', 6, 20.0, 'Admin1'),
+('5 OROS - 6 OROS', 6, 20.0, 'Admin1'),
+('7 OROS - SOTANG OROS', 6, 20.0, 'Admin1'),
+('KABAYONG OROS - HARING OROS', 6, 20.0, 'Admin1'),
+('1 KOPAS - 2 KOPAS', 6, 20.0, 'Admin1'),
+('3 KOPAS - 4 KOPAS', 6, 20.0, 'Admin1'),
+('5 KOPAS - 6 KOPAS', 6, 20.0, 'Admin1'),
+('7 KOPAS - SOTANG KOPAS', 6, 20.0, 'Admin1'),
+('KABAYONG KOPAS - HARING KOPAS', 6, 20.0, 'Admin1'),
+('1 BASTOS - 2 BASTOS', 6, 20.0, 'Admin1'),
+('3 BASTOS - 4 BASTOS', 6, 20.0, 'Admin1'),
+('5 BASTOS - 6 BASTOS', 6, 20.0, 'Admin1'),
+('7 BASTOS - SOTANG BASTOS', 6, 20.0, 'Admin1'),
+('KABAYONG BASTOS - HARING BASTOS', 6, 20.0, 'Admin1'),
+
+
+const choices = ['1 ESPADA - 2 ESPADA',
+'3 ESPADA - 4 ESPADA',
+'5 ESPADA - 6 ESPADA',
+'7 ESPADA - SOTANG ESPADA',
+'KABAYONG ESPADA - HARING ESPADA',
+'1 OROS - 2 OROS',
+'3 OROS - 4 OROS',
+'5 OROS - 6 OROS',
+'7 OROS - SOTANG OROS',
+'KABAYONG OROS - HARING OROS',
+'1 KOPAS - 2 KOPAS',
+'3 KOPAS - 4 KOPAS',
+'5 KOPAS - 6 KOPAS',
+'7 KOPAS - SOTANG KOPAS',
+'KABAYONG KOPAS - HARING KOPAS',
+'1 BASTOS - 2 BASTOS',
+'3 BASTOS - 4 BASTOS',
+'5 BASTOS - 6 BASTOS',
+'7 BASTOS - SOTANG BASTOS',
+'KABAYONG BASTOS - HARING BASTOS']
+
+1 ESPADA - 2 OROS
+3 ESPADA - 4 OROS
+5 ESPADA - 6 OROS
+7 ESPADA - SOTANG OROS
+KABAYONG ESPADA - HARING OROS
+1 OROS - 2 ESPADA
+3 OROS - 4 ESPADA
+5 OROS - 6 ESPADA
+7 OROS - SOTANG ESPADA
+KABAYONG OROS - HARING ESPADA
+1 KOPAS - 2 BASTOS
+3 KOPAS - 4 BASTOS
+5 KOPAS - 6 BASTOS
+7 KOPAS - SOTANG BASTOS
+KABAYONG KOPAS - HARING BASTOS
+1 BASTOS - 2 KOPAS
+3 BASTOS - 4 KOPAS
+5 BASTOS - 6 KOPAS
+7 BASTOS - SOTANG KOPAS
+KABAYONG BASTOS - HARING KOPAS
+

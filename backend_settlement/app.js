@@ -14,7 +14,7 @@ app.use(helmet());
 app.use(
   cors({
     origin: [process.env.FRONTEND],
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PATCH"],
     credentials: true,
   })
 );
@@ -147,7 +147,7 @@ app.post("/settleSaklaBets", async(req, res) => {
     var choice = (bets[i].description).replace(`${gameName} : `, "")
     var stake = parseFloat(bets[i].stake).toFixed(2)
     
-    var winDecision = marketResult === "DRAW" ? 3 : (choice === marketResult ? 2 : 1)
+    var winDecision = marketResult === "CANCELLED/DRAW" ? 3 : (choice === marketResult ? 2 : 1)
     var winAmount = 0
     if (winDecision === 2){
       winAmount = (parseFloat(stake) * parseFloat(winMultiplier)).toFixed(2)

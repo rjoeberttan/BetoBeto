@@ -13,7 +13,7 @@ app.use(helmet());
 app.use(
   cors({
     origin: [process.env.FRONTEND],
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PATCH"],
     credentials: true,
   })
 );
@@ -154,7 +154,7 @@ async function getSaklaChoices(gameId) {
 
 async function updateChoiceDetail(choiceId, description, manipulateValue, editor){
   return new Promise((resolve, reject) => {
-    sqlQuery = "UPDATE choices SET description = ?, manipulatse_val = ? , lastedit_date = NOW(), lastedit_by = ? WHERE choice_id = ?"
+    sqlQuery = "UPDATE choices SET description = ?, manipulate_val = ? , lastedit_date = NOW(), lastedit_by = ? WHERE choice_id = ?"
     db_pool.query(sqlQuery, [description, manipulateValue, editor, choiceId], (err, result) => {
         if (err) {
           logger.error(`Error in updating sakla choice choiceId:${choiceId}, error:${err}`)
@@ -253,8 +253,6 @@ async function insertNewChoices(gameId, editor) {
 }
 
 
-
-
 app.post("/createMarket", async (req, res) => {
   const startTime = process.hrtime();
 
@@ -314,8 +312,6 @@ app.post("/createMarket", async (req, res) => {
     res.status(409).json({message: "Latest market is still unsettled. Settle first before creating new market", data: {gameId: parseInt(gameId), marketId: market[0].market_id, status: marketStatus}})
   }
 });
-
-
 
 
 app.post("/openMarket", async(req, res) => {
@@ -490,12 +486,12 @@ app.post("/resultMarket", async(req, res) => {
 })
 
 
-app.get("/getChoices", async(req, res) => {
+app.get("/getChoices/:gameId", async(req, res) => {
   const startTime = process.hrtime();
 
   // Headers and Data
   const apiKey = req.header("Authorization");
-  const gameId = req.body.gameId;
+  const gameId = req.params.gameId;
 
   // Check if apiKey is correct
   if (!checkApiKey(apiKey)) {

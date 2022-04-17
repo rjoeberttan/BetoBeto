@@ -45,17 +45,23 @@ function PlayerSakla() {
   const [stake, setStake] = useState(0);
   const [tip, setTip] = useState();
   const [betslip, setBetslip] = useState([]);
+  const [resultChoicesSelect, setResultChoicesSelect] = useState([])
+  const [renderChoice, setRenderChoice] = useState(false)
+
+
   const { gameid } = useParams();
   const gameHeader = process.env.REACT_APP_HEADER_GAME;
-  const betHeader = process.env.REACT_APP_HEADER_BET;
   const accountHeader = process.env.REACT_APP_HEADER_ACCOUNT;
+  const betHeader = process.env.REACT_APP_HEADER_BET;
+  const saklaHeader = process.env.REACT_APP_HEADER_SAKLA;
+  const settlementHeader = process.env.REACT_APP_HEADER_SETTLEMENT;
   const gameAuthorization = { "Authorization": process.env.REACT_APP_KEY_GAME };
   const accAuthorization = {
     "Authorization": process.env.REACT_APP_KEY_ACCOUNT,
   };
   const betAuthorization = { "Authorization": process.env.REACT_APP_KEY_BET };
   const [bet, setBet] = useState();
-  
+ 
   //===========================================
   // UseEffect
   //===========================================
@@ -64,8 +70,21 @@ function PlayerSakla() {
     getLatestGameDetails();
     getLatestMarketDetails();
     getMarketTrend();
-    socket.emit("join_room", "totalisatorGame");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    // Fetch Choices
+    axios({
+      method: "get",
+      url: `${saklaHeader}/getChoices/${gameid}`,
+      headers: {
+        "Authorization": process.env.REACT_APP_KEY_SAKLA,
+      },
+    }).then((res) => {
+      console.log(res.data.data)
+      setResultChoicesSelect(res.data.data.choices)
+      setRenderChoice(true)
+    });
+    // socket.emit("join_room", "totalisatorGame");
+
 
 
     const interval2 = setInterval(() => {
@@ -82,6 +101,7 @@ function PlayerSakla() {
           console.log(err);
         });
     }, 2000);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function getMarketTrend() {
@@ -406,6 +426,9 @@ function PlayerSakla() {
     if (betslip.length === 0) {
       return <h4>No Open Betslips</h4>;
     } else {
+      const card1 = betslip[0].description.replace(gameDetails.name + " : ", '').split(' - ')[0]
+      const card2 = betslip[0].description.replace(gameDetails.name + " : ", '').split(' - ')[1]
+
       return (
         <div>
           {betslip.map((x) => (
@@ -417,8 +440,8 @@ function PlayerSakla() {
                 Bet #{x.bet_id} {x.description} <br></br> Market #{x.market_id}
               </h5>
               <div className="text-center"> 
-              <img src={CARD} alt="" style={{width: "auto", height: "100px", marginRight: "5px"}}></img>
-              <img src={CARD} alt="" style={{width: "auto", height: "100px"}}></img>
+              <img src={`/assets/images/${x.description.replace(gameDetails.name + " : ", '').split(' - ')[0]}.PNG`} alt="" style={{width: "auto", height: "100px", marginRight: "5px"}}></img>
+              <img src={`/assets/images/${x.description.replace(gameDetails.name + " : ", '').split(' - ')[1]}.PNG`} alt="" style={{width: "auto", height: "100px"}}></img>
               </div>
 
               <p style={{ margin: "0px" }}>
@@ -484,28 +507,30 @@ function PlayerSakla() {
         </div>
         {/* PLAYER CARDS */}
         <div className="col-md-12 cardContainer">
-            <div className="row text-center" style={{marginTop: "20px"}}>
-              <CardModal offset="offset-md-1"/>
-              <CardModal />
-              <CardModal />
-              <CardModal />
-              <CardModal />
-              <CardModal />
-              <CardModal />
-              <CardModal />
-              <CardModal />
-              <CardModal />
-              <CardModal offset="offset-md-1"/>
-              <CardModal />
-              <CardModal />
-              <CardModal />
-              <CardModal />
-              <CardModal />
-              <CardModal />
-              <CardModal />
-              <CardModal />
-              <CardModal />
-            </div>
+            {renderChoice ? 
+              <div className="row text-center" style={{marginTop: "20px"}}>
+                <CardModal choice={resultChoicesSelect[0]} gameDetails={gameDetails} marketDetails={marketDetails} gameId={gameid} offset="offset-md-1"/>
+                <CardModal choice={resultChoicesSelect[1]} gameDetails={gameDetails} marketDetails={marketDetails} gameId={gameid}/>
+                <CardModal choice={resultChoicesSelect[2]} gameDetails={gameDetails} marketDetails={marketDetails} gameId={gameid}/>
+                <CardModal choice={resultChoicesSelect[3]} gameDetails={gameDetails} marketDetails={marketDetails} gameId={gameid}/>
+                <CardModal choice={resultChoicesSelect[4]} gameDetails={gameDetails} marketDetails={marketDetails} gameId={gameid}/>
+                <CardModal choice={resultChoicesSelect[5]} gameDetails={gameDetails} marketDetails={marketDetails} gameId={gameid}/>
+                <CardModal choice={resultChoicesSelect[6]} gameDetails={gameDetails} marketDetails={marketDetails} gameId={gameid}/>
+                <CardModal choice={resultChoicesSelect[7]} gameDetails={gameDetails} marketDetails={marketDetails} gameId={gameid}/>
+                <CardModal choice={resultChoicesSelect[8]} gameDetails={gameDetails} marketDetails={marketDetails} gameId={gameid}/>
+                <CardModal choice={resultChoicesSelect[9]} gameDetails={gameDetails} marketDetails={marketDetails} gameId={gameid}/>
+                <CardModal choice={resultChoicesSelect[10]} gameDetails={gameDetails} marketDetails={marketDetails} gameId={gameid} offset="offset-md-1"/>
+                <CardModal choice={resultChoicesSelect[11]} gameDetails={gameDetails} marketDetails={marketDetails} gameId={gameid}/>
+                <CardModal choice={resultChoicesSelect[12]} gameDetails={gameDetails} marketDetails={marketDetails} gameId={gameid}/>
+                <CardModal choice={resultChoicesSelect[13]} gameDetails={gameDetails} marketDetails={marketDetails} gameId={gameid}/>
+                <CardModal choice={resultChoicesSelect[14]} gameDetails={gameDetails} marketDetails={marketDetails} gameId={gameid}/>
+                <CardModal choice={resultChoicesSelect[15]} gameDetails={gameDetails} marketDetails={marketDetails} gameId={gameid}/>
+                <CardModal choice={resultChoicesSelect[16]} gameDetails={gameDetails} marketDetails={marketDetails} gameId={gameid}/>
+                <CardModal choice={resultChoicesSelect[17]} gameDetails={gameDetails} marketDetails={marketDetails} gameId={gameid}/>
+                <CardModal choice={resultChoicesSelect[18]} gameDetails={gameDetails} marketDetails={marketDetails} gameId={gameid}/>
+                <CardModal choice={resultChoicesSelect[19]} gameDetails={gameDetails} marketDetails={marketDetails} gameId={gameid}/>
+              </div> : null
+            }
         </div>
       </div>
 
@@ -542,16 +567,17 @@ function PlayerSakla() {
                     <h4 className="card-title">Market Results:</h4>
                     <div class="row results-padding">
                       {results.map((x) => {
+                        {/* {console.log(x)} */}
                         return (
                           <div class="col-md-3 col-6 results-margin results-box-padding" style={(x.result === "PUTI" || x.result === "HIGH") ? {backgroundColor: "rgb(119, 196, 226)", border: "1px solid black"} : (x.result === "PULA" || x.result === "LOW") ? {backgroundColor: "#dd3d3d", border: "1px solid black"} : {backgroundColor: "#a333c8", border: "1px solid black"}}>
                             {x.market_id}
                             <div className="text-center" style={{marginBottom: "5px"}}> 
-                              <img src={CARD} alt="" style={{width: "auto", height: "100px", marginRight: "5px"}}></img>
-                              <img src={CARD} alt="" style={{width: "auto", height: "100px"}}></img>
+                              <img src={`/assets/images/${x.result.split(' - ')[0]}.PNG`} alt="" style={{width: "auto", height: "100px", marginRight: "5px"}}></img>
+                              <img src={`/assets/images/${x.result.split(' - ')[1]}.PNG`} alt="" style={{width: "auto", height: "100px"}}></img>
                             </div>
                             <div>
-                              <label>1 ESPADA</label> &nbsp;
-                              <label>2 ESPADA</label>
+                              <label>{x.result.split(' - ')[1] ? `${x.result.split(' - ')[0]} - ` : `${x.result.split(' - ')[0]}`}</label> &nbsp;
+                              <label>{x.result.split(' - ')[1] ? `${x.result.split(' - ')[1]}` : ""}</label>
                             </div>
                           </div>
                         )

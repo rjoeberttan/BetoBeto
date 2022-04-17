@@ -109,7 +109,7 @@ async function checkIfMarketIsOpen(marketId){
 
 async function checkTotals(marketId, gameName, choice, choiceId){
   return new Promise((resolve, reject) => {
-    sqlQuery = `SELECT REPLACE(description, '${gameName} - ', '') as color, SUM(stake) as total FROM bets where market_id = ? GROUP BY description;`;
+    sqlQuery = `SELECT REPLACE(description, '${gameName} : ', '') as color, SUM(stake) as total FROM bets where market_id = ? GROUP BY description;`;
     db.query(sqlQuery, [marketId], (err, result) => {
       if (err) {
         logger.error(`Error in fetching totals for choice: ${choice} error: ${err}`)
@@ -122,7 +122,8 @@ async function checkTotals(marketId, gameName, choice, choiceId){
           return (resolve(currentTotal))
         } else {
           for (let i = 0; i < result.length; i++) {
-            if (result[i].color === choice) {
+            console.log
+            if (result[i].color.replace() === choice) {
               currentTotal = result[i].total;
               break
             }
@@ -1785,8 +1786,8 @@ app.post("/placeSaklaBet", async (req, res) => {
       return
     })
 
-  if (marketStatus[0].status !== 1){
-    res.status(409).json({message: "Market is not closed, place will not be placed", marketId: marketId, status: marketStatus[0].status})
+  if (marketStatus[0].status !== 0){
+    res.status(409).json({message: "Market is not open, place will not be placed", marketId: marketId, status: marketStatus[0].status})
     return
   }
 

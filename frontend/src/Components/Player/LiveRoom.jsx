@@ -332,7 +332,7 @@ function LiveRoom() {
               setTimeout(() => {
                 setPlaceBetText("Place Bet");
                 setPlaceBetDisabled(false);
-                setStake("");
+                setStake(0);
               }, 5000);
 
               toast.success(
