@@ -85,6 +85,7 @@ export default function CardModal(props){
                 }).then((res) => {
                     toast.success(res.data.message)
                     setShow(false)
+                    setStake(0)
 
                     setTimeout(() => {
                         setPlaceBetText("Place Bet");

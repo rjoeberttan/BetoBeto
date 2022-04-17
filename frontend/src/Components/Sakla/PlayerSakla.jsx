@@ -25,6 +25,7 @@ function PlayerSakla() {
   const [placeTipDisabled, setPlaceTipDisabled] = useState(false);
   const [placeBetText, setPlaceBetText] = useState("Place Bet");
   const [results, setResults] = useState([]);
+  const [totalWinnings, setTotalWinnigs] = useState();
   const [gameDetails, setGameDetails] = useState({
     banner: "",
     description: "",
@@ -59,6 +60,7 @@ function PlayerSakla() {
   const accAuthorization = {
     "Authorization": process.env.REACT_APP_KEY_ACCOUNT,
   };
+  const [resultDesc, setResultDesc] = useState("1 BASTOS - 2 BASTOS")
   const betAuthorization = { "Authorization": process.env.REACT_APP_KEY_BET };
   const [bet, setBet] = useState();
  
@@ -66,10 +68,10 @@ function PlayerSakla() {
   // UseEffect
   //===========================================
   useEffect(() => {
-    
+    socket.emit("join_room", "saklaGame")
     getLatestGameDetails();
     getLatestMarketDetails();
-    getMarketTrend();
+    getMarketTrend(false);
 
     // Fetch Choices
     axios({
@@ -83,9 +85,6 @@ function PlayerSakla() {
       setResultChoicesSelect(res.data.data.choices)
       setRenderChoice(true)
     });
-    // socket.emit("join_room", "totalisatorGame");
-
-
 
     const interval2 = setInterval(() => {
       axios({
@@ -104,13 +103,19 @@ function PlayerSakla() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function getMarketTrend() {
+  function getMarketTrend(showResult) {
     axios({
       method: "get",
       url: `${gameHeader}/getMarketTrend/${gameid}`,
       headers: gameAuthorization,
     }).then((res) => {
       console.log(res.data.data.trends);
+      if (showResult){
+        const latestResult = res.data.data.trends[0]
+        setResultDesc(latestResult.result)
+        getBetSlips(marketDetails.market_id, true)
+        setShow(true)
+      }
       setResults(res.data.data.trends)
     });
   }
@@ -138,7 +143,8 @@ function PlayerSakla() {
 
   }
 
-  function getBetSlips(marketid) {
+  function getBetSlips(marketid, calculateWinnings) {
+    console.log("here")
     axios({
       method: "get",
       url: `${betHeader}/getAccountBetslips/${ctx.user.accountID}/${marketid}`,
@@ -146,6 +152,18 @@ function PlayerSakla() {
     })
       .then((res) => {
         setBetslip(res.data.data);
+        if (calculateWinnings){
+          const betSlips = res.data.data  
+          var totalWinnings = 0
+          betslip.map((bet) => {
+            totalWinnings += parseFloat(bet.winnings)
+            console.log(bet.winnings)
+          })
+          console.log(bet.winnings)
+          setTotalWinnigs(totalWinnings)
+
+        }
+
       })
       .catch((err) => {
         console.log(err);
@@ -179,7 +197,7 @@ function PlayerSakla() {
       });
       manageStatusStyle(market.status);
       handlePlaceBetButtonStatus(market.status);
-      getBetSlips(market.market_id);
+      getBetSlips(market.market_id ,true);
 
       axios({
         method: "get",
@@ -192,12 +210,76 @@ function PlayerSakla() {
     });
   }
 
+  function handleTipChange(e) {
+    const input = e.target.value;
+    const inputNum = parseFloat(e.target.value);
+
+    if (inputNum < 9999999999) {
+      if (input.indexOf(".") > 0) {
+        const decimalLength = input.length - input.indexOf(".") - 1;
+        if (decimalLength < 3) {
+          const currenttip = parseFloat(e.target.value);
+          const walletBalance = parseFloat(ctx.walletBalance);
+          if (currenttip > walletBalance) {
+            setPlaceTipDisabled(true);
+            setTip(parseFloat(e.target.value));
+          } else {
+            setPlaceTipDisabled(false);
+            setTip(parseFloat(e.target.value));
+          }
+        }
+      } else {
+        const currenttip = parseFloat(e.target.value);
+        const walletBalance = parseFloat(ctx.walletBalance);
+        if (currenttip > walletBalance) {
+          setPlaceTipDisabled(true);
+          setTip(parseFloat(e.target.value));
+        } else {
+          setPlaceTipDisabled(false);
+          setTip(parseFloat(e.target.value));
+        }
+      }
+    }
+  }
+
+
+  function sendTip() {
+    if (!tip) {
+      toast.error("Sorry. Tip box can't be empty.", {
+        autoClose: 1500,
+      });
+    } else {
+      const data = {
+        accountId: ctx.user.accountID,
+        amount: tip,
+        wallet: ctx.walletBalance,
+      };
+
+      axios({
+        method: "post",
+        url: `${betHeader}/sendTip`,
+        headers: betAuthorization,
+        data: data,
+      })
+        .then((res) => {
+          const newWallet = parseFloat(ctx.walletBalance) - parseFloat(tip);
+          ctx.walletHandler(newWallet);
+          toast.success(`Thanks for the tip! Enjoy the game`, {
+            autoClose: 1500,
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  }
+
   const [blink, setBlink] = useState();
   //===========================================
   // Websocket Functions
   //===========================================
   useEffect(() => {
-    socket.on("received_totalisator_market_update", (data) => {
+    socket.on("received_saklaMarket_update", (data) => {
       if (data.gameId === gameid) {
         setMarketDetails((prev) => {
           return {
@@ -208,8 +290,8 @@ function PlayerSakla() {
         });
         manageStatusStyle(data.status);
         handlePlaceBetButtonStatus(data.status);
-        console.log(data.marketId)
-        getBetSlips(data.marketId)
+        getBetSlips(data.marketId, true)
+        setTotalWinnigs(0)
         // setTimeout(() => {
         //   getBetSlips(data.market_id);
         // }, 1000);
@@ -218,8 +300,8 @@ function PlayerSakla() {
         // Update wallet Balance if Market is Resulted
         if (newStatus === 2) {
           setTimeout(() => {
-            getMarketTrend();
-            getBetSlips(data.marketId)
+            getMarketTrend(true);
+            
             axios({
               method: "get",
               url: `${accountHeader}/getWalletBalance/${ctx.user.accountID}`,
@@ -233,7 +315,8 @@ function PlayerSakla() {
               .catch((err) => {
                 console.log(err);
               });
-          }, 2000);
+          }, 3000);
+          newStatus = 5
         }
       }
     });
@@ -255,7 +338,6 @@ function PlayerSakla() {
     setPlaceBetDisabled(true);
     setPlaceBetText("Please Wait");
     
-    handlePotentialWin();
     const data = {
       marketId: marketDetails.market_id,
       gameId: gameid,
@@ -298,13 +380,14 @@ function PlayerSakla() {
             data: data,
           })
             .then((res) => {
+              getBetSlips(marketDetails.market_id, true)
               const newWallet = parseFloat(ctx.walletBalance) - parseFloat(stake);
               ctx.walletHandler(newWallet);
-              getBetSlips(marketDetails.market_id);
     
               setTimeout(() => {
                 setPlaceBetText("Place Bet");
                 setPlaceBetDisabled(false);
+                
               }, 5000);
               toast.success(
                 `Placed Bet successfully. BetId: ${res.data.data.betId}`,
@@ -312,6 +395,7 @@ function PlayerSakla() {
                   autoClose: 2000,
                 }
               );
+              
     
             })
             .catch((err) => {
@@ -333,7 +417,6 @@ function PlayerSakla() {
   }
 
   function handleStakeChange(e) {
-    handlePotentialWin(e.target.value, bet);
     const currentStake = parseFloat(e.target.value).toFixed(0);
     const walletBalance = parseFloat(ctx.walletBalance);
 
@@ -419,7 +502,6 @@ function PlayerSakla() {
 
   function handleChange(e) {
     setBet(e.target.value);
-    handlePotentialWin(stake, e.target.value)
   }
 
   function renderBetslips() {
@@ -459,15 +541,6 @@ function PlayerSakla() {
 
   const [potentialWin, setPotentialWin] = useState(0);
 
-  function handlePotentialWin(amount, betChoice){
-   
-  }  
-
-  function handleCardClick(e){
-    //
-    alert("hello");
-  }
-
   return (
     <div className="container text-light container-game-room">
       <ToastContainer />
@@ -479,21 +552,25 @@ function PlayerSakla() {
             >
                 <Modal.Header closeButton style={{border: "none", paddingBottom: "0px"}}>
                 <Modal.Title id="example-modal-sizes-title-lg">
-                    Market 123456 Result
+                    Market {marketDetails.market_id} Result
                 </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <div className="row cardsModal">
                         <div className="cardOneModal">
-                            <img className="cardModalImg" src={CARD} alt=""></img>
+                            <img className="cardModalImg" src={`/assets/images/${resultDesc.split(' - ')[0]}.PNG`} alt=""></img>      
                         </div>
                         <div className="cardTwoModal">
-                            <img className="cardModalImg" src={CARD2} alt=""></img>
+                          <img className="cardModalImg" src={`/assets/images/${resultDesc.split(' - ')[1]}.PNG`} alt=""></img>
                         </div>
                     </div>
                     <div className="text-center" style={{marginTop: "10px"}}>
-                        <label className="cardModalLabel">Total Winnings: P 500.0</label>
+                        <h5>{resultDesc}</h5>
                     </div>
+                    <div className="text-center" style={{marginTop: "10px"}}>
+                        <h5>Total Winnings: P {parseFloat(totalWinnings).toFixed(2)}</h5>
+                    </div>
+                    
                 </Modal.Body>
             </Modal>
       <div className="heading-text">
@@ -659,7 +736,7 @@ function PlayerSakla() {
                   <button
                     className="btn btn-color text-light"
                     type="button"
-                    onClick={sendTip}
+                    onClick={sendTip}false
                     disabled={placeTipDisabled}
                   >
                     Tip

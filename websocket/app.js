@@ -35,6 +35,24 @@ io.on("connection", (socket) => {
         socket.to("colorGame").emit("received_market_update", data)
     })
 
+    socket.on("saklaGame_market_update", (data) => {
+        console.log(data)
+
+        const status = data.status;
+        const marketId = data.marketId;
+        const gameId = data.gameId
+        // const date = data.date
+        
+        if (status === 0) {
+            console.log(`Market has been Created/Opened with marketId:${marketId} gameId:${gameId}`)
+        } else if (status === 1) {
+            console.log(`Market has been Closed with marketId:${marketId} gameId:${gameId} `)
+        } else if (status === 2) {
+            console.log(`Market has been Resulted with marketId:${marketId} gameId:${gameId}`)
+        }
+        socket.to("saklaGame").emit("received_saklaMarket_update", data)
+    })
+
     socket.on("totalisator_market_update", (data) => {
         console.log(data)
 

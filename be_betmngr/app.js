@@ -993,7 +993,7 @@ app.post("/sendTip", (req, res) => {
 
   // Process 1
   // Decrease Player Wallet
-  const cummulative = (wallet - amount).toFixed(2);
+  // const cummulative = (wallet - amount).toFixed(2);
   toDecrease = 0 - amount;
   sqlQuery = "UPDATE accounts SET wallet = wallet+? WHERE account_id = ?";
   db.query(sqlQuery, [toDecrease, accountId], (err, result1) => {
@@ -1016,10 +1016,10 @@ app.post("/sendTip", (req, res) => {
       // Insert the tips of player in transactions table
       description = "Send Tip - amount: Php " + amount;
       sqlQuery2 =
-        "INSERT INTO transactions (description, account_id, amount, cummulative, status, placement_date, transaction_type) VALUES (?,?,?,?,1,NOW(), 7)";
+        "INSERT INTO transactions (description, account_id, amount, cummulative, status, placement_date, transaction_type) VALUES (?,?,?,(SELECT wallet FROM accounts WHERE account_id = ?),1,NOW(), 7)";
       db.query(
         sqlQuery2,
-        [description, accountId, amount, cummulative],
+        [description, accountId, amount, accountId],
         (err, result2) => {
           if (err) {
             logger.error(

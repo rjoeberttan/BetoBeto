@@ -96,6 +96,7 @@ function AdminGameSettingsSakla() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    socket.emit("join_room", "saklaGame")
     //get user auth
     axios({
       method: "get",
@@ -299,7 +300,11 @@ function AdminGameSettingsSakla() {
               status: data.status,
             };
           });
-
+          socket.emit("saklaGame_market_update", {
+            marketId: data.marketId,
+            status: data.status,
+            gameId: gameid
+          });
           toast.success("Success Create Market");
           DisableSettings();
         })
@@ -332,11 +337,11 @@ function AdminGameSettingsSakla() {
               status: data.status,
             };
           });
-          // socket.emit("totalisator_market_update", {
-          //   marketId: data.marketId,
-          //   status: data.status,
-          //   gameId: gameid
-          // });
+          socket.emit("saklaGame_market_update", {
+            marketId: data.marketId,
+            status: data.status,
+            gameId: gameid
+          });
           toast.success("Successfully Open Market");
           DisableSettings();
         })
@@ -368,11 +373,11 @@ function AdminGameSettingsSakla() {
               status: data.status,
             };
           });
-          // socket.emit("totalisator_market_update", {
-          //   marketId: data.marketId,
-          //   status: data.status,
-          //   gameId: gameid
-          // });
+          socket.emit("saklaGame_market_update", {
+            marketId: data.marketId,
+            status: data.status,
+            gameId: gameid
+          });
           toast.success("Successfully Closed Market");
           DisableSettings();
         })
@@ -424,12 +429,12 @@ function AdminGameSettingsSakla() {
           })
           toast.success(res.data.message)
           
-          // //State Resets
-          // socket.emit("totalisator_market_update", {
-          //   marketId: res.data.data.marketId,
-          //   status: res.data.data.status,
-          //   gameId: gameid
-          // });
+          //State Resets
+          socket.emit("saklaGame_market_update", {
+            marketId: res.data.data.marketId,
+            status: 2,
+            gameId: gameid
+          });
 
         })
         .catch((err) => {
@@ -465,12 +470,12 @@ function AdminGameSettingsSakla() {
           });
           toast.success("Market Cancelled")
           
-          // //State Resets
-          // socket.emit("totalisator_market_update", {
-          //   marketId: res.data.data.marketId,
-          //   status: res.data.data.status,
-          //   gameId: gameid
-          // });
+          //State Resets
+          socket.emit("totalisator_market_update", {
+            marketId: res.data.data.marketId,
+            status: 4,
+            gameId: gameid
+          });
           axios({
             method: "post",
             url: `${settlementHeader}/settleSaklaBets`,
