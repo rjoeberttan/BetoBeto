@@ -59,3 +59,11 @@
     display: flex;
     justify-content: flex-end;
 }
+
+.results-padding-sakla{
+    padding: 5px;
+}
+
+.results-box-margin-sakla{
+    margin: 0px;
+}

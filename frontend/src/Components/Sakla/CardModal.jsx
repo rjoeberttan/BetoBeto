@@ -2,8 +2,6 @@ import React, { useEffect, useContext} from "react";
 import { useState } from "react";
 import { AuthContext } from "../../store/auth-context";
 import {Modal} from 'react-bootstrap';
-import CARD from "./1 BASTOS.PNG";
-import CARD2 from "./1_ESPADA.PNG";
 import axios from "axios";
 import { toast } from "react-toastify";
 

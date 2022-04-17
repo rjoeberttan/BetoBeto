@@ -634,8 +634,7 @@ function AdminGameSettingsSakla() {
           <AdminModalSakla />
         </div>
       </div>
-      <div className="row">
-        <div className="row" style={{maxWidth: "880px"}}> 
+      <div className="row" style={{marginBottom: "30px"}}>
             {/* Game settings */}
             <div className="col-md-4 card-margin-bottom" style={{minWidth: "440px"}}>
             <div className="card text-white bg-dark mb-3">
@@ -832,7 +831,7 @@ function AdminGameSettingsSakla() {
 
 
             {/* Manipulate Bets */}
-            <div className="col-md-4 card-margin-bottom" style={{minWidth: "410px", maxHeight: "436px", overflow: "auto"}}>
+            <div className="col-md-5 card-margin-bottom" style={{minWidth: "410px", maxHeight: "436px", overflow: "auto"}}>
                 <div className="card text-white bg-dark mb-3" style={{backgroundColor: "blue", display: "inline-block"}}>
                     <div className="card-body bg-dark">
                     <h5 className="card-title">Manipulate Bets</h5>
@@ -840,8 +839,8 @@ function AdminGameSettingsSakla() {
                     <div className="row">
                         {resultChoicesSelect.map(choice => {
                           return(
-                            <div className="col-md-12 row label-margin">
-                              <div className="col-md-5 label-margin" style={{whiteSpace: "nowrap"}}>{choice.description}</div>
+                            <div className="col-md-12 row label-margin" style={{marginBottom: "5px"}}>
+                              <div className="col-md-4 label-margin" style={{whiteSpace: "nowrap"}}>{choice.description}</div>
                               <div className="col-md-6">
                                 <input
                                   className="form-control"
@@ -857,11 +856,11 @@ function AdminGameSettingsSakla() {
                                   onChange={handleManipulateValue}
                                 ></input>
                               </div>
-                              <div className="label-margin">
+                              <div className="col-md-2">
                                 <button
                                   className="btn btn-color text-light"
                                   name={choice.choice_id}
-                                  style={{ marginTop: "15px", minWidth: "100px" }}
+                                  style={{ minWidth: "70px" }}
                                   onClick={saveManpulateBetValue}
                                 >
                                   Save
@@ -871,28 +870,22 @@ function AdminGameSettingsSakla() {
                             )
                         })}
                     </div>
-                    <div className="text-center">
+                    {/* <div className="text-center">
                     <button
                         className="btn btn-color text-light"
                         style={{ marginTop: "15px", minWidth: "100px" }}
                     >
                         Save
                     </button>
-                    </div>
+                    </div> */}
                     </form>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        {/* Youtube */}
-        <div className="col-md-5">
-          <YoutubeEmbed embedId={gameDetails.youtube_url} />
-        </div>  
+          </div>
 
         {/* Result table */}
-        <div className="col-md-7 card-margin-bottom" style={{maxHeight: "300px", overflow: "auto"}}>
-          <div className="card text-white bg-dark mb-3" style={{}}>
+        <div className="col-md-7 card-margin-bottom" style={{maxHeight: "500px", overflow: "auto"}}>
+          <div className="card text-white bg-dark mb-3">
             <div className="card-body bg-dark">
               <h5 className="card-title">Received Bets</h5>
               <h6 className="card-subtitle mb-2 text-muted">
@@ -940,6 +933,13 @@ function AdminGameSettingsSakla() {
             </div>
           </div>
         </div>
+
+        {/* Youtube */}
+        <div className="col-md-12">
+          <YoutubeEmbed embedId={gameDetails.youtube_url} />
+        </div>  
+
+        
       </div>
     </div>
   );

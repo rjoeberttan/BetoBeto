@@ -9,8 +9,6 @@ import {Modal} from 'react-bootstrap';
 import "react-toastify/dist/ReactToastify.css";
 import "react-toastify/dist/ReactToastify.min.css";
 import "./PlayerSakla.css";
-import CARD from "./1 BASTOS.PNG";
-import CARD2 from "./1_ESPADA.PNG";
 import CardModal from "./CardModal";
 const axios = require("axios");
 
@@ -516,7 +514,7 @@ function PlayerSakla() {
           {betslip.map((x) => (
             <div
               class="card text-white bg-secondary mb-3"
-              // style={{ height: "150px" }}
+              style={{ padding: "5px" }}
             >
               <h5>  
                 Bet #{x.bet_id} {x.description} <br></br> Market #{x.market_id}
@@ -612,15 +610,15 @@ function PlayerSakla() {
       </div>
 
       
-      <div className="row">
+      <div className="row" style={{marginBottom: "30px"}}>
           <div className="col-md-8" >
           {/* Market ID AND Bet Status */}
             <div className="col-md-12" style={{maxHeight: "75px", padding: "10px", marginBottom: "10px", backgroundColor: "#FFF"}}>
               <div className="row">
-                <h5 className="col-md-6" style={{color: "black"}}>
+                <h5 className="col-md-6 col-6" style={{color: "black"}}>
                   Current Market ID: {marketDetails.market_id}
                 </h5>
-                <h5 className="col-md-6 alignRight" style={statusStyle} >
+                <h5 className="col-md-6 col-6 alignRight" style={statusStyle} >
                   <b>Betting Status:</b> &nbsp;
                   {marketDetails.status === 0
                     ? " OPEN"
@@ -628,6 +626,10 @@ function PlayerSakla() {
                     ? " CLOSED"
                     : " RESULTED"}
                 </h5>
+                <p style={{color: "black"}}>
+                Min/Max Bet: ₱{parseFloat(gameDetails.min_bet).toFixed(2)} - ₱
+                {parseFloat(gameDetails.max_bet).toFixed(2)}
+              </p>
               </div>
             </div>
 
@@ -642,25 +644,22 @@ function PlayerSakla() {
                 <div className="card text-black" style={{background: "#FFF"}}>
                   <div className="card-body table-responsive-sm">
                     <h4 className="card-title">Market Results:</h4>
-                    <div class="row results-padding">
+                    <div class="row results-padding results-padding-sakla">
                       {results.map((x) => {
-                        {/* {console.log(x)} */}
                         return (
-                          <div class="col-md-3 col-6 results-margin results-box-padding" style={(x.result === "PUTI" || x.result === "HIGH") ? {backgroundColor: "rgb(119, 196, 226)", border: "1px solid black"} : (x.result === "PULA" || x.result === "LOW") ? {backgroundColor: "#dd3d3d", border: "1px solid black"} : {backgroundColor: "#a333c8", border: "1px solid black"}}>
+                          <div class="col-md-4 col-6 results-box-padding results-box-margin-sakla" style={(x.result === "PUTI" || x.result === "HIGH") ? {backgroundColor: "rgb(119, 196, 226)", border: "1px solid black"} : (x.result === "PULA" || x.result === "LOW") ? {backgroundColor: "#dd3d3d", border: "1px solid black"} : {backgroundColor: "#a333c8", border: "1px solid black"}}>
                             {x.market_id}
                             <div className="text-center" style={{marginBottom: "5px"}}> 
                               <img src={`/assets/images/${x.result.split(' - ')[0]}.PNG`} alt="" style={{width: "auto", height: "100px", marginRight: "5px"}}></img>
                               <img src={`/assets/images/${x.result.split(' - ')[1]}.PNG`} alt="" style={{width: "auto", height: "100px"}}></img>
                             </div>
                             <div>
-                              <label>{x.result.split(' - ')[1] ? `${x.result.split(' - ')[0]} - ` : `${x.result.split(' - ')[0]}`}</label> &nbsp;
-                              <label>{x.result.split(' - ')[1] ? `${x.result.split(' - ')[1]}` : ""}</label>
+                              <label style={{fontSize: "14px", whiteSpace: "pre-line"}}>{x.result.split(' - ')[1] ? `${x.result.split(' - ')[0]} - ` : `${x.result.split(' - ')[0]}`}</label> &nbsp;
+                              <label style={{fontSize: "14px",  whiteSpace: "pre-line"}}>{x.result.split(' - ')[1] ? `${x.result.split(' - ')[1]}` : ""}</label>
                             </div>
                           </div>
                         )
-                        
                       })}
-
                     </div>
                   </div>
                 </div>
@@ -670,7 +669,7 @@ function PlayerSakla() {
           
           <div className="col-md-4">
             {/* BetSlips */}
-            <div className="col-md-12" style={{maxHeight: "544px", marginBottom: "10px", overflow: "auto"}}>
+            <div className="col-md-12" style={{maxHeight: "568px", marginBottom: "10px", overflow: "auto"}}>
               <div className="card text-black">
                 <div className="card-body table-responsive-sm">
                   <h4 className="card-title">Bets Placed</h4>
@@ -712,61 +711,6 @@ function PlayerSakla() {
               </div>
             </div>
           </div>
-      </div>
-
-      <div className="row">
-        {/* <div className="label-margin col-md-4">
-          <div className="text-center">
-            <div className="card text-black" style={{ height: "250px" }}>
-              <div className="card-body">
-                <h5 className="card-title" style={{ marginTop: "50px" }}>
-                  Donation Box
-                </h5>
-                <p className="card-text">
-                  If you enjoy playing, you can tip me!
-                </p>
-                <div className="input-group mb-2">
-                  <input
-                    type="number"
-                    className="form-control"
-                    placeholder="P500"
-                    onChange={handleTipChange}
-                    value={tip}
-                  />
-                  <button
-                    className="btn btn-color text-light"
-                    type="button"
-                    onClick={sendTip}false
-                    disabled={placeTipDisabled}
-                  >
-                    Tip
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> */}
-        {/* Result Box */}
-        {/* <div className="label-margin col-md-4">
-          <div className="text-center">
-            <div className="card text-black">
-              <div className="card-body table-responsive-sm">
-                <h4 className="card-title">Market Results:</h4>
-                <div class="row results-padding">
-                  {results.map((x) => {
-                    return (
-                      <div class="col-md-2 col-6 results-margin results-box-padding" style={(x.result === "PUTI" || x.result === "HIGH") ? {backgroundColor: "rgb(119, 196, 226)", border: "1px solid black"} : (x.result === "PULA" || x.result === "LOW") ? {backgroundColor: "#dd3d3d", border: "1px solid black"} : {backgroundColor: "#a333c8", border: "1px solid black"}}>
-                        {x.market_id}
-                      </div>
-                    )
-                    
-                  })}
-
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> */}
       </div>
     </div>
   );
